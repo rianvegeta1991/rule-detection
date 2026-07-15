@@ -1,0 +1,18 @@
+{
+  "name": "Regel-Detektiv",
+  "short_name": "Regel-Detektiv",
+  "description": "Ermittle die verborgenen Regeln – Fall für Fall. Ein Rätsel-Detektivspiel für Feld- und Kreis-Modus, allein oder im Duell.",
+  "lang": "de",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
