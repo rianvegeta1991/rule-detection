@@ -1,5 +1,5 @@
 /* Regel-Detektiv – Service Worker (Offline-Cache) */
-const CACHE = 'regel-detektiv-v2';
+const CACHE = 'regel-detektiv-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -14,7 +14,12 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((cache) =>
+      // einzeln cachen: eine fehlende Datei darf die Installation nicht scheitern lassen
+      Promise.all(ASSETS.map((url) =>
+        cache.add(url).catch((err) => console.warn('[SW] nicht gecacht:', url, err))
+      ))
+    ).then(() => self.skipWaiting())
   );
 });
 
@@ -29,7 +34,25 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
-  // Cache-first, mit Netz-Fallback und Nachcachen
+
+  // Fremde Hosts (Firebase, gstatic) niemals abfangen – sonst bricht der Online-Modus
+  let url;
+  try { url = new URL(req.url); } catch (e) { return; }
+  if (url.origin !== self.location.origin) return;
+
+  // Netz zuerst fuer das Dokument (damit Updates sofort ankommen), sonst Cache
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy));
+        return res;
+      }).catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Cache-first fuer statische Dateien
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;

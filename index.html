@@ -274,6 +274,21 @@
   .mp-result{margin-top:14px; text-align:center; font-size:1rem; line-height:1.6;}
   .mp-result .win-line{font-family:'Palatino Linotype','Book Antiqua',Georgia,serif; font-size:1.3rem; font-weight:700; color:var(--gold);}
 
+  /* ===== Online-Lobby ===== */
+  .room-item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; background:rgba(11,18,32,0.6); border:1px solid var(--cell-border); border-radius:10px;}
+  .room-item .rc{font-family:'Palatino Linotype','Book Antiqua',Georgia,serif; font-size:1.25rem; font-weight:700; letter-spacing:0.2em; color:var(--gold);}
+  .room-item .rt{font-size:0.76rem; color:var(--muted);}
+  .room-item button{padding:8px 14px; min-height:44px;}
+  #onl-rooms .empty{color:var(--muted); font-size:0.82rem; padding:8px 2px;}
+  #onl-create, #onl-join, #onl-code, #onl-theme{min-height:44px;}
+  #onl-code{font-size:1.1rem;}
+  #onl-msg.err{background:#7f1d1d; border-color:var(--bad); color:#fecaca;}
+  #onl-turn.mine{background:#134e4a; border-color:var(--good); color:#ccfbf1;}
+  #onl-turn.theirs{background:#3f3352; border-color:#7c3aed; color:#ddd6fe;}
+  #onl-turn.over{background:#334155; border-color:var(--cell-border); color:var(--muted);}
+  .conn-dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle;}
+  .conn-dot.on{background:var(--good);} .conn-dot.off{background:var(--bad);}
+
   /* ===== mobile / responsive ===== */
   html,body{overflow-x:hidden;}
   .circle-host{max-width:100%;}
@@ -371,7 +386,8 @@
 
   <div class="tab-caption">Tatort w&auml;hlen</div>
   <div class="diff-grid" id="diff-grid"></div>
-  <div style="text-align:center; margin-top:16px;">
+  <div style="text-align:center; margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+    <button class="action" id="open-online" style="background:#0e7490; border-color:#22d3ee; padding:10px 16px;">&#128241; Online spielen &ndash; Kreis-Gerangel auf 2 Handys</button>
     <button class="action" id="open-editor" style="background:#4c1d95; border-color:#a78bfa; padding:10px 16px;">&#128295; Editor-Modus &ndash; eigene Regeln erstellen</button>
   </div>
 </div>
@@ -654,9 +670,87 @@
   <div id="mpcg-result" class="mp-result hidden"></div>
 </div>
 
+<!-- ONLINE: KREIS-GERANGEL auf zwei Geraeten -->
+<div id="online" class="mp-screen hidden">
+  <div class="mp-top">
+    <div class="mp-title" id="onl-title">Online &middot; Kreis-Gerangel</div>
+    <div class="footer-row">
+      <button class="action warn hidden" id="onl-reveal">Aufl&ouml;sung</button>
+      <button class="action" id="onl-leave">Zur&uuml;ck</button>
+    </div>
+  </div>
+
+  <!-- ---------- Lobby ---------- -->
+  <div id="onl-lobby">
+    <div id="onl-msg" class="banner hidden" style="margin-bottom:12px;"></div>
+    <div class="panel">
+      <div class="tab-caption" style="margin-top:0;">Neuen Raum er&ouml;ffnen</div>
+      <div class="btn-row">
+        <select id="onl-theme" class="ed-sel" style="flex:1;"></select>
+        <button class="action" id="onl-create">Raum erstellen</button>
+      </div>
+      <div class="hint" style="color:var(--muted); font-size:0.76rem; margin-top:4px;">Du bekommst einen Code, den dein Mitspieler eingibt. Du bist <b class="p1" style="color:var(--p1)">Spieler 1</b>.</div>
+
+      <div class="tab-caption">Einem Raum beitreten</div>
+      <div class="btn-row">
+        <input id="onl-code" class="ed-inp" placeholder="CODE" maxlength="4" autocapitalize="characters" autocomplete="off" style="flex:1; text-transform:uppercase; letter-spacing:0.25em; font-weight:700; text-align:center;">
+        <button class="action" id="onl-join">Beitreten</button>
+      </div>
+
+      <div class="tab-caption">Offene R&auml;ume <span id="onl-rooms-hint" style="font-weight:400; text-transform:none; letter-spacing:0;"></span></div>
+      <div id="onl-rooms"></div>
+    </div>
+  </div>
+
+  <!-- ---------- Warteraum ---------- -->
+  <div id="onl-wait" class="hidden">
+    <div class="panel" style="text-align:center;">
+      <div style="font-size:0.9rem; color:var(--muted);">Dein Raumcode &ndash; gib ihn deinem Mitspieler:</div>
+      <div id="onl-wait-code" style="font-family:'Palatino Linotype',Georgia,serif; font-size:3rem; font-weight:700; letter-spacing:0.3em; color:var(--gold); margin:8px 0;"></div>
+      <div id="onl-wait-status" class="hint" style="color:var(--muted);">Warte auf Mitspieler &hellip;</div>
+    </div>
+  </div>
+
+  <!-- ---------- Spiel ---------- -->
+  <div id="onl-game" class="hidden">
+    <div id="onl-turn" class="banner" style="margin-bottom:10px; text-align:center; font-weight:700;"></div>
+    <div id="onl-reveal-box" class="banner hidden" style="margin-bottom:12px;"></div>
+    <div class="mp-wrap" style="align-items:flex-start;">
+      <div class="mp-col" style="max-width:260px;">
+        <div class="mp-head" id="onl-me-head"></div>
+        <div id="onl-det"></div>
+        <div class="mp-steps" id="onl-steps">
+          <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
+        </div>
+      </div>
+      <div id="onl-host" class="circle-host"></div>
+      <div class="mp-col" style="max-width:260px;">
+        <div class="mp-head" id="onl-opp-head"></div>
+        <div class="mp-log clog" id="onl-log" style="font-size:0.74rem;"></div>
+      </div>
+    </div>
+    <div id="onl-result" class="mp-result hidden"></div>
+  </div>
+</div>
+
+<!-- Firebase (nur fuer den Online-Modus; alles andere laeuft ohne Netz) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <script>
 (function(){
   "use strict";
+
+  // ===================== FIREBASE / ONLINE-KONFIG =====================
+  const FB_CONFIG = {
+    apiKey: "AIzaSyAPvJ6SaAUlxX4CLvqjZWo3cBYTctoT9cw",
+    authDomain: "rule-detection.firebaseapp.com",
+    databaseURL: "https://rule-detection-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "rule-detection",
+    storageBucket: "rule-detection.firebasestorage.app",
+    messagingSenderId: "393830288119",
+    appId: "1:393830288119:web:5d5e43242908148a6561f2"
+  };
 
   const VECS = [[0,-1],[1,0],[0,1],[-1,0]]; // up, right, down, left
   const SECONDARIES = ['mirrorLR','mirrorUD','rotateCW','rotateCCW','swapAxes'];
@@ -1320,7 +1414,7 @@
 
   let spgState=null, spcState=null, mp=null;
 
-  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg'].forEach(id=>$(id).classList.add('hidden')); $('start-settings').classList.add('hidden'); }
+  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online'].forEach(id=>$(id).classList.add('hidden')); $('start-settings').classList.add('hidden'); }
   function teardownActive(){
     if(spcState) spcState.mounted=false;
     if(spgState && spgState.board) stopDogTimer(spgState.board);
@@ -1730,6 +1824,310 @@
     else box.classList.add('hidden');
   }
 
+  // ===================== ONLINE: KREIS-GERANGEL (zwei Geraete, Firebase) =====================
+  // Modell: Der Raum-Ersteller ("host") ist die massgebliche Instanz. Er rechnet jeden Zug mit
+  // circleStepG und veroeffentlicht den Zustand. Der Gast schickt nur seine Eingaben und stellt
+  // den veroeffentlichten Zustand dar. Dadurch koennen beide Geraete nicht auseinanderlaufen.
+  let fbDb=null, fbInited=false;
+  function fbInit(){
+    if(fbInited) return !!fbDb;
+    fbInited=true;
+    if(typeof firebase==='undefined' || !firebase.initializeApp) return false;
+    try{ firebase.initializeApp(FB_CONFIG); fbDb=firebase.database(); }
+    catch(e){ console.warn('Firebase-Init fehlgeschlagen:', e); fbDb=null; }
+    return !!fbDb;
+  }
+  const ONL_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  function onlGenCode(){ let s=''; for(let i=0;i<4;i++) s+=ONL_CHARS[randInt(ONL_CHARS.length)]; return s; }
+  function onlGenId(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+  function clean(o){ return JSON.parse(JSON.stringify(o)); }
+
+  let onl=null;          // aktueller Online-Zustand
+  let onlLobbyRef=null;  // Listener der Raumliste
+
+  function onlMsg(text, isErr){
+    const m=$('onl-msg');
+    if(!text){ m.classList.add('hidden'); return; }
+    m.textContent=text; m.classList.remove('hidden'); m.classList.toggle('err', !!isErr);
+  }
+  function onlShow(which){
+    ['onl-lobby','onl-wait','onl-game'].forEach(id=>$(id).classList.add('hidden'));
+    $(which).classList.remove('hidden');
+    $('onl-reveal').classList.toggle('hidden', which!=='onl-game');
+  }
+  function openOnline(){
+    teardownActive(); hideAllScreens(); $('online').classList.remove('hidden'); startBg();
+    onlMsg('');
+    onlShow('onl-lobby');
+    if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst. Der Online-Modus braucht Internet – offline funktionieren aber alle anderen Modi.', true); return; }
+    onlWatchLobby();
+  }
+  function onlDetachLobby(){ if(onlLobbyRef){ try{ onlLobbyRef.ref.off('value', onlLobbyRef.cb); }catch(e){} onlLobbyRef=null; } }
+  function onlWatchLobby(){
+    onlDetachLobby();
+    const ref=fbDb.ref('lobby');
+    const cb=ref.on('value', snap=>{
+      const hostEl=$('onl-rooms'); hostEl.innerHTML='';
+      const val=snap.val()||{}; const now=Date.now();
+      const rooms=Object.keys(val)
+        .map(code=>({ code, ts:val[code].ts||0, theme:val[code].theme||'' }))
+        .filter(r=> now-r.ts < 30*60*1000)   // nur frische Raeume zeigen
+        .sort((a,b)=>b.ts-a.ts);
+      if(!rooms.length){ const d=el('div','empty'); d.textContent='Gerade keine offenen Räume – erstelle selbst einen.'; hostEl.appendChild(d); return; }
+      rooms.forEach(r=>{
+        const row=el('div','room-item');
+        const left=el('div');
+        const c=el('div','rc'); c.textContent=r.code;
+        const t=el('div','rt'); t.textContent=THEMES[r.theme]?THEMES[r.theme].title:'';
+        left.appendChild(c); left.appendChild(t);
+        const b=el('button','action'); b.textContent='Beitreten'; b.onclick=()=>onlJoin(r.code);
+        row.appendChild(left); row.appendChild(b); hostEl.appendChild(row);
+      });
+    });
+    onlLobbyRef={ref, cb};
+  }
+
+  function onlSerializeConfig(config){
+    return clean({
+      diffKey: onl.diffKey,
+      specs: config.specs.map(s=>({ fieldCount:s.fieldCount, star:s.star, rule:s.rule, rotRule:s.rotRule })),
+      outerIdx: config.outerIdx,
+      startIndex: config.startIndex,
+      poseEffects: config.poseEffects.concat([{kind:'sabotage'}])
+    });
+  }
+  function onlBuildGs(cfg){
+    const outerIdx=cfg.outerIdx, fc=cfg.specs[outerIdx].fieldCount;
+    const mk=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[] });
+    return {
+      diffKey: cfg.diffKey, theme: THEMES[cfg.diffKey]||THEMES.mittel,
+      mounted:true, animating:false,
+      rings: cfg.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rule:s.rule, rotRule:s.rotRule, offset:0, offsetVisual:null })),
+      poseEffects: cfg.poseEffects, poseNames: GER_POSE_NAMES,
+      players: [ mk(cfg.startIndex), mk((cfg.startIndex+Math.floor(fc/2))%fc) ],
+      turn: 0
+    };
+  }
+  function onlEnterGame(cfg){
+    if(!onl.gs) onl.gs=onlBuildGs(cfg);
+    const gs=onl.gs;
+    setThemeBg(gs.theme);
+    onlShow('onl-game');
+    $('onl-title').innerHTML=`Online &middot; ${gs.theme.title} &middot; <small>Raum ${onl.code}</small>`;
+    buildGerangelCircle(gs, $('onl-host'), 0.9);
+    markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
+    $('onl-result').classList.add('hidden'); $('onl-reveal-box').classList.add('hidden');
+    onl.revealVisible=false;
+    renderGerLog($('onl-log'), []);
+    onlRenderUi();
+  }
+
+  async function onlCreate(){
+    if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst.', true); return; }
+    onlMsg('');
+    const diffKey=$('onl-theme').value;
+    let code=onlGenCode();
+    for(let i=0;i<5;i++){ const s=await fbDb.ref('rooms/'+code).once('value'); if(!s.exists()) break; code=onlGenCode(); }
+    const myId=onlGenId(), roomRef=fbDb.ref('rooms/'+code);
+    await roomRef.set({ meta:{ status:'waiting', diffKey, created: firebase.database.ServerValue.TIMESTAMP, hostId:myId }, players:{ host:{ id:myId } } });
+    await fbDb.ref('lobby/'+code).set({ ts: firebase.database.ServerValue.TIMESTAMP, theme:diffKey });
+    fbDb.ref('lobby/'+code).onDisconnect().remove();
+    roomRef.onDisconnect().remove();     // Raum verschwindet, wenn der Gastgeber weg ist
+    onl={ code, role:'host', myIdx:0, roomRef, myId, diffKey, stateSeq:0, inSeq:0, lastGuestSeq:0, started:false, finished:false, winner:null, listeners:[] };
+    onlDetachLobby();
+    $('onl-wait-code').textContent=code;
+    $('onl-wait-status').textContent='Warte auf Mitspieler …';
+    onlShow('onl-wait');
+    const gRef=roomRef.child('players/guest');
+    const cb=gRef.on('value', snap=>{
+      if(snap.exists()){ if(!onl.started) onlHostStart(); }
+      else if(onl.started) onlOpponentLeft(false);
+    });
+    onl.listeners.push({ref:gRef, ev:'value', cb});
+  }
+
+  async function onlJoin(code){
+    if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst.', true); return; }
+    code=(code||'').toUpperCase().trim();
+    if(code.length!==4){ onlMsg('Bitte einen 4-stelligen Raumcode eingeben.', true); return; }
+    const roomRef=fbDb.ref('rooms/'+code);
+    const snap=await roomRef.once('value');
+    if(!snap.exists()){ onlMsg('Raum '+code+' wurde nicht gefunden.', true); return; }
+    const v=snap.val();
+    if(!v.meta || v.meta.status!=='waiting' || (v.players&&v.players.guest)){ onlMsg('Raum '+code+' ist bereits belegt.', true); return; }
+    const myId=onlGenId();
+    await roomRef.child('players/guest').set({ id:myId });
+    await fbDb.ref('lobby/'+code).remove();
+    onl={ code, role:'guest', myIdx:1, roomRef, myId, diffKey:v.meta.diffKey, stateSeq:0, inSeq:0, started:false, finished:false, winner:null, listeners:[] };
+    roomRef.child('players/guest').onDisconnect().remove();
+    onlDetachLobby(); onlMsg('');
+    $('onl-wait-code').textContent=code;
+    $('onl-wait-status').textContent='Verbunden – warte auf Spielstart …';
+    onlShow('onl-wait');
+    const cRef=roomRef.child('config');
+    const cb=cRef.on('value', s=>{
+      const cfg=s.val(); if(!cfg || onl.started) return;
+      onl.started=true; onl.config=cfg; onl.gs=onlBuildGs(cfg);
+      onlEnterGame(cfg);
+      const sRef=roomRef.child('state');
+      const cb2=sRef.on('value', s2=>{ const st=s2.val(); if(st) onlApplyState(st); });
+      onl.listeners.push({ref:sRef, ev:'value', cb:cb2});
+    });
+    onl.listeners.push({ref:cRef, ev:'value', cb});
+    const mRef=roomRef.child('meta');
+    const cb3=mRef.on('value', s=>{ if(!s.exists()) onlOpponentLeft(true); });
+    onl.listeners.push({ref:mRef, ev:'value', cb:cb3});
+  }
+
+  function onlHostStart(){
+    if(onl.started) return;
+    onl.started=true;
+    fbDb.ref('lobby/'+onl.code).remove();
+    const config=buildCircleConfig(onl.diffKey, {});
+    const cfg=onlSerializeConfig(config);
+    onl.config=cfg; onl.gs=onlBuildGs(cfg);
+    onl.roomRef.child('config').set(cfg);
+    onl.roomRef.child('meta/status').set('playing');
+    onlEnterGame(cfg);
+    onlPublish();
+    const iRef=onl.roomRef.child('inputs/guest');
+    const cb=iRef.on('value', s=>{ const inp=s.val(); if(inp) onlHostHandleInput(1, inp); });
+    onl.listeners.push({ref:iRef, ev:'value', cb});
+  }
+
+  function onlPublish(){
+    if(!onl || onl.role!=='host' || !onl.gs) return;
+    const gs=onl.gs;
+    onl.roomRef.child('state').set(clean({
+      seq: ++onl.stateSeq,
+      turn: gs.turn,
+      finished: !!onl.finished,
+      winner: (onl.winner==null ? -1 : onl.winner),
+      rings: gs.rings.map(r=>r.offset),
+      p: gs.players.map(p=>({ r:p.ringIdx, i:p.index, pose:p.gandalfPose, moves:p.moves, done:!!p.done, doneAt:p.doneAtMove||0 })),
+      logs: gs.players.map(p=>(p.log||[]).slice(0,3))
+    }));
+  }
+  function onlApplyState(st){
+    const gs=onl.gs; if(!gs) return;
+    (st.rings||[]).forEach((off,i)=>{ if(gs.rings[i]){ gs.rings[i].offset=off; gs.rings[i].offsetVisual=null; } });
+    (st.p||[]).forEach((p,i)=>{ const pl=gs.players[i]; if(!pl) return;
+      pl.ringIdx=p.r; pl.index=p.i; pl.gandalfPose=p.pose||0; pl.moves=p.moves||0; pl.done=!!p.done; pl.doneAtMove=p.doneAt||null; });
+    gs.turn=st.turn||0;
+    onl.finished=!!st.finished;
+    onl.winner=(st.winner==null||st.winner<0)?null:st.winner;
+    const logs=st.logs||[];
+    gs.players.forEach((pl,i)=>{ pl.log=logs[i]||[]; });
+    applyRingTransforms(gs);
+    positionMarkerG(gs, gs.players[0]); positionMarkerG(gs, gs.players[1]);
+    updateHighlightG(gs);
+    renderGerLog($('onl-log'), gs.players[onl.myIdx].log||[]);
+    onlRenderUi();
+    if(onl.finished) onlShowResult();
+  }
+
+  async function onlHostHandleInput(pi, inp){
+    if(!onl || onl.role!=='host' || !onl.gs) return;
+    if(!inp || typeof inp.seq!=='number' || inp.seq<=(onl.lastGuestSeq||0)) return;
+    onl.lastGuestSeq=inp.seq;
+    await onlApplyAction(pi, inp);
+  }
+  async function onlApplyAction(pi, act){
+    const gs=onl.gs; if(!gs || onl.finished) return;
+    const pl=gs.players[pi]; if(!pl || pl.done) return;
+    if(act.kind==='pose'){
+      pl.gandalfPose=(pl.gandalfPose+1)%gs.poseEffects.length;
+      onlRenderUi(); onlPublish(); return;
+    }
+    if(act.kind==='move'){
+      if(gs.animating || gs.turn!==pi) return;
+      const won=await circleStepG(gs, pi, act.choice);
+      if(!gs.mounted) return;
+      markerFlashG(pl); updateHighlightG(gs);
+      renderGerLog($('onl-log'), gs.players[onl.myIdx].log||[]);
+      if(won){ onl.finished=true; onl.winner=pi; onlRenderUi(); onlPublish(); onlShowResult(); return; }
+      gs.turn=1-pi;
+      onlRenderUi(); onlPublish();
+    }
+  }
+  function onlSend(kind, choice){
+    if(!onl) return;
+    if(onl.role==='host'){ onlApplyAction(0, {kind, choice}); return; }
+    onl.roomRef.child('inputs/guest').set({ seq: ++onl.inSeq, kind, choice:(choice==null?0:choice), ts: firebase.database.ServerValue.TIMESTAMP });
+  }
+  function onlMove(choice){
+    if(!onl || !onl.gs || onl.finished) return;
+    if(onl.gs.turn!==onl.myIdx || onl.gs.players[onl.myIdx].done) return;
+    onlSend('move', choice);
+  }
+  function onlPose(){
+    if(!onl || !onl.gs || onl.finished) return;
+    if(onl.gs.players[onl.myIdx].done) return;
+    onlSend('pose', 0);
+  }
+
+  function onlRenderUi(){
+    const gs=onl.gs; if(!gs) return;
+    const me=gs.players[onl.myIdx], opp=gs.players[1-onl.myIdx];
+    const meLbl=onl.myIdx===0?'Spieler 1':'Spieler 2', oppLbl=onl.myIdx===0?'Spieler 2':'Spieler 1';
+    const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
+    $('onl-me-head').className='mp-head '+meCol;
+    $('onl-me-head').innerHTML=`<b>Du</b> (${meLbl}) &middot; Z&uuml;ge <b>${me.moves}</b> ${me.done?'<span class="mp-status done">✓ im Zentrum</span>':''}`;
+    $('onl-opp-head').className='mp-head '+oppCol;
+    $('onl-opp-head').innerHTML=`Gegner (${oppLbl}) &middot; Z&uuml;ge <b>${opp.moves}</b> ${opp.done?'<span class="mp-status done">✓ im Zentrum</span>':''}`;
+    const t=$('onl-turn'); t.classList.remove('mine','theirs','over');
+    if(onl.finished){ t.classList.add('over'); t.textContent='Runde beendet.'; }
+    else if(gs.turn===onl.myIdx){ t.classList.add('mine'); t.textContent='Du bist dran!'; }
+    else { t.classList.add('theirs'); t.textContent='Gegner ist dran …'; }
+    const enabled = !onl.finished && gs.turn===onl.myIdx && !me.done;
+    document.querySelectorAll('#onl-steps button').forEach(b=>b.disabled=!enabled);
+    onlRenderDet();
+  }
+  function onlRenderDet(){
+    const gs=onl.gs, pl=gs.players[onl.myIdx];
+    const eff=gs.poseEffects[pl.gandalfPose];
+    const isSabo=eff && eff.kind==='sabotage';
+    const hostEl=$('onl-det');
+    hostEl.innerHTML=`<div class="ger-det ${onl.myIdx===0?'p1':'p2'} active${isSabo?' sabotage':''}">`
+      + detectiveSvg(pl.gandalfPose, 62)
+      + `<span class="d-pose2">${gs.poseNames[pl.gandalfPose]}</span>`
+      + `<span class="d-hint">Tippen zum Wechseln</span></div>`;
+    hostEl.firstChild.onclick=()=>onlPose();
+  }
+  function onlShowResult(){
+    const gs=onl.gs, w=onl.winner; if(w==null) return;
+    const mine=(w===onl.myIdx);
+    $('onl-result').innerHTML=`<div class="win-line">${mine?'Du gewinnst!':'Gegner gewinnt!'}</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove||gs.players[w].moves} Z&uuml;gen.`;
+    $('onl-result').classList.remove('hidden');
+  }
+  function onlOpponentLeft(hostLeft){
+    if(!onl || onl.finished) return;
+    onl.finished=true;
+    const t=$('onl-turn'); t.classList.remove('mine','theirs'); t.classList.add('over');
+    t.textContent = hostLeft ? 'Der Gastgeber hat den Raum geschlossen.' : 'Dein Gegner hat den Raum verlassen.';
+    document.querySelectorAll('#onl-steps button').forEach(b=>b.disabled=true);
+  }
+  function onlToggleReveal(){
+    if(!onl || !onl.gs) return;
+    onl.revealVisible=!onl.revealVisible;
+    const box=$('onl-reveal-box');
+    if(onl.revealVisible){ box.classList.remove('hidden'); box.innerHTML=circleExplain(onl.gs.rings, onl.gs.poseEffects); }
+    else box.classList.add('hidden');
+  }
+  function onlLeave(){
+    if(onl){
+      (onl.listeners||[]).forEach(l=>{ try{ l.ref.off(l.ev, l.cb); }catch(e){} });
+      try{
+        if(onl.role==='host'){ onl.roomRef.onDisconnect().cancel(); onl.roomRef.remove(); fbDb.ref('lobby/'+onl.code).remove(); }
+        else { onl.roomRef.child('players/guest').onDisconnect().cancel(); onl.roomRef.child('players/guest').remove(); }
+      }catch(e){}
+      if(onl.gs) onl.gs.mounted=false;
+      onl=null;
+    }
+    onlDetachLobby();
+    backToMenu();
+  }
+
   function mpToggleReveal(){
     if(!mp) return;
     mp.revealVisible=!mp.revealVisible;
@@ -1945,6 +2343,19 @@
   $('ed-jumplen').addEventListener('input', ()=>{ $('ed-jumplen-val').textContent=edV('ed-jumplen'); edBuildJumpRows(); });
 
   $('open-editor').addEventListener('click', openEditor);
+
+  // ---- Online-Modus verkabeln ----
+  Object.keys(THEMES).forEach(k=>{ const o=el('option'); o.value=k; o.textContent=THEMES[k].title+' ('+THEMES[k].sub+')'; $('onl-theme').appendChild(o); });
+  $('onl-theme').value='mittel';
+  $('open-online').addEventListener('click', openOnline);
+  $('onl-create').addEventListener('click', onlCreate);
+  $('onl-join').addEventListener('click', ()=>onlJoin($('onl-code').value));
+  $('onl-code').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); onlJoin($('onl-code').value); } });
+  $('onl-leave').addEventListener('click', onlLeave);
+  $('onl-reveal').addEventListener('click', onlToggleReveal);
+  document.querySelectorAll('#onl-steps button[data-step]').forEach(b=>{
+    b.addEventListener('click', ()=>onlMove(parseInt(b.dataset.step,10)));
+  });
   ['ed-mode','ed-variant','ed-rule','ed-haz'].forEach(id=>$(id).addEventListener('change', edRefresh));
   ['ed-size','ed-hazn','ed-haztick','ed-coins','ed-mile','ed-rings'].forEach(id=>$(id).addEventListener('input', edRefresh));
   $('ed-back').addEventListener('click', backToMenu);
@@ -2044,6 +2455,11 @@
       if(e.key==='ArrowUp'){ e.preventDefault(); mpcgPose(1); return; }
       const c1=circleKeyS1(e); if(c1!==null){ e.preventDefault(); mpcgMove(0,c1); return; }
       const c2=circleKeyS2(e); if(c2!==null){ e.preventDefault(); mpcgMove(1,c2); }
+    } else if(!$('online').classList.contains('hidden') && onl && onl.gs){
+      if(document.activeElement && document.activeElement.tagName==='INPUT') return;
+      if(e.key==='w'||e.key==='W'||e.key==='ArrowUp'){ e.preventDefault(); onlPose(); return; }
+      let c=circleKeyS1(e); if(c===null) c=circleKeyS2(e);
+      if(c!==null){ e.preventDefault(); onlMove(c); }
     }
   });
 
