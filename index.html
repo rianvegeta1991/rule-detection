@@ -32,8 +32,6 @@
   }
   h1,h2,.serif{font-family:'Palatino Linotype','Book Antiqua',Georgia,serif;}
   .hidden{display:none !important;}
-  #start-settings{position:fixed; top:16px; right:16px; z-index:50; background:rgba(30,41,59,0.95); border:1px solid var(--cell-border); border-radius:12px; padding:8px 12px; width:170px; box-shadow:0 6px 20px rgba(0,0,0,0.45);}
-  #start-settings .speed-slider{width:100%;}
   #editor-screen{margin:0 auto;}
   .ed-row{display:flex; flex-direction:column; gap:4px; margin-top:10px;}
   .ed-row.hidden{display:none !important;}
@@ -52,10 +50,6 @@
     font-size:1.15rem; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center;
   }
   #gear-btn:hover{color:var(--gold); border-color:var(--gold); transform:rotate(40deg);}
-  #settings-modal{
-    position:fixed; inset:0; background:rgba(2,6,23,0.72); z-index:60;
-    display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);
-  }
   .modal-card{background:var(--panel); border:1px solid var(--cell-border); border-radius:var(--radius); padding:20px 22px; max-width:480px; width:92%; box-shadow:0 20px 60px rgba(0,0,0,0.5);}
   .modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
   .modal-head h2{margin:0; font-size:1.15rem; color:var(--gold);}
@@ -92,8 +86,7 @@
   }
   .mode-tab:hover:not(.active){color:var(--text);}
   .mode-tab.active{background:linear-gradient(180deg,#164e63,#0e7490); color:#e0f2fe; box-shadow:0 1px 8px rgba(34,211,238,0.25);}
-  .ctrl-legend{background:rgba(30,41,59,0.85); border:1px solid var(--cell-border); border-radius:var(--radius); padding:10px 14px; margin-top:10px; font-size:0.82rem; color:var(--muted); line-height:1.6;}
-  .ctrl-legend b.p1{color:var(--p1);} .ctrl-legend b.p2{color:var(--p2);}
+  .intro .p1{color:var(--p1); font-weight:700;} .intro .p2{color:var(--p2); font-weight:700;}
   .diff-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px;}
   .diff-card{
     position:relative; overflow:hidden; min-height:136px; display:flex; flex-direction:column;
@@ -149,7 +142,7 @@
   .cell .goldkey{position:absolute; inset:16%;}
   .cell .goldkey::before{content:''; position:absolute; left:6%; top:24%; width:44%; height:44%; border:3px solid #fbbf24; border-radius:50%; box-shadow:0 0 8px #fbbf24;}
   .cell .goldkey::after{content:''; position:absolute; left:46%; top:44%; width:48%; height:12%; background:#fbbf24; box-shadow:0 0 6px #fbbf24;}
-  .cell .dog{position:absolute; inset:6%; filter:drop-shadow(0 0 3px rgba(239,68,68,0.7));}
+  .cell .dog{position:absolute; inset:6%;}
   .cell .dog svg{width:100%; height:100%; display:block;}
 
   .rings-svg{display:block; max-width:100%; height:auto;}
@@ -174,7 +167,6 @@
   .ger-det:hover svg{filter:drop-shadow(0 0 6px rgba(250,204,21,0.7));}
   .ger-det .d-pose2{font-size:0.72rem; font-weight:700; color:#0b1220; background:rgba(250,204,21,0.9); border-radius:999px; padding:1px 9px;}
   .ger-det.sabotage .d-pose2{background:var(--bad); color:#fff;}
-  .ger-det .d-hint{font-size:0.62rem; color:var(--muted);}
   #mpcg-turn.p1{border-color:var(--p1); color:#fff;}
   #mpcg-turn.p2{border-color:var(--p2); color:#fff;}
   .log-sabo{color:var(--bad); font-weight:600;}
@@ -210,7 +202,6 @@
   button.primary{background:#0e7490; border-color:#22d3ee;}
   button.warn{background:#78350f; border-color:#f59e0b;}
   label.small{font-size:0.8rem; color:var(--muted); display:block; margin-bottom:8px;}
-  textarea{width:100%; min-height:60px; background:#0b1220; color:var(--text); border:1px solid var(--cell-border); border-radius:8px; padding:8px; font-family:inherit; font-size:0.85rem; resize:vertical;}
   .overlay-msg{font-size:0.95rem; line-height:1.5; margin-bottom:8px;}
   .footer-row{display:flex; gap:8px; margin-top:4px; flex-wrap:wrap; align-items:center;}
   .dpad{display:grid; grid-template-columns:repeat(3, 56px); grid-template-rows:repeat(3, 48px); gap:6px; margin:0 auto;}
@@ -280,7 +271,7 @@
   .room-item .rt{font-size:0.76rem; color:var(--muted);}
   .room-item button{padding:8px 14px; min-height:44px;}
   #onl-rooms .empty{color:var(--muted); font-size:0.82rem; padding:8px 2px;}
-  #onl-create, #onl-join, #onl-code, #onl-theme{min-height:44px;}
+  #onl-create, #onl-join, #onl-code, #onl-theme, #onl-variant{min-height:44px;}
   #onl-code{font-size:1.1rem;}
   #onl-msg.err{background:#7f1d1d; border-color:var(--bad); color:#fecaca;}
   #onl-turn.mine{background:#134e4a; border-color:var(--good); color:#ccfbf1;}
@@ -295,7 +286,7 @@
   #mpcg-host{max-width:100%;}
   @media (max-width: 680px){
     body{padding:14px 10px;}
-    #start-settings{top:8px; right:8px; width:132px; padding:6px 8px; font-size:0.72rem;}
+    #gear-btn{top:calc(8px + env(safe-area-inset-top)); right:8px; width:38px; height:38px; font-size:1rem;}
     .hero h1{font-size:1.7rem;}
     .hero-ring{width:88px; height:88px;}
     .game-screen{gap:12px;}
@@ -317,10 +308,7 @@
 </head>
 <body>
 
-<div id="start-settings">
-  <label class="small" style="margin:0 0 2px;">Animations-Tempo: <b class="speed-val">1&times;</b></label>
-  <input type="range" class="speed-slider" min="0.25" max="3" step="0.25" value="1">
-</div>
+<button id="gear-btn" aria-label="Einstellungen">&#9881;</button>
 
 <div id="start-screen">
   <div class="hero">
@@ -340,17 +328,17 @@
     <div class="tagline serif">Ermittle die verborgenen Regeln &ndash; Fall f&uuml;r Fall.</div>
   </div>
 
-  <div class="intro" id="intro-grid">
-    <b>Feld-Modus:</b> Dr&uuml;cke Oben/Rechts/Unten/Links/Bleibt &ndash; die Figur folgt nicht immer deinem Befehl. Gr&uuml;n = Befehl ausgef&uuml;hrt, rot = die Spur f&uuml;hrt woanders hin. Die farbigen Zonen des Tatorts ver&auml;ndern den Effekt zus&auml;tzlich. In der Variante <b>Gerangel</b> sammelst du auf einem gro&szlig;en Feld alle M&uuml;nzen ein (die mittlere ist meist von einer Wand mit nur einer L&uuml;cke gesch&uuml;tzt) &ndash; im Duell teilen sich beide dasselbe Feld. In der <b>Spurensuche</b> arbeitest du dich von Zwischenziel zu Zwischenziel nach oben. &Uuml;berall lauern <b>Briefbomben</b> (Garten/B&uuml;ro) bzw. <b>Hunde</b> (Nachtleben/Mond): Bei Kontakt blinkt deine Figur 3&nbsp;Sekunden und kehrt zum Start zur&uuml;ck.
-  </div>
-  <div class="intro hidden" id="intro-circle">
-    <b>Kreis-Modus:</b> Deine Figur steht auf konzentrischen Ringen. W&auml;hle pro Zug eine Zahl &ndash; sie steuert zugleich, wie weit sich die <b>Figur</b> bewegt und wie sich <b>jeder Ring dreht</b> (jeder nach eigener Regel). Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen. Auf dem innersten Ring geht es vom &starf; direkt ins Zentrum &ndash; dort wartet der <b>Detektiv</b> (Sherlock): Mit Taste W bzw. &uarr; (oder Klick) wechselt er zwischen drei Posen. Pose 1 ist neutral, Pose 2 und 3 aktivieren je eine geheime Zusatzregel. Im <b>Duell</b> kannst du „Gerangel" w&auml;hlen: Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd, mit der zus&auml;tzlichen Pose <b>Sabotage</b>, die den Ring des Gegners verdreht.
-  </div>
-
+  <!-- Reihenfolge ist bewusst so: jede Wahl blendet nur Bloecke UNTER sich ein/aus. -->
   <div class="tab-caption">Spielfeld</div>
   <div class="mode-tabs" id="mode-tabs">
     <button class="mode-tab active" data-mode="grid">Feld-Modus</button>
     <button class="mode-tab" data-mode="circle">Kreis-Modus</button>
+  </div>
+
+  <div class="tab-caption">Spieler</div>
+  <div class="mode-tabs" id="player-tabs">
+    <button class="mode-tab active" data-players="1">Einzelspieler</button>
+    <button class="mode-tab" data-players="2">Duell (2 Spieler)</button>
   </div>
 
   <div id="variant-block">
@@ -369,12 +357,6 @@
     </div>
   </div>
 
-  <div class="tab-caption">Spieler</div>
-  <div class="mode-tabs" id="player-tabs">
-    <button class="mode-tab active" data-players="1">Einzelspieler</button>
-    <button class="mode-tab" data-players="2">Duell (2 Spieler)</button>
-  </div>
-
   <div id="winmode-block" class="hidden">
     <div class="tab-caption">Siegbedingung im Duell</div>
     <div class="mode-tabs" id="winmode-tabs">
@@ -382,12 +364,11 @@
       <button class="mode-tab" data-win="fewest">Wenigste Z&uuml;ge</button>
     </div>
   </div>
-  <div class="ctrl-legend hidden" id="ctrl-legend"></div>
 
   <div class="tab-caption">Tatort w&auml;hlen</div>
   <div class="diff-grid" id="diff-grid"></div>
   <div style="text-align:center; margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-    <button class="action" id="open-online" style="background:#0e7490; border-color:#22d3ee; padding:10px 16px;">&#128241; Online spielen &ndash; Kreis-Gerangel auf 2 Handys</button>
+    <button class="action" id="open-online" style="background:#0e7490; border-color:#22d3ee; padding:10px 16px;">&#128241; Online spielen &ndash; Gerangel auf 2 Handys</button>
     <button class="action" id="open-editor" style="background:#4c1d95; border-color:#a78bfa; padding:10px 16px;">&#128295; Editor-Modus &ndash; eigene Regeln erstellen</button>
   </div>
 </div>
@@ -478,11 +459,9 @@
   </div>
   <div class="sidebar">
     <div class="panel">
-      <div style="font-weight:700; margin-bottom:6px;" id="spg-heading">Lenke die Figur zum Ziel</div>
       <div class="stats-row" id="spg-stats"></div>
     </div>
     <div class="panel">
-      <label class="small">Steuerung (oder Pfeiltasten / Leertaste)</label>
       <div class="dpad">
         <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
         <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
@@ -491,11 +470,6 @@
     </div>
     <div class="panel">
       <button class="action warn" id="spg-reveal" style="width:100%;">Aufl&ouml;sung anzeigen</button>
-      <div id="spg-reveal-box" class="banner hidden" style="margin-top:10px;"></div>
-    </div>
-    <div class="panel">
-      <label class="small">Notizbuch</label>
-      <textarea id="spg-notebook" placeholder="Deine Vermutungen zur Regel..."></textarea>
     </div>
     <div class="footer-row">
       <button class="action" id="spg-reset">Neue Zufallsregel</button>
@@ -515,7 +489,6 @@
   </div>
   <div class="sidebar">
     <div class="panel">
-      <div style="font-weight:700; margin-bottom:6px;">Bewege die Figur ins Zentrum zum Detektiv</div>
       <div class="stats-row">
         <span>Z&uuml;ge: <b id="spc-moves">0</b></span>
         <span>Ring: <b id="spc-ring">–</b></span>
@@ -523,7 +496,6 @@
       </div>
     </div>
     <div class="panel">
-      <label class="small">Schrittzahl w&auml;hlen (A S D, Shift = &plusmn;2 &middot; Pfeile &middot; W/&uarr; = Detektiv-Pose)</label>
       <div class="btn-row" id="circle-steps">
         <button class="action" data-step="-2">&minus;2</button>
         <button class="action" data-step="-1">&minus;1</button>
@@ -538,7 +510,6 @@
     </div>
     <div class="panel">
       <button class="action warn" id="spc-reveal" style="width:100%;">Aufl&ouml;sung anzeigen</button>
-      <div id="spc-reveal-box" class="banner hidden" style="margin-top:10px;"></div>
     </div>
     <div class="footer-row">
       <button class="action" id="spc-reset">Neue Zufallsregel</button>
@@ -557,10 +528,9 @@
       <button class="action" id="mpg-back">Zur&uuml;ck</button>
     </div>
   </div>
-  <div id="mpg-reveal-box" class="banner hidden" style="margin-bottom:12px;"></div>
   <div class="mp-wrap" id="mpg-twocol">
     <div class="mp-col">
-      <div class="mp-head p1">Spieler 1 &middot; <b>W A S D</b> + X &middot; Z&uuml;ge <b id="mpg-m1">0</b> <span class="mp-status" id="mpg-s1"></span></div>
+      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpg-m1">0</b> <span class="mp-status" id="mpg-s1"></span></div>
       <div id="mpg-host1"></div>
       <div class="dpad p1" data-pad="0">
         <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
@@ -569,7 +539,7 @@
       </div>
     </div>
     <div class="mp-col">
-      <div class="mp-head p2">Spieler 2 &middot; <b>Pfeiltasten</b> + 0 &middot; Z&uuml;ge <b id="mpg-m2">0</b> <span class="mp-status" id="mpg-s2"></span></div>
+      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpg-m2">0</b> <span class="mp-status" id="mpg-s2"></span></div>
       <div id="mpg-host2"></div>
       <div class="dpad p2" data-pad="1">
         <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
@@ -580,7 +550,6 @@
   </div>
   <div id="mpg-shared-wrap" class="hidden" style="display:flex; flex-direction:column; align-items:center; gap:10px;">
     <div id="mpg-score" style="font-size:0.95rem;"></div>
-    <div class="mp-head" style="font-size:0.78rem;"><b class="p1" style="color:var(--p1)">Spieler 1</b>: W A S D &nbsp;·&nbsp; <b class="p2" style="color:var(--p2)">Spieler 2</b>: Pfeiltasten</div>
     <div id="mpg-shared-host"></div>
     <div class="dual-pads">
       <div class="pad-wrap"><span class="pad-lbl p1" style="color:var(--p1)">Spieler 1</span>
@@ -612,10 +581,9 @@
       <button class="action" id="mpc-back">Zur&uuml;ck</button>
     </div>
   </div>
-  <div id="mpc-reveal-box" class="banner hidden" style="margin-bottom:12px;"></div>
   <div class="mp-wrap">
     <div class="mp-col">
-      <div class="mp-head p1">Spieler 1 &middot; <b>A S D</b> (Shift = &plusmn;2, W = Pose) &middot; Z&uuml;ge <b id="mpc-m1">0</b> <span class="mp-status" id="mpc-s1"></span></div>
+      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpc-m1">0</b> <span class="mp-status" id="mpc-s1"></span></div>
       <div id="mpc-host1" class="circle-host"></div>
       <div class="mp-steps p1" data-p="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
@@ -624,7 +592,7 @@
       <div class="mp-log clog" id="mpc-log1" style="font-size:0.76rem;"></div>
     </div>
     <div class="mp-col">
-      <div class="mp-head p2">Spieler 2 &middot; <b>&larr; &darr; &rarr;</b> (0+&larr;/&rarr; = &plusmn;2, &uarr; = Pose) &middot; Z&uuml;ge <b id="mpc-m2">0</b> <span class="mp-status" id="mpc-s2"></span></div>
+      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpc-m2">0</b> <span class="mp-status" id="mpc-s2"></span></div>
       <div id="mpc-host2" class="circle-host"></div>
       <div class="mp-steps p2" data-p="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
@@ -646,11 +614,10 @@
       <button class="action" id="mpcg-back">Zur&uuml;ck</button>
     </div>
   </div>
-  <div id="mpcg-reveal-box" class="banner hidden" style="margin-bottom:12px;"></div>
   <div id="mpcg-turn" class="banner p1" style="margin-bottom:12px; text-align:center; font-weight:700;"></div>
   <div class="mp-wrap" style="align-items:flex-start;">
     <div class="mp-col" style="max-width:240px;">
-      <div class="mp-head p1">Spieler 1 &middot; <b>A S D</b> (Shift = &plusmn;2) &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="mp-status" id="mpcg-s1"></span></div>
+      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="mp-status" id="mpcg-s1"></span></div>
       <div id="mpcg-det1"></div>
       <div class="mp-steps p1" data-cg="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
@@ -659,7 +626,7 @@
     </div>
     <div id="mpcg-host" class="circle-host"></div>
     <div class="mp-col" style="max-width:240px;">
-      <div class="mp-head p2">Spieler 2 &middot; <b>&larr; &darr; &rarr;</b> (0+&larr;/&rarr; = &plusmn;2) &middot; Z&uuml;ge <b id="mpcg-m2">0</b> <span class="mp-status" id="mpcg-s2"></span></div>
+      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpcg-m2">0</b> <span class="mp-status" id="mpcg-s2"></span></div>
       <div id="mpcg-det2"></div>
       <div class="mp-steps p2" data-cg="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
@@ -673,7 +640,7 @@
 <!-- ONLINE: KREIS-GERANGEL auf zwei Geraeten -->
 <div id="online" class="mp-screen hidden">
   <div class="mp-top">
-    <div class="mp-title" id="onl-title">Online &middot; Kreis-Gerangel</div>
+    <div class="mp-title" id="onl-title">Online</div>
     <div class="footer-row">
       <button class="action warn hidden" id="onl-reveal">Aufl&ouml;sung</button>
       <button class="action" id="onl-leave">Zur&uuml;ck</button>
@@ -685,6 +652,12 @@
     <div id="onl-msg" class="banner hidden" style="margin-bottom:12px;"></div>
     <div class="panel">
       <div class="tab-caption" style="margin-top:0;">Neuen Raum er&ouml;ffnen</div>
+      <div class="btn-row" style="margin-bottom:6px;">
+        <select id="onl-variant" class="ed-sel" style="flex:1;">
+          <option value="circle">Kreis-Gerangel</option>
+          <option value="grid">Feld-Gerangel</option>
+        </select>
+      </div>
       <div class="btn-row">
         <select id="onl-theme" class="ed-sel" style="flex:1;"></select>
         <button class="action" id="onl-create">Raum erstellen</button>
@@ -714,8 +687,9 @@
   <!-- ---------- Spiel ---------- -->
   <div id="onl-game" class="hidden">
     <div id="onl-turn" class="banner" style="margin-bottom:10px; text-align:center; font-weight:700;"></div>
-    <div id="onl-reveal-box" class="banner hidden" style="margin-bottom:12px;"></div>
-    <div class="mp-wrap" style="align-items:flex-start;">
+
+    <!-- Kreis-Gerangel -->
+    <div id="onl-circle-wrap" class="mp-wrap" style="align-items:flex-start;">
       <div class="mp-col" style="max-width:260px;">
         <div class="mp-head" id="onl-me-head"></div>
         <div id="onl-det"></div>
@@ -729,7 +703,83 @@
         <div class="mp-log clog" id="onl-log" style="font-size:0.74rem;"></div>
       </div>
     </div>
+
+    <!-- Feld-Gerangel: gemeinsames Brett, jeder steuert nur die eigene Figur -->
+    <div id="onl-grid-wrap" class="hidden" style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+      <div id="onl-grid-score" style="font-size:0.95rem;"></div>
+      <div id="onl-grid-host"></div>
+      <div class="dpad" id="onl-pad">
+        <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
+        <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
+        <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
+      </div>
+    </div>
+
     <div id="onl-result" class="mp-result hidden"></div>
+  </div>
+</div>
+
+<!-- ---------- Einstellungen ---------- -->
+<div id="settings-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Einstellungen</h2>
+      <button class="modal-close" id="settings-close" aria-label="Schlie&szlig;en">&times;</button>
+    </div>
+    <label class="small" style="margin:0 0 2px;">Animations-Tempo: <b class="speed-val">1&times;</b></label>
+    <input type="range" class="speed-slider" min="0.25" max="3" step="0.25" value="1" style="width:100%;">
+    <button class="action" id="open-guide" style="width:100%; margin-top:18px;">&#128218; Anleitung</button>
+  </div>
+</div>
+
+<!-- ---------- Anleitung ---------- -->
+<div id="guide-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Anleitung</h2>
+      <button class="modal-close" id="guide-close" aria-label="Schlie&szlig;en">&times;</button>
+    </div>
+    <details class="ed-adv" open>
+      <summary>Feld-Modus</summary>
+      <div class="intro" style="margin-top:8px;">
+        Dr&uuml;cke Oben/Rechts/Unten/Links/Bleibt &ndash; die Figur folgt nicht immer deinem Befehl. Gr&uuml;n = Befehl ausgef&uuml;hrt, rot = die Spur f&uuml;hrt woanders hin. Die farbigen Zonen des Tatorts ver&auml;ndern den Effekt zus&auml;tzlich. In der Variante <b>Gerangel</b> sammelst du auf einem gro&szlig;en Feld alle M&uuml;nzen ein (die mittlere ist meist von einer Wand mit nur einer L&uuml;cke gesch&uuml;tzt) &ndash; im Duell teilen sich beide dasselbe Feld. In der <b>Spurensuche</b> arbeitest du dich von Zwischenziel zu Zwischenziel nach oben. &Uuml;berall lauern <b>Briefbomben</b> (Garten/B&uuml;ro) bzw. <b>Hunde</b> (Nachtleben/Friedhof): Bei Kontakt blinkt deine Figur 3&nbsp;Sekunden und kehrt zum Start zur&uuml;ck.
+      </div>
+    </details>
+    <details class="ed-adv">
+      <summary>Kreis-Modus</summary>
+      <div class="intro" style="margin-top:8px;">
+        Deine Figur steht auf konzentrischen Ringen. W&auml;hle pro Zug eine Zahl &ndash; sie steuert zugleich, wie weit sich die <b>Figur</b> bewegt und wie sich <b>jeder Ring dreht</b> (jeder nach eigener Regel). Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen. Auf dem innersten Ring geht es vom &starf; direkt ins Zentrum &ndash; dort wartet der <b>Detektiv</b> (Sherlock): Mit Taste W bzw. &uarr; (oder Klick) wechselt er zwischen drei Posen. Pose 1 ist neutral, Pose 2 und 3 aktivieren je eine geheime Zusatzregel. Im <b>Duell</b> kannst du „Gerangel" w&auml;hlen: Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd, mit der zus&auml;tzlichen Pose <b>Sabotage</b>, die den Ring des Gegners verdreht.
+      </div>
+    </details>
+    <details class="ed-adv">
+      <summary>Steuerung</summary>
+      <div class="intro" style="margin-top:8px;">
+        <b>Feld-Modus &ndash; Einzelspieler:</b> Pfeiltasten bewegen, Leertaste = bleiben. Auf dem Handy das Steuerkreuz.<br><br>
+        <b>Feld-Modus &ndash; Duell:</b> <span class="p1">Spieler 1</span>: W A S D bewegen, X = bleiben &nbsp;·&nbsp; <span class="p2">Spieler 2</span>: Pfeiltasten, 0 = bleiben.<br><br>
+        <b>Kreis-Modus &ndash; Einzelspieler:</b> A / S / D = &minus;1 / 0 / +1, Shift+A bzw. Shift+D = &minus;2 / +2, W oder &uarr; wechselt die Detektiv-Pose. Pfeiltasten gehen ebenfalls.<br><br>
+        <b>Kreis-Modus &ndash; Duell:</b> <span class="p1">Spieler 1</span>: A / D = &minus;1 / +1, Shift+A / Shift+D = &minus;2 / +2, S = 0, W = Detektiv-Pose &nbsp;·&nbsp; <span class="p2">Spieler 2</span>: &larr; / &rarr; = &minus;1 / +1, &darr; = 0, „0" halten + &larr;/&rarr; = &minus;2 / +2, &uarr; = Detektiv-Pose.
+      </div>
+    </details>
+    <details class="ed-adv">
+      <summary>Duell-Varianten</summary>
+      <div class="intro" style="margin-top:8px;">
+        <b>Feld &middot; Gerangel:</b> Beide spielen im selben Feld, exakt gegen&uuml;ber und symmetrisch platziert &ndash; die meisten Punkte gewinnen.<br><br>
+        <b>Feld &middot; Spurensuche:</b> Beide bekommen dieselbe versteckte Regel, dasselbe Startfeld und dasselbe Ziel.<br><br>
+        <b>Kreis &middot; Duell:</b> Getrennte Kreise, dieselbe Regel &ndash; wer zuerst im Zentrum ist, gewinnt.<br><br>
+        <b>Kreis &middot; Gerangel:</b> Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd. Die Pose <b>Sabotage</b> dreht den Ring des Gegners. Wer zuerst ins Zentrum kommt, gewinnt.
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ---------- Auflösung (global, ueber allen Spielansichten) ---------- -->
+<div id="reveal-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Aufl&ouml;sung</h2>
+      <button class="modal-close" id="reveal-close" aria-label="Schlie&szlig;en">&times;</button>
+    </div>
+    <div id="reveal-body"></div>
   </div>
 </div>
 
@@ -763,8 +813,8 @@
   ];
   const HAZARD_COUNT = { leicht:2, mittel:4, schwer:6, experte:8 };
   const GERANGEL_SIZE = { leicht:13, mittel:15, schwer:15, experte:17 };
-  const DEFAULT_DOG = {body:'#9a7248',leg:'#7f5c37',ear:'#6f4f2c',eye:'#1e293b'};
-  function dogSvg(d){ d=d||DEFAULT_DOG; return `<svg viewBox="0 0 24 20" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10.5" cy="11" rx="7" ry="3.6" fill="${d.body}"/><circle cx="17.5" cy="8.5" r="3.4" fill="${d.body}"/><path d="M15.5 6 L14.2 2.6 L17.4 5.2 Z" fill="${d.ear}"/><rect x="19.6" y="8.3" width="3.2" height="2.4" rx="1.1" fill="${d.ear}"/><circle cx="18.4" cy="8" r="0.7" fill="${d.eye}"/><rect x="5.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${d.leg}"/><rect x="8.4" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${d.leg}"/><rect x="12.6" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${d.leg}"/><rect x="15.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${d.leg}"/><path d="M3.6 9.5 Q0.8 7.2 2.4 11.5" stroke="${d.body}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`; }
+  const DOG_COLOR = '#000';
+  function dogSvg(){ const c=DOG_COLOR; return `<svg viewBox="0 0 24 20" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10.5" cy="11" rx="7" ry="3.6" fill="${c}"/><circle cx="17.5" cy="8.5" r="3.4" fill="${c}"/><path d="M15.5 6 L14.2 2.6 L17.4 5.2 Z" fill="${c}"/><rect x="19.6" y="8.3" width="3.2" height="2.4" rx="1.1" fill="${c}"/><rect x="5.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="8.4" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="12.6" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="15.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><path d="M3.6 9.5 Q0.8 7.2 2.4 11.5" stroke="${c}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`; }
   const STEP_POOLS = {
     leicht: ['normal','reverse'],
     mittel: ['normal','reverse','half'],
@@ -794,15 +844,23 @@
   const THEMES = {
     leicht: { key:'leicht', title:'Der Garten', sub:'Leicht', blurb:'Ein friedlicher Tatort im Grünen – keine Grundregel, nur die Zonen wirken.', gridSize:10, tall:[7,14], modes:['none'], accent:'34,160,64', svg:'garden', boardBg:'26,58,32' },
     mittel: { key:'mittel', title:'Das Büro', sub:'Mittel', blurb:'Akten und Flure – eine feste, herausfindbare Verzerrung deiner Eingaben.', gridSize:12, tall:[8,16], modes:['constant'], accent:'150,185,225', svg:'office', boardBg:'104,116,138' },
-    schwer: { key:'schwer', title:'Das Nachtleben', sub:'Schwer', blurb:'Neon und Nebel – die Verzerrung hängt von Ort oder Zeitpunkt ab.', gridSize:14, tall:[9,18], modes:['parityPos','parityTick'], accent:'239,68,68', svg:'night', boardBg:'64,12,20', dog:{body:'#17171c',leg:'#101014',ear:'#0a0a0d',eye:'#ef4444'} },
-    experte: { key:'experte', title:'Der Friedhof', sub:'Experte', blurb:'Düster und still – die Regel reagiert auf dein Verhalten, und Hunde streunen.', gridSize:16, tall:[9,20], modes:['repeatInvert','delay'], accent:'138,150,138', svg:'graveyard', boardBg:'9,11,14', dog:{body:'#454b54',leg:'#353a42',ear:'#2b3038',eye:'#0b0d12'} }
+    schwer: { key:'schwer', title:'Das Nachtleben', sub:'Schwer', blurb:'Neon und Nebel – die Verzerrung hängt von Ort oder Zeitpunkt ab.', gridSize:14, tall:[9,18], modes:['parityPos','parityTick'], accent:'239,68,68', svg:'night', boardBg:'64,12,20' },
+    experte: { key:'experte', title:'Der Friedhof', sub:'Experte', blurb:'Düster und still – die Regel reagiert auf dein Verhalten, und Hunde streunen.', gridSize:16, tall:[9,20], modes:['repeatInvert','delay'], accent:'138,150,138', svg:'graveyard', boardBg:'9,11,14' }
   };
 
   // ---- helpers ----
   function el(tag, cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
   function elNS(tag){ return document.createElementNS('http://www.w3.org/2000/svg', tag); }
-  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-  function randInt(n){ return Math.floor(Math.random()*n); }
+  // Zufallsquelle. Normalerweise Math.random. Fuer den Online-Modus laesst sie sich auf einen Seed
+  // umstellen: Host und Gast bauen aus demselben Seed exakt dasselbe Brett, statt es zu uebertragen
+  // (shared.rule und shared.zoneOf sind Closures, wallSet ist ein Set – das laesst sich nicht serialisieren).
+  let rngSource = Math.random;
+  function mulberry32(seed){ let a=seed>>>0; return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15), 1|a); t=(t+Math.imul(t^(t>>>7), 61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+  function seedRng(seed){ rngSource=mulberry32(seed); }
+  function unseedRng(){ rngSource=Math.random; }
+  function rnd(){ return rngSource(); }
+  function pick(arr){ return arr[Math.floor(rnd()*arr.length)]; }
+  function randInt(n){ return Math.floor(rnd()*n); }
   function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=randInt(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
   function $(id){ return document.getElementById(id); }
 
@@ -883,10 +941,10 @@
   const BACKGROUNDS = {
     garden:{ title:'Garten', svg:'garden', accent:'34,160,64', boardBg:'26,58,32' },
     office:{ title:'Büro', svg:'office', accent:'150,185,225', boardBg:'104,116,138' },
-    night:{ title:'Nachtleben', svg:'night', accent:'239,68,68', boardBg:'64,12,20', dog:{body:'#17171c',leg:'#101014',ear:'#0a0a0d',eye:'#ef4444'} },
-    graveyard:{ title:'Friedhof', svg:'graveyard', accent:'138,150,138', boardBg:'9,11,14', dog:{body:'#454b54',leg:'#353a42',ear:'#2b3038',eye:'#0b0d12'} }
+    night:{ title:'Nachtleben', svg:'night', accent:'239,68,68', boardBg:'64,12,20' },
+    graveyard:{ title:'Friedhof', svg:'graveyard', accent:'138,150,138', boardBg:'9,11,14' }
   };
-  function themeFromBg(bg){ const b=BACKGROUNDS[bg]||BACKGROUNDS.office; return { title:b.title, svg:b.svg, accent:b.accent, boardBg:b.boardBg, dog:b.dog, modes:['none'] }; }
+  function themeFromBg(bg){ const b=BACKGROUNDS[bg]||BACKGROUNDS.office; return { title:b.title, svg:b.svg, accent:b.accent, boardBg:b.boardBg, modes:['none'] }; }
   function buildZones(effects){
     if(effects && effects.length===4) return effects.map((eff,i)=>({ effect:eff, name:ZONE_COLORS[i].name, tint:ZONE_COLORS[i].tint }));
     const chosen = shuffle(ZONE_EFFECTS.slice()).slice(0,3);
@@ -940,7 +998,7 @@
     const amp=Math.max(1, Math.floor(rows/9));
     function walk(centre){
       const arr=new Array(cols); let cur=0;
-      for(let x=0;x<cols;x++){ if(x>0 && Math.random()<0.5) cur+=(Math.random()<0.5?-1:1); cur=clamp(cur,-amp,amp); arr[x]=centre+cur; }
+      for(let x=0;x<cols;x++){ if(x>0 && rnd()<0.5) cur+=(rnd()<0.5?-1:1); cur=clamp(cur,-amp,amp); arr[x]=centre+cur; }
       return arr;
     }
     const w0=walk(bs[0]), w1=walk(bs[1]), w2=walk(bs[2]);
@@ -967,7 +1025,7 @@
     const JUMP_PATTERNS=[[1,1,2],[1,2],[2,1,1],[1,2,1],[1,1,2,1]];
     if(ov.stepPattern!=null){ shared.stepPattern = (ov.stepPattern && ov.stepPattern.length) ? ov.stepPattern.slice() : null; }
     else if(ov.jump!=null){ shared.stepPattern = ov.jump ? pick(JUMP_PATTERNS) : null; }
-    else { const jumpChance={ leicht:0, mittel:0.4, schwer:0.55, experte:0.7 }[diffKey]||0; shared.stepPattern = Math.random()<jumpChance ? pick(JUMP_PATTERNS) : null; }
+    else { const jumpChance={ leicht:0, mittel:0.4, schwer:0.55, experte:0.7 }[diffKey]||0; shared.stepPattern = rnd()<jumpChance ? pick(JUMP_PATTERNS) : null; }
     function inB(x,y){ return x>=0&&y>=0&&x<cols&&y<rows; }
 
     if(variant==='spurensuche'){
@@ -987,7 +1045,11 @@
       shared.cols=cols; shared.rows=rows; shared.layoutKind='nest'; shared.goalKind='coins';
       const cx=Math.floor(cols/2), cy=Math.floor(rows/2); shared.center={x:cx,y:cy};
       const maxD=Math.max(cx,cy); const noise={};
-      const noiseAt=(x,y)=>{ const k=(x>>1)+','+(y>>1); if(!(k in noise)) noise[k]=randInt(3)-1; return noise[k]; };
+      // Das Rauschgitter wird vorab in fester Reihenfolge gewuerfelt, nicht bei Bedarf: sonst haengt
+      // das Ergebnis davon ab, welche Felder wann abgefragt werden – und zwei Geraete mit demselben
+      // Seed bekaemen trotzdem unterschiedliche Zonen.
+      for(let ky=0; ky<=(rows>>1); ky++) for(let kx=0; kx<=(cols>>1); kx++) noise[kx+','+ky]=randInt(3)-1;
+      const noiseAt=(x,y)=>{ const v=noise[(x>>1)+','+(y>>1)]; return v===undefined?0:v; };
       const t1=maxD*0.30, t2=maxD*0.56, t3=maxD*0.82;
       shared.zoneOf=(x,y)=>{ const d=Math.max(Math.abs(x-cx),Math.abs(y-cy))+noiseAt(x,y); return d<t1?3:d<t2?2:d<t3?1:0; };
       shared.wallSet=new Set(); shared.gap=null;
@@ -1069,7 +1131,7 @@
   function renderGridBoard(b){
     const s=b.shared, now=Date.now();
     b.cells.forEach(c=>{ c.innerHTML=''; c.classList.remove('flash-good','flash-bad'); });
-    b.hazards.forEach(hh=>{ const hz=el('div', s.hazardType==='dog'?'dog':'bomb'); if(s.hazardType==='dog') hz.innerHTML=dogSvg(s.theme.dog); b.cells[hh.y*s.cols+hh.x].appendChild(hz); });
+    b.hazards.forEach(hh=>{ const hz=el('div', s.hazardType==='dog'?'dog':'bomb'); if(s.hazardType==='dog') hz.innerHTML=dogSvg(); b.cells[hh.y*s.cols+hh.x].appendChild(hz); });
     if(b.coins) b.coins.forEach(c=>{ b.cells[c.y*s.cols+c.x].appendChild(el('div','coin')); });
     if(b.centerItem && !b.centerItem.taken){ b.cells[b.centerItem.y*s.cols+b.centerItem.x].appendChild(el('div', b.centerItem.type==='key'?'goldkey':'coin center')); }
     if(s.layoutKind==='bands'){
@@ -1407,6 +1469,25 @@
   }
   function renderLog(container, log){ container.innerHTML = log.length ? log.map(renderLogEntry).join('') : '<span style="color:var(--muted)">Noch keine Z&uuml;ge.</span>'; }
 
+  // ===================== AUFLÖSUNGS-POPUP =====================
+  function openReveal(html){ $('reveal-body').innerHTML=html; $('reveal-modal').classList.remove('hidden'); }
+  function closeReveal(){ $('reveal-modal').classList.add('hidden'); }
+  $('reveal-close').addEventListener('click', closeReveal);
+  // Klick auf den abgedunkelten Hintergrund schliesst; Klick in die Karte nicht.
+  $('reveal-modal').addEventListener('click', e=>{ if(e.target===$('reveal-modal')) closeReveal(); });
+
+  // ===================== EINSTELLUNGEN / ANLEITUNG =====================
+  function openSettings(){ $('settings-modal').classList.remove('hidden'); }
+  function closeSettings(){ $('settings-modal').classList.add('hidden'); }
+  function openGuide(){ $('guide-modal').classList.remove('hidden'); }
+  function closeGuide(){ $('guide-modal').classList.add('hidden'); }
+  $('gear-btn').addEventListener('click', openSettings);
+  $('settings-close').addEventListener('click', closeSettings);
+  $('settings-modal').addEventListener('click', e=>{ if(e.target===$('settings-modal')) closeSettings(); });
+  $('open-guide').addEventListener('click', ()=>{ closeSettings(); openGuide(); });
+  $('guide-close').addEventListener('click', closeGuide);
+  $('guide-modal').addEventListener('click', e=>{ if(e.target===$('guide-modal')) closeGuide(); });
+
   // ===================== MENU STATE / NAV =====================
   let currentMode='grid', gridVariant=localStorage.getItem('regel-detektiv-variant')||'gerangel';
   let playerCount=1, winCond='fastest', circleVariant='duell';
@@ -1414,7 +1495,7 @@
 
   let spgState=null, spcState=null, mp=null;
 
-  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online'].forEach(id=>$(id).classList.add('hidden')); $('start-settings').classList.add('hidden'); }
+  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); closeSettings(); closeGuide(); closeReveal(); }
   function teardownActive(){
     if(spcState) spcState.mounted=false;
     if(spgState && spgState.board) stopDogTimer(spgState.board);
@@ -1425,7 +1506,7 @@
     }
   }
   function startBg(){ document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`; }
-  function backToMenu(){ teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('start-settings').classList.remove('hidden'); startBg(); }
+  function backToMenu(){ teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); startBg(); }
   function setThemeBg(theme){
     document.documentElement.style.setProperty('--accent-rgb', theme.accent);
     document.body.style.backgroundImage=`linear-gradient(rgba(15,23,42,0.88),rgba(15,23,42,0.88)), url("${svgUrl(theme.svg)}")`;
@@ -1433,27 +1514,27 @@
 
   // ===================== SP GRID =====================
   // begrenzt die Zellgröße, damit das Brett auf schmale (mobile) Bildschirme passt
-  function fitCell(cell, cols){ const avail=Math.min((window.innerWidth||800)-24, 560); const maxCell=Math.floor(avail/cols); return Math.max(12, Math.min(cell, maxCell)); }
+  // Platz, den ein Brett real hat: Viewport minus body-Padding (28/24, mobil 14/10 – siehe @media), gedeckelt bei 560.
+  function availBoardWidth(){ const vw=window.innerWidth||800; return Math.min(vw-(vw<=680?20:48), 560); }
+  // Die Aussenmasse setzt createGridBoard als cols*cell + (cols-1)*GAP + 2*PAD – Abstaende und Rand
+  // muessen also abgezogen werden, sonst wird das Brett breiter als der Bildschirm.
+  function fitCell(cell, cols){ const inner=availBoardWidth()-((cols-1)*GAP+2*PAD); const maxCell=Math.floor(inner/cols); return Math.max(8, Math.min(cell, maxCell)); }
   function cellSizeFor(shared){ const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols)); return fitCell(base, shared.cols); }
   function spgStart(diffKey, variant, ov){
     teardownActive(); hideAllScreens(); $('sp-grid').classList.remove('hidden');
     const shared=buildGridShared(diffKey, variant, false, ov);
     const board=createGridBoard($('spg-host'), shared, cellSizeFor(shared), [{startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:''}]);
     board.onChange=spgRender;
-    spgState={ shared, board, ov, revealed:false, revealVisible:false, revealedAtMove:null };
-    $('spg-heading').textContent = variant==='spurensuche' ? 'Spurensuche: von Spur zu Spur nach oben!' : 'Gerangel: sammle alle Münzen ein!';
+    spgState={ shared, board, ov, revealed:false, revealedAtMove:null };
     setThemeBg(shared.theme); renderGridBoard(board); startDogTimer(board); spgRender();
   }
   function spgRender(){
     const {shared,board}=spgState; const f=board.figs[0];
     let s2;
-    if(shared.layoutKind==='bands'){ const ag=shared.checkpoints[f.checkpointIdx]; s2=`Abstand: <b>${Math.abs(f.x-ag.x)+Math.abs(f.y-ag.y)}</b>`; s2+=` · Optimal: <b>${shared.optimal}</b>`; }
-    else { const left=board.coins.length+(board.centerItem&&!board.centerItem.taken?1:0); s2=`Münzen übrig: <b>${left}</b>`; }
-    $('spg-stats').innerHTML = `Züge: <b>${f.moves}</b> · ${s2} · Zone: <b>${shared.zones[shared.zoneOf(f.x,f.y)].name}</b>`;
+    if(shared.layoutKind==='bands'){ const ag=shared.checkpoints[f.checkpointIdx]; s2=`Abstand <b>${Math.abs(f.x-ag.x)+Math.abs(f.y-ag.y)}</b> · Optimal <b>${shared.optimal}</b>`; }
+    else { const left=board.coins.length+(board.centerItem&&!board.centerItem.taken?1:0); s2=`Münzen <b>${left}</b>`; }
+    $('spg-stats').innerHTML = `Züge <b>${f.moves}</b> · ${s2} · <b>${shared.zones[shared.zoneOf(f.x,f.y)].name}</b>`;
     document.querySelectorAll('#sp-grid .dpad button').forEach(b=>b.disabled=f.done);
-    const rb=$('spg-reveal-box');
-    if(spgState.revealVisible){ rb.classList.remove('hidden'); rb.innerHTML=gridExplain(shared); } else rb.classList.add('hidden');
-    $('spg-reveal').textContent = spgState.revealVisible?'Auflösung verbergen':'Auflösung anzeigen';
     const ov=$('spg-overlay');
     if(f.done){
       stopDogTimer(board);
@@ -1475,7 +1556,7 @@
   // ===================== SP CIRCLE =====================
   function spcStart(diffKey, ov){
     teardownActive(); hideAllScreens(); $('sp-circle').classList.remove('hidden');
-    const config=buildCircleConfig(diffKey, ov); spcState=makeCircleState(config); spcState.ov=ov; spcState.revealed=false; spcState.revealVisible=false; spcState.revealedAtMove=null;
+    const config=buildCircleConfig(diffKey, ov); spcState=makeCircleState(config); spcState.ov=ov; spcState.revealed=false; spcState.revealedAtMove=null;
     setThemeBg(config.theme); circleBuildRings(spcState, $('spc-host'), 1);
     renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1);
     spcRender();
@@ -1488,9 +1569,6 @@
     $('spc-field').textContent = cs.phase==='won'?'–':(cs.index+1);
     renderLog($('spc-log'), cs.log);
     document.querySelectorAll('#circle-steps button').forEach(b=>b.disabled=cs.phase!=='playing'||cs.animating);
-    const rb=$('spc-reveal-box');
-    if(cs.revealVisible){ rb.classList.remove('hidden'); rb.innerHTML=circleExplain(cs.rings, cs.poseEffects); } else rb.classList.add('hidden');
-    $('spc-reveal').textContent = cs.revealVisible?'Auflösung verbergen':'Auflösung anzeigen';
     const ov=$('spc-overlay');
     if(cs.phase==='won'){
       ov.classList.remove('hidden');
@@ -1585,7 +1663,7 @@
     $('mp-grid').classList.remove('hidden');
     const gerangel = gridVariant==='gerangel';
     const shared=buildGridShared(diffKey, gridVariant, gerangel, ov); setThemeBg(shared.theme);
-    $('mpg-result').classList.add('hidden'); $('mpg-reveal-box').classList.add('hidden');
+    $('mpg-result').classList.add('hidden'); closeReveal();
     if(gerangel){
       $('mpg-twocol').classList.add('hidden'); $('mpg-shared-wrap').classList.remove('hidden');
       const cell=fitCell(Math.max(20, Math.round(500/shared.cols)), shared.cols);
@@ -1593,7 +1671,7 @@
         {startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p1'},
         {startX:shared.starts[1].x,startY:shared.starts[1].y,colorClass:'p2'} ]);
       board.onChange=mpgRenderScores;
-      mp={ mode:'grid', variant:'gerangel', shared, board, ov, finished:false, winner:null, revealVisible:false };
+      mp={ mode:'grid', variant:'gerangel', shared, board, ov, finished:false, winner:null };
       renderGridBoard(board); startDogTimer(board);
       $('mpg-title').innerHTML=`${shared.theme.title} &middot; Gerangel &middot; <small>Sammle die meisten Punkte &ndash; M&uuml;nze 1, Schl&uuml;ssel 3</small>`;
       mpgRenderScores();
@@ -1603,7 +1681,7 @@
       const b1=createGridBoard($('mpg-host1'), shared, cell, [{startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p1'}]);
       const b2=createGridBoard($('mpg-host2'), shared, cell, [{startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p2'}]);
       b1.onChange=mpUpdateHeads; b2.onChange=mpUpdateHeads;
-      mp={ mode:'grid', variant:'spurensuche', shared, ov, finished:false, winner:null, revealVisible:false, players:[{board:b1},{board:b2}] };
+      mp={ mode:'grid', variant:'spurensuche', shared, ov, finished:false, winner:null, players:[{board:b1},{board:b2}] };
       renderGridBoard(b1); renderGridBoard(b2); startDogTimer(b1); startDogTimer(b2);
       $('mpg-title').innerHTML=`${shared.theme.title} &middot; Spurensuche &middot; <small>${winCond==='fastest'?'Schnellster ins Ziel':'Wenigste Züge'} &ndash; identische Regel für beide</small>`;
       mpUpdateHeads();
@@ -1621,11 +1699,11 @@
     const cs1=makeCircleState(config); const cs2=makeCircleState(config);
     circleBuildRings(cs1, $('mpc-host1'), 0.66); circleMarkerFlash(cs1);
     circleBuildRings(cs2, $('mpc-host2'), 0.66); circleMarkerFlash(cs2);
-    mp={ mode:'circle', config, ov, finished:false, winner:null, reason:null, loser:null, revealVisible:false, players:[{cs:cs1},{cs:cs2}] };
+    mp={ mode:'circle', config, ov, finished:false, winner:null, reason:null, loser:null, players:[{cs:cs1},{cs:cs2}] };
     renderDetectiveCenter($('mpc-host1'), cs1.gandalfPose, 'W', ()=>mpCyclePose(0), 0.66);
     renderDetectiveCenter($('mpc-host2'), cs2.gandalfPose, '↑', ()=>mpCyclePose(1), 0.66);
     $('mpc-title').innerHTML=`${config.theme.title} &middot; <small>${winCond==='fastest'?'Schnellster ins Zentrum':'Wenigste Züge'} &ndash; identische Regeln für beide</small>`;
-    $('mpc-result').classList.add('hidden'); $('mpc-reveal-box').classList.add('hidden');
+    $('mpc-result').classList.add('hidden'); closeReveal();
     renderLog($('mpc-log1'), []); renderLog($('mpc-log2'), []);
     mpUpdateHeads();
   }
@@ -1755,8 +1833,8 @@
     const active = gs.turn===pi && !mp.finished && !pl.done;
     host.innerHTML = `<div class="ger-det ${pi===0?'p1':'p2'}${active?' active':''}${isSabo?' sabotage':''}">`
       + detectiveSvg(pl.gandalfPose, 62)
-      + `<span class="d-pose2">${gs.poseNames[pl.gandalfPose]}</span>`
-      + `<span class="d-hint">Pose: ${pi===0?'W':'&uarr;'} / Klick</span></div>`;
+      + `<span class="d-pose2">${gs.poseNames[pl.gandalfPose]}</span></div>`;
+    host.firstChild.title='Pose wechseln';
     host.firstChild.onclick=()=>mpcgPose(pi);
   }
   function mpcgUpdate(){
@@ -1785,11 +1863,11 @@
       poseNames: GER_POSE_NAMES,
       players:[ mkPlayer(config.startIndex), mkPlayer((config.startIndex+Math.floor(fc/2))%fc) ],
       turn:0 };
-    mp={ mode:'circleGer', gs, ov, finished:false, winner:null, revealVisible:false };
+    mp={ mode:'circleGer', gs, ov, finished:false, winner:null };
     buildGerangelCircle(gs, $('mpcg-host'), 0.9);
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
     $('mpcg-title').innerHTML=`${config.theme.title} &middot; Kreis-Gerangel &middot; <small>Gemeinsamer Kreis &ndash; abwechselnd; wer zuerst ins Zentrum kommt, gewinnt.</small>`;
-    $('mpcg-result').classList.add('hidden'); $('mpcg-reveal-box').classList.add('hidden');
+    $('mpcg-result').classList.add('hidden'); closeReveal();
     renderGerLog($('mpcg-log1'), []); renderGerLog($('mpcg-log2'), []);
     mpcgUpdate();
   }
@@ -1816,12 +1894,9 @@
     $('mpcg-result').innerHTML=`<div class="win-line">Spieler ${w+1} gewinnt!</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove} Z&uuml;gen (Gegner: ${gs.players[1-w].moves} Z&uuml;ge).`;
     $('mpcg-result').classList.remove('hidden');
   }
-  function mpcgToggleReveal(){
+  function mpcgShowReveal(){
     if(!mp||mp.mode!=='circleGer') return;
-    mp.revealVisible=!mp.revealVisible;
-    const box=$('mpcg-reveal-box');
-    if(mp.revealVisible){ box.classList.remove('hidden'); box.innerHTML=circleExplain(mp.gs.rings, mp.gs.poseEffects); }
-    else box.classList.add('hidden');
+    openReveal(circleExplain(mp.gs.rings, mp.gs.poseEffects));
   }
 
   // ===================== ONLINE: KREIS-GERANGEL (zwei Geraete, Firebase) =====================
@@ -1870,7 +1945,7 @@
       const hostEl=$('onl-rooms'); hostEl.innerHTML='';
       const val=snap.val()||{}; const now=Date.now();
       const rooms=Object.keys(val)
-        .map(code=>({ code, ts:val[code].ts||0, theme:val[code].theme||'' }))
+        .map(code=>({ code, ts:val[code].ts||0, theme:val[code].theme||'', variant:(val[code].variant==='grid'?'grid':'circle') }))
         .filter(r=> now-r.ts < 30*60*1000)   // nur frische Raeume zeigen
         .sort((a,b)=>b.ts-a.ts);
       if(!rooms.length){ const d=el('div','empty'); d.textContent='Gerade keine offenen Räume – erstelle selbst einen.'; hostEl.appendChild(d); return; }
@@ -1878,7 +1953,7 @@
         const row=el('div','room-item');
         const left=el('div');
         const c=el('div','rc'); c.textContent=r.code;
-        const t=el('div','rt'); t.textContent=THEMES[r.theme]?THEMES[r.theme].title:'';
+        const t=el('div','rt'); t.textContent=(THEMES[r.theme]?THEMES[r.theme].title:'')+' · '+(r.variant==='grid'?'Feld':'Kreis');
         left.appendChild(c); left.appendChild(t);
         const b=el('button','action'); b.textContent='Beitreten'; b.onclick=()=>onlJoin(r.code);
         row.appendChild(left); row.appendChild(b); hostEl.appendChild(row);
@@ -1889,6 +1964,7 @@
 
   function onlSerializeConfig(config){
     return clean({
+      v: 2, variant: 'circle',
       diffKey: onl.diffKey,
       specs: config.specs.map(s=>({ fieldCount:s.fieldCount, star:s.star, rule:s.rule, rotRule:s.rotRule })),
       outerIdx: config.outerIdx,
@@ -1896,6 +1972,21 @@
       poseEffects: config.poseEffects.concat([{kind:'sabotage'}])
     });
   }
+  // Das Feld laesst sich nicht wie der Kreis als Daten uebertragen: shared.rule und shared.zoneOf sind
+  // Closures, wallSet ist ein Set. Stattdessen einigen sich beide Geraete auf einen Seed und bauen
+  // daraus dasselbe Brett.
+  function onlSerializeGridConfig(){
+    return clean({ v:2, variant:'grid', diffKey: onl.diffKey, seed: (Math.random()*4294967296)>>>0 });
+  }
+  function onlBuildGridShared(cfg){
+    seedRng(cfg.seed>>>0);
+    try{ return buildGridShared(cfg.diffKey, 'gerangel', true, {}); }
+    finally{ unseedRng(); }
+  }
+  function onlVariantOf(cfg){ return (cfg && cfg.variant==='grid') ? 'grid' : 'circle'; }
+  // Sieger ueber die Leitung: -1 = noch keiner, 2 = unentschieden, sonst der Spielerindex.
+  function onlWinnerToWire(w){ return w==null ? -1 : (w==='tie' ? 2 : w); }
+  function onlWinnerFromWire(w){ return (w==null || w<0) ? null : (w===2 ? 'tie' : w); }
   function onlBuildGs(cfg){
     const outerIdx=cfg.outerIdx, fc=cfg.specs[outerIdx].fieldCount;
     const mk=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[] });
@@ -1909,31 +2000,61 @@
     };
   }
   function onlEnterGame(cfg){
+    onlShow('onl-game');
+    $('onl-result').classList.add('hidden'); closeReveal();
+    if(onl.variant==='grid'){
+      if(!onl.shared) onl.shared=onlBuildGridShared(cfg);
+      const shared=onl.shared;
+      setThemeBg(shared.theme);
+      $('onl-circle-wrap').classList.add('hidden'); $('onl-grid-wrap').classList.remove('hidden');
+      $('onl-title').innerHTML=`Online &middot; ${shared.theme.title} &middot; <small>Feld-Gerangel &middot; Raum ${onl.code}</small>`;
+      const cell=fitCell(Math.max(20, Math.round(500/shared.cols)), shared.cols);
+      onl.board=createGridBoard($('onl-grid-host'), shared, cell, [
+        {startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:'p1'},
+        {startX:shared.starts[1].x, startY:shared.starts[1].y, colorClass:'p2'} ]);
+      renderGridBoard(onl.board);
+      // Nur der Host rechnet: Hunde laufen ausschliesslich bei ihm, jeder Tick wird veroeffentlicht.
+      if(onl.role==='host'){ onl.board.onChange=onlGridChanged; startDogTimer(onl.board); }
+      onlRenderUi();
+      return;
+    }
     if(!onl.gs) onl.gs=onlBuildGs(cfg);
     const gs=onl.gs;
     setThemeBg(gs.theme);
-    onlShow('onl-game');
-    $('onl-title').innerHTML=`Online &middot; ${gs.theme.title} &middot; <small>Raum ${onl.code}</small>`;
+    $('onl-grid-wrap').classList.add('hidden'); $('onl-circle-wrap').classList.remove('hidden');
+    $('onl-title').innerHTML=`Online &middot; ${gs.theme.title} &middot; <small>Kreis-Gerangel &middot; Raum ${onl.code}</small>`;
     buildGerangelCircle(gs, $('onl-host'), 0.9);
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
-    $('onl-result').classList.add('hidden'); $('onl-reveal-box').classList.add('hidden');
-    onl.revealVisible=false;
     renderGerLog($('onl-log'), []);
     onlRenderUi();
+  }
+  // Host: jede Aenderung am Brett (Zug, Hundetick, Ende einer Blink-Sperre) neu veroeffentlichen.
+  function onlGridChanged(){
+    if(!onl || onl.role!=='host' || !onl.board) return;
+    const b=onl.board;
+    if(!onl.finished && gerangelDone(b)){
+      stopDogTimer(b);
+      onl.finished=true;
+      const s0=b.figs[0].score, s1=b.figs[1].score;
+      onl.winner = s0>s1 ? 0 : s1>s0 ? 1 : 'tie';
+    }
+    onlRenderUi(); onlPublish();
+    if(onl.finished) onlShowResult();
   }
 
   async function onlCreate(){
     if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst.', true); return; }
     onlMsg('');
     const diffKey=$('onl-theme').value;
+    const variant=$('onl-variant').value==='grid'?'grid':'circle';
     let code=onlGenCode();
     for(let i=0;i<5;i++){ const s=await fbDb.ref('rooms/'+code).once('value'); if(!s.exists()) break; code=onlGenCode(); }
     const myId=onlGenId(), roomRef=fbDb.ref('rooms/'+code);
-    await roomRef.set({ meta:{ status:'waiting', diffKey, created: firebase.database.ServerValue.TIMESTAMP, hostId:myId }, players:{ host:{ id:myId } } });
-    await fbDb.ref('lobby/'+code).set({ ts: firebase.database.ServerValue.TIMESTAMP, theme:diffKey });
+    await roomRef.set({ meta:{ status:'waiting', diffKey, variant, created: firebase.database.ServerValue.TIMESTAMP, hostId:myId }, players:{ host:{ id:myId } } });
+    await fbDb.ref('lobby/'+code).set({ ts: firebase.database.ServerValue.TIMESTAMP, theme:diffKey, variant });
     fbDb.ref('lobby/'+code).onDisconnect().remove();
     roomRef.onDisconnect().remove();     // Raum verschwindet, wenn der Gastgeber weg ist
-    onl={ code, role:'host', myIdx:0, roomRef, myId, diffKey, stateSeq:0, inSeq:0, lastGuestSeq:0, started:false, finished:false, winner:null, listeners:[] };
+    onl={ code, role:'host', myIdx:0, roomRef, myId, diffKey, variant, stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
     onlDetachLobby();
     $('onl-wait-code').textContent=code;
     $('onl-wait-status').textContent='Warte auf Mitspieler …';
@@ -1958,7 +2079,7 @@
     const myId=onlGenId();
     await roomRef.child('players/guest').set({ id:myId });
     await fbDb.ref('lobby/'+code).remove();
-    onl={ code, role:'guest', myIdx:1, roomRef, myId, diffKey:v.meta.diffKey, stateSeq:0, inSeq:0, started:false, finished:false, winner:null, listeners:[] };
+    onl={ code, role:'guest', myIdx:1, roomRef, myId, diffKey:v.meta.diffKey, variant:(v.meta.variant==='grid'?'grid':'circle'), stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
     roomRef.child('players/guest').onDisconnect().remove();
     onlDetachLobby(); onlMsg('');
     $('onl-wait-code').textContent=code;
@@ -1967,7 +2088,14 @@
     const cRef=roomRef.child('config');
     const cb=cRef.on('value', s=>{
       const cfg=s.val(); if(!cfg || onl.started) return;
-      onl.started=true; onl.config=cfg; onl.gs=onlBuildGs(cfg);
+      onl.variant=onlVariantOf(cfg);
+      // Schutz vor einem Gastgeber mit neuerer Version, dessen Config wir nicht lesen koennen.
+      if(onl.variant==='grid' && typeof cfg.seed!=='number'){
+        onlMsg('Dieser Raum braucht eine neuere Version des Spiels. Lade die Seite neu.', true);
+        onlShow('onl-lobby'); return;
+      }
+      onl.started=true; onl.config=cfg;
+      if(onl.variant==='grid') onl.shared=onlBuildGridShared(cfg); else onl.gs=onlBuildGs(cfg);
       onlEnterGame(cfg);
       const sRef=roomRef.child('state');
       const cb2=sRef.on('value', s2=>{ const st=s2.val(); if(st) onlApplyState(st); });
@@ -1983,21 +2111,46 @@
     if(onl.started) return;
     onl.started=true;
     fbDb.ref('lobby/'+onl.code).remove();
-    const config=buildCircleConfig(onl.diffKey, {});
-    const cfg=onlSerializeConfig(config);
-    onl.config=cfg; onl.gs=onlBuildGs(cfg);
+    let cfg;
+    if(onl.variant==='grid'){ cfg=onlSerializeGridConfig(); onl.shared=onlBuildGridShared(cfg); }
+    else { cfg=onlSerializeConfig(buildCircleConfig(onl.diffKey, {})); onl.gs=onlBuildGs(cfg); }
+    onl.config=cfg;
+    onl.roomRef.child('inputs').remove();
     onl.roomRef.child('config').set(cfg);
     onl.roomRef.child('meta/status').set('playing');
     onlEnterGame(cfg);
     onlPublish();
+    // Eingaben laufen als Warteschlange: im Feld-Gerangel ziehen beide gleichzeitig, ein einzelner
+    // ueberschriebener Slot wuerde schnell aufeinanderfolgende Zuege verschlucken.
     const iRef=onl.roomRef.child('inputs/guest');
-    const cb=iRef.on('value', s=>{ const inp=s.val(); if(inp) onlHostHandleInput(1, inp); });
-    onl.listeners.push({ref:iRef, ev:'value', cb});
+    const cb=iRef.on('child_added', s=>{
+      const inp=s.val();
+      try{ s.ref.remove(); }catch(e){}
+      if(inp) onlApplyAction(1, inp);
+    });
+    onl.listeners.push({ref:iRef, ev:'child_added', cb});
   }
 
   function onlPublish(){
-    if(!onl || onl.role!=='host' || !onl.gs) return;
-    const gs=onl.gs;
+    if(!onl || onl.role!=='host') return;
+    if(onl.variant==='grid'){
+      const b=onl.board; if(!b) return;
+      const now=Date.now();
+      onl.roomRef.child('state').set(clean({
+        seq: ++onl.stateSeq,
+        finished: !!onl.finished,
+        winner: onlWinnerToWire(onl.winner),
+        // blinkUntil ist ein lokaler Date.now()-Stempel und ueber zwei Geraete hinweg wertlos –
+        // deshalb die Restdauer schicken, die der Gast auf seine eigene Uhr umrechnet.
+        figs: b.figs.map(f=>({ x:f.x, y:f.y, score:f.score, moves:f.moves, done:!!f.done,
+                               blink: Math.max(0, f.blinkUntil-now), flash: f.lastFlash||'' })),
+        coins: (b.coins||[]).map(c=>({x:c.x,y:c.y})),
+        hazards: (b.hazards||[]).map(h=>({x:h.x,y:h.y})),
+        centerTaken: !!(b.centerItem && b.centerItem.taken)
+      }));
+      return;
+    }
+    const gs=onl.gs; if(!gs) return;
     onl.roomRef.child('state').set(clean({
       seq: ++onl.stateSeq,
       turn: gs.turn,
@@ -2008,7 +2161,26 @@
       logs: gs.players.map(p=>(p.log||[]).slice(0,3))
     }));
   }
+  function onlApplyGridState(st){
+    const b=onl.board; if(!b) return;
+    const now=Date.now();
+    (st.figs||[]).forEach((p,i)=>{ const f=b.figs[i]; if(!f) return;
+      f.x=p.x; f.y=p.y; f.score=p.score||0; f.moves=p.moves||0; f.done=!!p.done;
+      f.blinkUntil = p.blink>0 ? now+p.blink : 0;
+      f.lastFlash = p.flash || null;
+    });
+    b.coins=(st.coins||[]).map(c=>({x:c.x,y:c.y}));
+    b.hazards=(st.hazards||[]).map(h=>({x:h.x,y:h.y}));
+    b.hazardSet=new Set(b.hazards.map(h=>h.x+','+h.y));
+    if(b.centerItem) b.centerItem.taken=!!st.centerTaken;
+    onl.finished=!!st.finished;
+    onl.winner=onlWinnerFromWire(st.winner);
+    renderGridBoard(b);
+    onlRenderUi();
+    if(onl.finished) onlShowResult();
+  }
   function onlApplyState(st){
+    if(onl.variant==='grid'){ onlApplyGridState(st); return; }
     const gs=onl.gs; if(!gs) return;
     (st.rings||[]).forEach((off,i)=>{ if(gs.rings[i]){ gs.rings[i].offset=off; gs.rings[i].offsetVisual=null; } });
     (st.p||[]).forEach((p,i)=>{ const pl=gs.players[i]; if(!pl) return;
@@ -2026,14 +2198,18 @@
     if(onl.finished) onlShowResult();
   }
 
-  async function onlHostHandleInput(pi, inp){
-    if(!onl || onl.role!=='host' || !onl.gs) return;
-    if(!inp || typeof inp.seq!=='number' || inp.seq<=(onl.lastGuestSeq||0)) return;
-    onl.lastGuestSeq=inp.seq;
-    await onlApplyAction(pi, inp);
-  }
   async function onlApplyAction(pi, act){
-    const gs=onl.gs; if(!gs || onl.finished) return;
+    if(!onl || onl.role!=='host' || onl.finished) return;
+    if(onl.variant==='grid'){
+      const b=onl.board; if(!b || act.kind!=='move') return;
+      // Kein Zugwechsel: im Feld-Gerangel ziehen beide jederzeit. gridBoardSubmit sperrt selbst,
+      // solange eine Figur nach einer Kollision blinkt.
+      const dir = (act.dir==null || act.dir<0) ? null : act.dir;
+      gridBoardSubmit(b, pi, dir);
+      onlGridChanged();
+      return;
+    }
+    const gs=onl.gs; if(!gs) return;
     const pl=gs.players[pi]; if(!pl || pl.done) return;
     if(act.kind==='pose'){
       pl.gandalfPose=(pl.gandalfPose+1)%gs.poseEffects.length;
@@ -2050,23 +2226,30 @@
       onlRenderUi(); onlPublish();
     }
   }
-  function onlSend(kind, choice){
+  function onlSend(act){
     if(!onl) return;
-    if(onl.role==='host'){ onlApplyAction(0, {kind, choice}); return; }
-    onl.roomRef.child('inputs/guest').set({ seq: ++onl.inSeq, kind, choice:(choice==null?0:choice), ts: firebase.database.ServerValue.TIMESTAMP });
+    if(onl.role==='host'){ onlApplyAction(0, act); return; }
+    onl.roomRef.child('inputs/guest').push(clean(Object.assign({ ts: firebase.database.ServerValue.TIMESTAMP }, act)));
   }
   function onlMove(choice){
     if(!onl || !onl.gs || onl.finished) return;
     if(onl.gs.turn!==onl.myIdx || onl.gs.players[onl.myIdx].done) return;
-    onlSend('move', choice);
+    onlSend({ kind:'move', choice });
   }
   function onlPose(){
     if(!onl || !onl.gs || onl.finished) return;
     if(onl.gs.players[onl.myIdx].done) return;
-    onlSend('pose', 0);
+    onlSend({ kind:'pose', choice:0 });
+  }
+  function onlGridMove(dir){
+    if(!onl || onl.variant!=='grid' || !onl.board || onl.finished) return;
+    const f=onl.board.figs[onl.myIdx];
+    if(f.done || Date.now()<f.blinkUntil) return;
+    onlSend({ kind:'move', dir:(dir==null ? -1 : dir) });
   }
 
   function onlRenderUi(){
+    if(onl.variant==='grid'){ onlRenderGridUi(); return; }
     const gs=onl.gs; if(!gs) return;
     const me=gs.players[onl.myIdx], opp=gs.players[1-onl.myIdx];
     const meLbl=onl.myIdx===0?'Spieler 1':'Spieler 2', oppLbl=onl.myIdx===0?'Spieler 2':'Spieler 1';
@@ -2083,6 +2266,20 @@
     document.querySelectorAll('#onl-steps button').forEach(b=>b.disabled=!enabled);
     onlRenderDet();
   }
+  function onlRenderGridUi(){
+    const b=onl.board; if(!b) return;
+    const me=b.figs[onl.myIdx], opp=b.figs[1-onl.myIdx];
+    const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
+    const left=(b.coins?b.coins.length:0)+(b.centerItem && !b.centerItem.taken ? 1 : 0);
+    $('onl-grid-score').innerHTML=
+      `<span style="color:var(--${meCol})">Du <b>${me.score}</b></span> &nbsp;·&nbsp; `
+      + `<span style="color:var(--${oppCol})">Gegner <b>${opp.score}</b></span> &nbsp;·&nbsp; M&uuml;nzen <b>${left}</b>`;
+    const t=$('onl-turn'); t.classList.remove('mine','theirs','over');
+    if(onl.finished){ t.classList.add('over'); t.textContent='Runde beendet.'; }
+    else { t.classList.add('mine'); t.textContent='Ihr zieht gleichzeitig – sammle die Münzen!'; }
+    const blocked = onl.finished || me.done || Date.now()<me.blinkUntil;
+    document.querySelectorAll('#onl-pad button').forEach(btn=>btn.disabled=blocked);
+  }
   function onlRenderDet(){
     const gs=onl.gs, pl=gs.players[onl.myIdx];
     const eff=gs.poseEffects[pl.gandalfPose];
@@ -2090,12 +2287,22 @@
     const hostEl=$('onl-det');
     hostEl.innerHTML=`<div class="ger-det ${onl.myIdx===0?'p1':'p2'} active${isSabo?' sabotage':''}">`
       + detectiveSvg(pl.gandalfPose, 62)
-      + `<span class="d-pose2">${gs.poseNames[pl.gandalfPose]}</span>`
-      + `<span class="d-hint">Tippen zum Wechseln</span></div>`;
+      + `<span class="d-pose2">${gs.poseNames[pl.gandalfPose]}</span></div>`;
+    hostEl.firstChild.title='Pose wechseln';
     hostEl.firstChild.onclick=()=>onlPose();
   }
   function onlShowResult(){
-    const gs=onl.gs, w=onl.winner; if(w==null) return;
+    const w=onl.winner; if(w==null) return;
+    if(onl.variant==='grid'){
+      const b=onl.board; if(!b) return;
+      const me=b.figs[onl.myIdx].score, opp=b.figs[1-onl.myIdx].score;
+      $('onl-result').innerHTML = w==='tie'
+        ? `<div class="win-line">Unentschieden!</div>Beide ${me} Punkte.`
+        : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Du ${me} : ${opp} Gegner.`;
+      $('onl-result').classList.remove('hidden');
+      return;
+    }
+    const gs=onl.gs;
     const mine=(w===onl.myIdx);
     $('onl-result').innerHTML=`<div class="win-line">${mine?'Du gewinnst!':'Gegner gewinnt!'}</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove||gs.players[w].moves} Z&uuml;gen.`;
     $('onl-result').classList.remove('hidden');
@@ -2103,16 +2310,15 @@
   function onlOpponentLeft(hostLeft){
     if(!onl || onl.finished) return;
     onl.finished=true;
+    if(onl.board) stopDogTimer(onl.board);
     const t=$('onl-turn'); t.classList.remove('mine','theirs'); t.classList.add('over');
     t.textContent = hostLeft ? 'Der Gastgeber hat den Raum geschlossen.' : 'Dein Gegner hat den Raum verlassen.';
-    document.querySelectorAll('#onl-steps button').forEach(b=>b.disabled=true);
+    document.querySelectorAll('#onl-steps button, #onl-pad button').forEach(b=>b.disabled=true);
   }
-  function onlToggleReveal(){
-    if(!onl || !onl.gs) return;
-    onl.revealVisible=!onl.revealVisible;
-    const box=$('onl-reveal-box');
-    if(onl.revealVisible){ box.classList.remove('hidden'); box.innerHTML=circleExplain(onl.gs.rings, onl.gs.poseEffects); }
-    else box.classList.add('hidden');
+  function onlShowReveal(){
+    if(!onl) return;
+    if(onl.variant==='grid'){ if(onl.shared) openReveal(gridExplain(onl.shared)); return; }
+    if(onl.gs) openReveal(circleExplain(onl.gs.rings, onl.gs.poseEffects));
   }
   function onlLeave(){
     if(onl){
@@ -2122,19 +2328,16 @@
         else { onl.roomRef.child('players/guest').onDisconnect().cancel(); onl.roomRef.child('players/guest').remove(); }
       }catch(e){}
       if(onl.gs) onl.gs.mounted=false;
+      if(onl.board) stopDogTimer(onl.board);
       onl=null;
     }
     onlDetachLobby();
     backToMenu();
   }
 
-  function mpToggleReveal(){
+  function mpShowReveal(){
     if(!mp) return;
-    mp.revealVisible=!mp.revealVisible;
-    const isGrid=mp.mode==='grid';
-    const box=$(isGrid?'mpg-reveal-box':'mpc-reveal-box');
-    if(mp.revealVisible){ box.classList.remove('hidden'); box.innerHTML = isGrid?gridExplain(mp.shared):circleExplain(mp.players[0].cs.rings, mp.players[0].cs.poseEffects); }
-    else box.classList.add('hidden');
+    openReveal(mp.mode==='grid' ? gridExplain(mp.shared) : circleExplain(mp.players[0].cs.rings, mp.players[0].cs.poseEffects));
   }
 
   // ===================== START SCREEN WIRING =====================
@@ -2144,18 +2347,6 @@
     const gerangel = currentMode==='grid' && gridVariant==='gerangel';
     const circGer = currentMode==='circle' && circleVariant==='gerangel';
     $('winmode-block').classList.toggle('hidden', playerCount!==2 || gerangel || circGer);
-    $('intro-grid').classList.toggle('hidden',currentMode!=='grid');
-    $('intro-circle').classList.toggle('hidden',currentMode!=='circle');
-    $('ctrl-legend').classList.toggle('hidden', playerCount!==2);
-    if(playerCount===2){
-      const legend = currentMode==='grid'
-        ? '<b class="p1">Spieler 1</b>: W A S D bewegen, X = bleiben &nbsp;·&nbsp; <b class="p2">Spieler 2</b>: Pfeiltasten, 0 = bleiben'
-        : '<b class="p1">Spieler 1</b>: A / D = −1 / +1, Shift+A / Shift+D = −2 / +2, S = 0, W = Detektiv-Pose &nbsp;·&nbsp; <b class="p2">Spieler 2</b>: ← / → = −1 / +1, ↓ = 0, „0" halten + ←/→ = −2 / +2, ↑ = Detektiv-Pose';
-      const note = circGer ? 'Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd. Neue Pose <b>Sabotage</b> dreht den Ring des Gegners. Wer zuerst ins Zentrum kommt, gewinnt.'
-        : gerangel ? 'Beide spielen im selben Feld, exakt gegen&uuml;ber und symmetrisch platziert &ndash; die meisten Punkte gewinnen.'
-        : 'Beide bekommen dieselbe versteckte Regel, dasselbe Startfeld und dasselbe Ziel.';
-      $('ctrl-legend').innerHTML = legend + '<br><span style="font-size:0.76rem;">'+note+'</span>';
-    }
   }
 
   document.querySelectorAll('#mode-tabs .mode-tab').forEach(btn=>{
@@ -2352,9 +2543,12 @@
   $('onl-join').addEventListener('click', ()=>onlJoin($('onl-code').value));
   $('onl-code').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); onlJoin($('onl-code').value); } });
   $('onl-leave').addEventListener('click', onlLeave);
-  $('onl-reveal').addEventListener('click', onlToggleReveal);
+  $('onl-reveal').addEventListener('click', onlShowReveal);
   document.querySelectorAll('#onl-steps button[data-step]').forEach(b=>{
     b.addEventListener('click', ()=>onlMove(parseInt(b.dataset.step,10)));
+  });
+  document.querySelectorAll('#onl-pad button[data-dir]').forEach(b=>{
+    b.addEventListener('click', ()=>{ const d=b.dataset.dir; onlGridMove(d==='stay'?null:parseInt(d,10)); });
   });
   ['ed-mode','ed-variant','ed-rule','ed-haz'].forEach(id=>$(id).addEventListener('change', edRefresh));
   ['ed-size','ed-hazn','ed-haztick','ed-coins','ed-mile','ed-rings'].forEach(id=>$(id).addEventListener('input', edRefresh));
@@ -2373,24 +2567,24 @@
   document.querySelectorAll('#sp-grid .dpad button[data-dir]').forEach(btn=>{
     btn.addEventListener('click',()=>{ const d=btn.dataset.dir; spgMove(d==='stay'?null:parseInt(d,10)); });
   });
-  $('spg-reveal').addEventListener('click',()=>{ if(!spgState) return; spgState.revealVisible=!spgState.revealVisible; if(spgState.revealVisible&&!spgState.revealed){ spgState.revealed=true; spgState.revealedAtMove=spgState.board.figs[0].moves; } spgRender(); });
+  $('spg-reveal').addEventListener('click',()=>{ if(!spgState) return; if(!spgState.revealed){ spgState.revealed=true; spgState.revealedAtMove=spgState.board.figs[0].moves; } openReveal(gridExplain(spgState.shared)); });
   $('spg-reset').addEventListener('click',()=>{ if(spgState) spgStart(spgState.shared.diffKey, spgState.shared.variant, spgState.ov); });
   $('spg-back').addEventListener('click',backToMenu);
 
   // SP circle controls
   document.querySelectorAll('#circle-steps button[data-step]').forEach(btn=>{ btn.addEventListener('click',()=>spcMove(parseInt(btn.dataset.step,10))); });
-  $('spc-reveal').addEventListener('click',()=>{ if(!spcState) return; spcState.revealVisible=!spcState.revealVisible; if(spcState.revealVisible&&!spcState.revealed){ spcState.revealed=true; spcState.revealedAtMove=spcState.moves; } spcRender(); });
+  $('spc-reveal').addEventListener('click',()=>{ if(!spcState) return; if(!spcState.revealed){ spcState.revealed=true; spcState.revealedAtMove=spcState.moves; } openReveal(circleExplain(spcState.rings, spcState.poseEffects)); });
   $('spc-reset').addEventListener('click',()=>{ if(spcState && !spcState.animating) spcStart(spcState.diffKey, spcState.ov); });
   $('spc-back').addEventListener('click',backToMenu);
 
   // MP controls
-  $('mpg-reveal').addEventListener('click',mpToggleReveal);
+  $('mpg-reveal').addEventListener('click',mpShowReveal);
   $('mpg-again').addEventListener('click',()=>{ if(mp) mpStart(mp.shared.diffKey, mp.ov); });
   $('mpg-back').addEventListener('click',backToMenu);
-  $('mpc-reveal').addEventListener('click',mpToggleReveal);
+  $('mpc-reveal').addEventListener('click',mpShowReveal);
   $('mpc-again').addEventListener('click',()=>{ if(mp) mpStart(mp.config.diffKey, mp.ov); });
   $('mpc-back').addEventListener('click',backToMenu);
-  $('mpcg-reveal').addEventListener('click',mpcgToggleReveal);
+  $('mpcg-reveal').addEventListener('click',mpcgShowReveal);
   $('mpcg-again').addEventListener('click',()=>{ if(mp&&mp.gs){ teardownActive(); hideAllScreens(); mpcgStart(mp.gs.diffKey, mp.ov); } });
   $('mpcg-back').addEventListener('click',backToMenu);
 
@@ -2419,9 +2613,6 @@
   document.querySelectorAll('.speed-slider').forEach(s=>{ s.value=animSpeed; s.addEventListener('input',()=>setSpeed(parseFloat(s.value))); });
   setSpeed(animSpeed);
 
-  // notebook
-  const nb=$('spg-notebook'); nb.value=localStorage.getItem('regel-detektiv-notes')||''; nb.addEventListener('input',()=>localStorage.setItem('regel-detektiv-notes',nb.value));
-
   // ===================== KEYBOARD =====================
   let zeroHeld=false;
   document.addEventListener('keydown', e=>{ if(e.code==='Digit0'||e.code==='Numpad0') zeroHeld=true; });
@@ -2430,7 +2621,9 @@
   function circleKeyS2(e){ switch(e.key){ case 'ArrowDown':return 0; case 'ArrowLeft':return zeroHeld?-2:-1; case 'ArrowRight':return zeroHeld?2:1; default:return null; } }
 
   document.addEventListener('keydown',(e)=>{
-    if(document.activeElement && document.activeElement.tagName==='TEXTAREA') return;
+    // Offene Popups fangen Escape ab und schlucken sonst nichts.
+    if(e.key==='Escape'){ if(!$('reveal-modal').classList.contains('hidden')){ e.preventDefault(); closeReveal(); } return; }
+    if(!$('reveal-modal').classList.contains('hidden')) return;
     if(!$('sp-grid').classList.contains('hidden') && spgState){
       const m={ 'ArrowUp':0,'ArrowRight':1,'ArrowDown':2,'ArrowLeft':3 };
       if(e.key in m){ e.preventDefault(); spgMove(m[e.key]); } else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); spgMove(null); }
@@ -2455,8 +2648,16 @@
       if(e.key==='ArrowUp'){ e.preventDefault(); mpcgPose(1); return; }
       const c1=circleKeyS1(e); if(c1!==null){ e.preventDefault(); mpcgMove(0,c1); return; }
       const c2=circleKeyS2(e); if(c2!==null){ e.preventDefault(); mpcgMove(1,c2); }
-    } else if(!$('online').classList.contains('hidden') && onl && onl.gs){
+    } else if(!$('online').classList.contains('hidden') && onl){
       if(document.activeElement && document.activeElement.tagName==='INPUT') return;
+      if(onl.variant==='grid'){
+        if(!onl.board) return;
+        const m={ 'ArrowUp':0,'ArrowRight':1,'ArrowDown':2,'ArrowLeft':3 };
+        if(e.key in m){ e.preventDefault(); onlGridMove(m[e.key]); }
+        else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); onlGridMove(null); }
+        return;
+      }
+      if(!onl.gs) return;
       if(e.key==='w'||e.key==='W'||e.key==='ArrowUp'){ e.preventDefault(); onlPose(); return; }
       let c=circleKeyS1(e); if(c===null) c=circleKeyS2(e);
       if(c!==null){ e.preventDefault(); onlMove(c); }
