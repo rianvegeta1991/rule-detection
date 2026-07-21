@@ -148,6 +148,7 @@
   .rings-svg{display:block; max-width:100%; height:auto;}
   .ring-field{fill:rgba(var(--accent-rgb),0.16); stroke:#0b1220; stroke-width:1.5;}
   .ring-field.star{fill:rgba(var(--accent-rgb),0.55);}
+  .ring-field.wall{fill:#0b1220; stroke:rgba(148,163,184,0.14); pointer-events:none;}
   .ring-field.current{stroke:var(--good); stroke-width:3;}
   .field-label{fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle; pointer-events:none; font-family:inherit;}
   .svg-goal{fill:var(--gold); filter:drop-shadow(0 0 6px var(--gold)); animation:pulse 1s infinite alternate;}
@@ -184,8 +185,19 @@
   .detective-center:hover svg{filter:drop-shadow(0 0 6px rgba(250,204,21,0.7));}
 
   /* ===== game layout ===== */
-  .game-screen{display:flex; gap:20px; max-width:1120px; width:100%; align-items:flex-start; justify-content:center; flex-wrap:wrap;}
-  .board-wrap{display:flex; flex-direction:column; align-items:center; gap:10px;}
+  /* Einzelspieler-Ansichten (Feld & Kreis): Spalte, Steuerung füllt den Raum unter dem Brett. */
+  .game-screen{display:flex; flex-direction:column; align-items:center; gap:12px; width:100%; max-width:560px; margin:0 auto;}
+  .game-head{width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;}
+  .game-head .stats-row{font-size:0.82rem;}
+  .head-actions{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;}
+  button.action.mini{padding:6px 10px; font-size:0.78rem;}
+  .control-area{width:100%; display:flex; align-items:center; justify-content:center;}
+  .dpad.big{grid-template-columns:repeat(3, minmax(0,1fr)); grid-template-rows:repeat(3, minmax(0,1fr)); gap:10px; height:100%; max-height:min(86vw,360px); aspect-ratio:1/1; max-width:100%; margin:0 auto;}
+  .dpad.big button{width:100%; height:100%; font-size:1.9rem; border-radius:16px;}
+  .dpad.big button.stay{font-size:1.4rem;}
+  .btn-row.big{display:flex; gap:8px; width:100%; max-width:440px; justify-content:center;}
+  .btn-row.big button{flex:1 1 0; min-height:56px; font-size:1.25rem; font-weight:700; border-radius:12px;}
+  .board-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%;}
   .sidebar{flex:1; min-width:290px; max-width:420px; display:flex; flex-direction:column; gap:12px;}
   .panel{background:rgba(30,41,59,0.92); border:1px solid var(--cell-border); border-radius:var(--radius); padding:12px 14px;}
   .stats-row{display:flex; flex-wrap:wrap; gap:8px 16px; font-size:0.85rem; color:var(--muted);}
@@ -283,13 +295,23 @@
   /* ===== mobile / responsive ===== */
   html,body{overflow-x:hidden;}
   .circle-host{max-width:100%;}
+  .circle-host .rings-svg{max-height:100%;}
+  .mp-log{display:none;} /* Zug-Protokoll läuft über das Popup */
   #mpcg-host{max-width:100%;}
+  /* Während einer Partie: minimaler Rand. Einzelbrett-Ansichten füllen exakt den Bildschirm (kein
+     Scrollen); die seltenen Doppelbrett-Duelle dürfen notfalls scrollen, statt Inhalt abzuschneiden. */
+  body.playing{padding:6px 10px 0; align-items:stretch;}
+  body.playing .game-screen{height:calc(100dvh - 18px); flex-wrap:nowrap;}
+  body.playing .game-screen .board-wrap{flex:0 0 auto; min-height:0;}
+  body.playing .game-screen .control-area{flex:1 1 auto; min-height:0;}
+  body.playing .mp-screen{min-height:calc(100dvh - 10px); display:flex; flex-direction:column;}
   @media (max-width: 680px){
     body{padding:14px 10px;}
+    body.playing{padding:8px 10px;}
     #gear-btn{top:calc(8px + env(safe-area-inset-top)); right:8px; width:38px; height:38px; font-size:1rem;}
     .hero h1{font-size:1.7rem;}
     .hero-ring{width:88px; height:88px;}
-    .game-screen{gap:12px;}
+    .game-screen{gap:10px;}
     .sidebar{min-width:0; width:100%; max-width:100%;}
     .board-wrap{width:100%;}
     .mp-screen{max-width:100%;}
@@ -299,6 +321,18 @@
     .diff-grid{grid-template-columns:1fr !important;}
     .dual-pads{gap:14px;}
     h1.serif{font-size:1.4rem;}
+    /* Kreis-Gerangel: Kreis oben, beide Steuerspalten nebeneinander darunter → passt auf einen Screen. */
+    #mpcg .mp-wrap{flex-wrap:wrap; justify-content:center; gap:8px;}
+    #mpcg #mpcg-host{order:-1; flex:0 0 100%; display:flex; justify-content:center;}
+    #mpcg .mp-col{order:1; flex:1 1 46%; max-width:47% !important; width:47%; min-width:0;}
+    #mpcg .mp-steps{gap:4px;}
+    #mpcg .mp-steps button{min-width:38px; min-height:40px; padding:5px 6px; font-size:0.9rem;}
+    /* Online-Kreis: eigener Kreis oben, meine Steuerung darunter, Gegner-Kopf kompakt. */
+    #onl-circle-wrap{flex-wrap:wrap; justify-content:center; gap:8px;}
+    #onl-host{order:-1; flex:0 0 100%; display:flex; justify-content:center;}
+    #onl-circle-wrap .mp-col{max-width:100% !important; width:100%;}
+    #onl-steps{justify-content:center;}
+    #onl-pad{grid-template-columns:repeat(3, 60px); grid-template-rows:repeat(3, 52px);}
   }
   @media (max-width: 380px){
     .dpad{grid-template-columns:repeat(3, 48px); grid-template-rows:repeat(3, 44px);}
@@ -433,11 +467,13 @@
 
   <div class="panel hidden" id="ed-circle-opts">
     <div class="ed-row"><label class="small">Anzahl Ringe: <b id="ed-rings-val"></b></label><input type="range" id="ed-rings" min="2" max="5" step="1"></div>
+    <div class="hint" style="color:var(--muted); font-size:0.78rem;">Dazu kommt automatisch ein d&uuml;nner Tor-Ring vor dem Zentrum.</div>
+    <div class="ed-row"><label class="small">Figur-Bewegung (unabh&auml;ngig vom Ring)</label><select id="ed-fig" class="ed-sel"></select></div>
     <div class="ed-row"><label class="small">Detektiv-Pose 2</label><select id="ed-pose2" class="ed-sel"></select></div>
     <div class="ed-row"><label class="small">Detektiv-Pose 3</label><select id="ed-pose3" class="ed-sel"></select></div>
     <div class="hint" style="color:var(--muted); font-size:0.78rem;">Pose 1 ist immer neutral.</div>
-    <details class="ed-adv"><summary>Erweitert: Kreisregeln (pro Ring)</summary>
-      <div class="hint" style="margin-left:0;">Bewegung der Figur und Drehung je Ring. Standard: zuf&auml;llig.</div>
+    <details class="ed-adv"><summary>Erweitert: Ring-Rotationen (pro Ring)</summary>
+      <div class="hint" style="margin-left:0;">Drehung je Ring auf deine Eingabe. Standard: zuf&auml;llig.</div>
       <div id="ed-ring-rows" style="margin-top:8px;"></div>
     </details>
   </div>
@@ -450,6 +486,14 @@
 
 <!-- SINGLE PLAYER: GRID -->
 <div id="sp-grid" class="game-screen hidden">
+  <div class="game-head">
+    <div class="stats-row" id="spg-stats"></div>
+    <div class="head-actions">
+      <button class="action warn mini" id="spg-reveal">Aufl&ouml;sung</button>
+      <button class="action mini" id="spg-reset">Neu</button>
+      <button class="action mini" id="spg-back">Zur&uuml;ck</button>
+    </div>
+  </div>
   <div class="board-wrap">
     <div id="spg-host"></div>
     <div id="spg-overlay" class="panel hidden" style="width:100%; text-align:center;">
@@ -457,29 +501,30 @@
       <div class="footer-row" style="justify-content:center;" id="spg-overlay-actions"></div>
     </div>
   </div>
-  <div class="sidebar">
-    <div class="panel">
-      <div class="stats-row" id="spg-stats"></div>
-    </div>
-    <div class="panel">
-      <div class="dpad">
-        <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
-        <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
-        <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
-      </div>
-    </div>
-    <div class="panel">
-      <button class="action warn" id="spg-reveal" style="width:100%;">Aufl&ouml;sung anzeigen</button>
-    </div>
-    <div class="footer-row">
-      <button class="action" id="spg-reset">Neue Zufallsregel</button>
-      <button class="action" id="spg-back">Zur&uuml;ck zur Auswahl</button>
+  <div class="control-area">
+    <div class="dpad big">
+      <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
+      <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
+      <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
     </div>
   </div>
 </div>
 
 <!-- SINGLE PLAYER: CIRCLE -->
 <div id="sp-circle" class="game-screen hidden">
+  <div class="game-head">
+    <div class="stats-row">
+      <span>Z&uuml;ge <b id="spc-moves">0</b></span>
+      <span>Ring <b id="spc-ring">–</b></span>
+      <span>Feld <b id="spc-field">–</b></span>
+    </div>
+    <div class="head-actions">
+      <button class="action mini" id="spc-log-btn">Protokoll</button>
+      <button class="action warn mini" id="spc-reveal">Aufl&ouml;sung</button>
+      <button class="action mini" id="spc-reset">Neu</button>
+      <button class="action mini" id="spc-back">Zur&uuml;ck</button>
+    </div>
+  </div>
   <div class="board-wrap">
     <div id="spc-host" class="circle-host"></div>
     <div id="spc-overlay" class="panel hidden" style="width:100%; text-align:center;">
@@ -487,33 +532,13 @@
       <div class="footer-row" style="justify-content:center;" id="spc-overlay-actions"></div>
     </div>
   </div>
-  <div class="sidebar">
-    <div class="panel">
-      <div class="stats-row">
-        <span>Z&uuml;ge: <b id="spc-moves">0</b></span>
-        <span>Ring: <b id="spc-ring">–</b></span>
-        <span>Feld: <b id="spc-field">–</b></span>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="btn-row" id="circle-steps">
-        <button class="action" data-step="-2">&minus;2</button>
-        <button class="action" data-step="-1">&minus;1</button>
-        <button class="action" data-step="0">0</button>
-        <button class="action" data-step="1">1</button>
-        <button class="action" data-step="2">2</button>
-      </div>
-    </div>
-    <div class="panel">
-      <label class="small">Zug-Protokoll</label>
-      <div id="spc-log" class="clog" style="font-size:0.8rem; line-height:1.6; max-height:180px; overflow:auto;"></div>
-    </div>
-    <div class="panel">
-      <button class="action warn" id="spc-reveal" style="width:100%;">Aufl&ouml;sung anzeigen</button>
-    </div>
-    <div class="footer-row">
-      <button class="action" id="spc-reset">Neue Zufallsregel</button>
-      <button class="action" id="spc-back">Zur&uuml;ck zur Auswahl</button>
+  <div class="control-area">
+    <div class="btn-row big" id="circle-steps">
+      <button class="action" data-step="-2">&minus;2</button>
+      <button class="action" data-step="-1">&minus;1</button>
+      <button class="action" data-step="0">0</button>
+      <button class="action" data-step="1">+1</button>
+      <button class="action" data-step="2">+2</button>
     </div>
   </div>
 </div>
@@ -576,6 +601,7 @@
   <div class="mp-top">
     <div class="mp-title" id="mpc-title"></div>
     <div class="footer-row">
+      <button class="action" id="mpc-log-btn">Protokoll</button>
       <button class="action warn" id="mpc-reveal">Aufl&ouml;sung</button>
       <button class="action" id="mpc-again">Neue Runde</button>
       <button class="action" id="mpc-back">Zur&uuml;ck</button>
@@ -609,12 +635,13 @@
   <div class="mp-top">
     <div class="mp-title" id="mpcg-title"></div>
     <div class="footer-row">
+      <button class="action" id="mpcg-log-btn">Protokoll</button>
       <button class="action warn" id="mpcg-reveal">Aufl&ouml;sung</button>
       <button class="action" id="mpcg-again">Neue Runde</button>
       <button class="action" id="mpcg-back">Zur&uuml;ck</button>
     </div>
   </div>
-  <div id="mpcg-turn" class="banner p1" style="margin-bottom:12px; text-align:center; font-weight:700;"></div>
+  <div id="mpcg-turn" class="banner p1" style="margin-bottom:8px; text-align:center; font-weight:700;"></div>
   <div class="mp-wrap" style="align-items:flex-start;">
     <div class="mp-col" style="max-width:240px;">
       <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="mp-status" id="mpcg-s1"></span></div>
@@ -642,6 +669,7 @@
   <div class="mp-top">
     <div class="mp-title" id="onl-title">Online</div>
     <div class="footer-row">
+      <button class="action hidden" id="onl-log-btn">Protokoll</button>
       <button class="action warn hidden" id="onl-reveal">Aufl&ouml;sung</button>
       <button class="action" id="onl-leave">Zur&uuml;ck</button>
     </div>
@@ -716,6 +744,10 @@
     </div>
 
     <div id="onl-result" class="mp-result hidden"></div>
+    <div id="onl-rematch" class="hidden" style="text-align:center; margin-top:10px;">
+      <button class="action primary" id="onl-rematch-btn">Nochmal spielen</button>
+      <div id="onl-rematch-status" class="hint" style="color:var(--muted); margin-top:6px; min-height:1em;"></div>
+    </div>
   </div>
 </div>
 
@@ -748,7 +780,7 @@
     <details class="ed-adv">
       <summary>Kreis-Modus</summary>
       <div class="intro" style="margin-top:8px;">
-        Deine Figur steht auf konzentrischen Ringen. W&auml;hle pro Zug eine Zahl &ndash; sie steuert zugleich, wie weit sich die <b>Figur</b> bewegt und wie sich <b>jeder Ring dreht</b> (jeder nach eigener Regel). Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen. Auf dem innersten Ring geht es vom &starf; direkt ins Zentrum &ndash; dort wartet der <b>Detektiv</b> (Sherlock): Mit Taste W bzw. &uarr; (oder Klick) wechselt er zwischen drei Posen. Pose 1 ist neutral, Pose 2 und 3 aktivieren je eine geheime Zusatzregel. Im <b>Duell</b> kannst du „Gerangel" w&auml;hlen: Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd, mit der zus&auml;tzlichen Pose <b>Sabotage</b>, die den Ring des Gegners verdreht.
+        Deine Figur steht auf konzentrischen Ringen. W&auml;hle pro Zug eine Zahl: die <b>Figur</b> bewegt sich genau um diese Schrittzahl &ndash; unabh&auml;ngig vom Ring, auf dem sie steht. Eine <b>Verzerrung</b> dieser Bewegung gibt es erst ab dem <b>Nachtleben</b>. Zus&auml;tzlich dreht sich <b>jeder Ring</b> auf deine Eingabe nach seiner eigenen Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug). Ganz innen liegt ein d&uuml;nner <b>Tor-Ring</b> mit nur einem einzigen &starf; &ndash; erreichst du es, geht es direkt ins Zentrum zum <b>Detektiv</b> (Sherlock): Mit Taste W bzw. &uarr; (oder Klick) wechselt er zwischen drei Posen. Pose 1 ist neutral, Pose 2 und 3 aktivieren je eine geheime Zusatzregel. Im <b>Duell</b> kannst du „Gerangel" w&auml;hlen: Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd, mit der zus&auml;tzlichen Pose <b>Sabotage</b>, die die <b>gegnerische Figur</b> zwangsweise verschiebt.
       </div>
     </details>
     <details class="ed-adv">
@@ -780,6 +812,17 @@
       <button class="modal-close" id="reveal-close" aria-label="Schlie&szlig;en">&times;</button>
     </div>
     <div id="reveal-body"></div>
+  </div>
+</div>
+
+<!-- ---------- Zug-Protokoll ---------- -->
+<div id="log-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Zug-Protokoll</h2>
+      <button class="modal-close" id="log-close" aria-label="Schlie&szlig;en">&times;</button>
+    </div>
+    <div id="log-body"></div>
   </div>
 </div>
 
@@ -935,7 +978,6 @@
     }
   }
   function fmtDelta(n){ return n===0 ? '0' : (n>0?'+':'−')+Math.abs(n); }
-  function pairCancels(figRule, rotRule){ return CHOICES.every(c => stepTransform(figRule,c)+rotTransform(rotRule,c)===0); }
 
   // ===================== GRID: SHARED RULES =====================
   const BACKGROUNDS = {
@@ -1131,7 +1173,7 @@
   function renderGridBoard(b){
     const s=b.shared, now=Date.now();
     b.cells.forEach(c=>{ c.innerHTML=''; c.classList.remove('flash-good','flash-bad'); });
-    b.hazards.forEach(hh=>{ const hz=el('div', s.hazardType==='dog'?'dog':'bomb'); if(s.hazardType==='dog') hz.innerHTML=dogSvg(); b.cells[hh.y*s.cols+hh.x].appendChild(hz); });
+    b.hazards.forEach(hh=>{ const hz=el('div', s.hazardType==='dog'?'dog':'bomb'); if(s.hazardType==='dog'){ hz.innerHTML=dogSvg(); hz.style.filter=`drop-shadow(0 0 3px rgba(${s.theme.accent||'148,163,184'},0.9))`; } b.cells[hh.y*s.cols+hh.x].appendChild(hz); });
     if(b.coins) b.coins.forEach(c=>{ b.cells[c.y*s.cols+c.x].appendChild(el('div','coin')); });
     if(b.centerItem && !b.centerItem.taken){ b.cells[b.centerItem.y*s.cols+b.centerItem.x].appendChild(el('div', b.centerItem.type==='key'?'goldkey':'coin center')); }
     if(s.layoutKind==='bands'){
@@ -1214,7 +1256,7 @@
     return new Promise(res=>{ if(durationMs<=10){ onUpdate(1); res(); return; } const t0=performance.now();
       (function frame(){ const p=Math.min(1,(performance.now()-t0)/durationMs); onUpdate(easeInOut(p)); if(p<1) setTimeout(frame,16); else res(); })(); });
   }
-  function ringMidR(cs,ri){ const g=cs.geo; return g.innerStart+ri*g.pitch+g.band/2; }
+  function ringMidR(cs,ri){ return cs.geo.mid[ri]; }
   function ringOffsetNow(ring){ return (ring.offsetVisual!==null && ring.offsetVisual!==undefined)?ring.offsetVisual:ring.offset; }
   function findAdjacentStar(cs,r,idx,nr){
     const A=cs.rings[r], B=cs.rings[nr]; const wA=360/A.fieldCount, wB=360/B.fieldCount;
@@ -1231,7 +1273,7 @@
   }
   function poseEffectLabel(e){
     if(e.kind==='neutral') return 'wirkt neutral &ndash; kein Einfluss.';
-    if(e.kind==='sabotage') return 'zwingt die Kreisebene, auf der der <b>Gegenspieler</b> gerade steht, sich um deine gew&auml;hlte Schrittzahl zu drehen &ndash; auch wenn dieser Ring sonst stillsteht.';
+    if(e.kind==='sabotage') return 'verschiebt die <b>gegnerische Figur</b> zwangsweise um deine gew&auml;hlte Schrittzahl &ndash; sie kann dabei &uuml;ber Sternenfelder eine Ebene wechseln, im Extremfall bis ins Zentrum (dann gewinnt der Gegner!).';
     const tgt = e.target==='move' ? 'die Bewegung der Spielfigur' : 'die Rotation des Rings, auf dem die Figur steht';
     if(e.kind==='reverse') return `kehrt ${tgt} um (Richtungsumkehr).`;
     return `ver&auml;ndert ${tgt} zus&auml;tzlich um ${fmtDelta(e.amount)} Feld${Math.abs(e.amount)>1?'er':''}.`;
@@ -1288,19 +1330,27 @@
     const stepPool = ov.bg ? STEP_POOLS.experte : STEP_POOLS[diffKey];
     const rotPool = ov.bg ? ROT_POOLS.experte : ROT_POOLS[diffKey];
     const rr = ov.ringRules;
+    // Globale Figur-Regel: unabhängig vom Ring. Verzerrung erst ab Nachtleben (schwer); davor bewegt
+    // sich die Figur exakt um die Eingabe. Editor (ov.bg) darf verzerren, Standard leicht/mittel nicht.
+    const mayDistort = ov.bg || diffKey==='schwer' || diffKey==='experte';
+    let figRule;
+    if(ov.figRule && ov.figRule!=='random') figRule = ov.figRule;
+    else if(mayDistort){ const d=stepPool.filter(r=>r!=='normal'); figRule = d.length?pick(d):'normal'; }
+    else figRule = 'normal';
     let specs,guard=0;
     do {
       specs = layout.map((fields,i)=>{
         const cfg = rr && rr[i];
-        const figFixed = cfg && cfg.rule && cfg.rule!=='random';
         const rotFixed = cfg && cfg.rot && cfg.rot!=='random';
-        let figRule = figFixed ? cfg.rule : pick(stepPool);
-        let rotRule = rotFixed ? cfg.rot : pick(rotPool);
-        if(!figFixed && !rotFixed){ let t=0; while(pairCancels(figRule,rotRule)&&t++<12) rotRule=pick(rotPool); if(pairCancels(figRule,rotRule)) rotRule='still'; }
-        return { fieldCount:fields, star:randInt(fields), rule:figRule, rotRule };
+        const rotRule = rotFixed ? cfg.rot : pick(rotPool);
+        return { fieldCount:fields, star:randInt(fields), rotRule };
       });
       guard++;
     } while(guard<20 && !rr && specs.every(s=>s.rotRule==='still'));
+    // Dünner Tor-Ring vor dem Zentrum: ein Sternenfeld, Rest undurchdringlich, rotiert (nie 'still').
+    const gateFc = layout[0];
+    const gateRotPool = rotPool.filter(r=>r!=='still');
+    specs = [ { fieldCount:gateFc, star:randInt(gateFc), rotRule:(gateRotPool.length?pick(gateRotPool):'sync'), gate:true }, ...specs ];
     const outerIdx=specs.length-1;
     const tmp={ rings:specs.map(s=>({fieldCount:s.fieldCount, starIndices:[s.star], offset:0})) };
     let startIndex=0; const cands=shuffle([...Array(specs[outerIdx].fieldCount).keys()]);
@@ -1310,22 +1360,23 @@
     const p2 = (ov.poseEffects&&ov.poseEffects[0]) ? ov.poseEffects[0] : makeActivePoseEffect();
     const p3 = (ov.poseEffects&&ov.poseEffects[1]) ? ov.poseEffects[1] : makeActivePoseEffect();
     const poseEffects=[ {kind:'neutral'}, p2, p3 ];
-    return { theme, diffKey, specs, outerIdx, startIndex, poseEffects };
+    return { theme, diffKey, specs, outerIdx, startIndex, poseEffects, figRule };
   }
   function makeCircleState(config){
     return {
-      diffKey:config.diffKey, theme:config.theme,
-      rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rule:s.rule, rotRule:s.rotRule, offset:0, offsetVisual:null })),
+      diffKey:config.diffKey, theme:config.theme, figRule:config.figRule,
+      rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null })),
       ringIdx:config.outerIdx, index:config.startIndex,
       moves:0, done:false, doneAtMove:null, phase:'playing', animating:false, mounted:true,
       lastFlash:null, markerOverride:null, log:[],
       gandalfPose:0, poseEffects:config.poseEffects
     };
   }
-  function circleExplain(rings, poseEffects){
-    let html='<b>Ring-Regeln (von innen nach au&szlig;en):</b><ul>';
-    rings.forEach((ring,i)=> html += `<li><b>Ring ${i+1}</b> &ndash; Figur: ${stepTransformLabel(ring.rule)} Rotation: ${rotTransformLabel(ring.rotRule)}</li>`);
-    html += '</ul>Deine Auswahl steuert Figur und Ring-Rotationen zugleich. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug; innen und au&szlig;en zugleich &rarr; Zufall). Auf dem &starf; des innersten Rings geht es sofort ins Zentrum.';
+  function circleExplain(rings, poseEffects, figRule){
+    let html = '<b>Figur:</b> ' + ((figRule && figRule!=='normal') ? stepTransformLabel(figRule) : 'Die Figur bewegt sich genau um deine gew&auml;hlte Schrittzahl &ndash; unabh&auml;ngig davon, auf welchem Ring sie steht.');
+    html += '<br><br><b>Ring-Rotationen (von innen nach au&szlig;en):</b><ul>';
+    rings.forEach((ring,i)=> html += `<li><b>Ring ${i+1}${ring.gate?' &middot; Tor':''}</b>: ${rotTransformLabel(ring.rotRule)}</li>`);
+    html += '</ul>Jeder Ring dreht sich auf deine Eingabe nach eigener Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug; innen und au&szlig;en zugleich &rarr; Zufall). Der innerste <b>Tor-Ring</b> ist nur ein einzelnes &starf; &ndash; erreichst du es, geht es direkt ins Zentrum.';
     if(poseEffects){
       html += '<br><br><b>Detektivs Posen:</b><ul>';
       poseEffects.forEach((e,i)=> html += `<li><b>${e.kind==='sabotage'?'Sabotage':('Pose '+(i+1))}</b>${i===0?' (Start)':''}: ${poseEffectLabel(e)}</li>`);
@@ -1336,32 +1387,43 @@
 
   function circleBuildRings(cs, host, scale){
     const s=scale||1;
-    const innerStart=55*s, band=40*s, pitch=46*s;
-    const outerR=innerStart+(cs.rings.length-1)*pitch+band;
+    // Radien pro Ring: der Tor-Ring (gate) ist deutlich dünner. innerStart etwas kleiner als früher,
+    // weil vorne ein zusätzlicher (dünner) Ring sitzt.
+    const firstInner=40*s, normalBand=40*s, gateBand=15*s, gap=6*s;
+    const rIn=[], rOut=[], mid=[]; let cur=firstInner;
+    cs.rings.forEach((ring,ri)=>{ const b=ring.gate?gateBand:normalBand; rIn[ri]=cur; rOut[ri]=cur+b; mid[ri]=cur+b/2; cur=rOut[ri]+gap; });
+    const outerR=rOut[rOut.length-1];
     const size=(outerR+22*s)*2; const cx=size/2, cy=size/2;
-    cs.geo={ innerStart, band, pitch, cx, cy, scale:s };
+    cs.geo={ rIn, rOut, mid, gap, cx, cy, scale:s };
     const svg=elNS('svg'); svg.setAttribute('viewBox',`0 0 ${size} ${size}`); svg.setAttribute('class','rings-svg'); svg.style.width=size+'px'; svg.style.maxWidth='100%';
     const bg=elNS('circle'); bg.setAttribute('cx',cx); bg.setAttribute('cy',cy); bg.setAttribute('r',outerR+10*s); bg.setAttribute('fill','#0b1220'); svg.appendChild(bg);
     cs.fieldPaths=[]; cs.ringGroups=[]; cs.ringLabels=[];
     cs.rings.forEach((ring,ri)=>{
-      const rIn=innerStart+ri*pitch, rOut=rIn+band, fc=ring.fieldCount, sa=360/fc;
+      const rInR=rIn[ri], rOutR=rOut[ri], fc=ring.fieldCount, sa=360/fc;
       const group=elNS('g'); const arr=[]; const labs=[];
       for(let i=0;i<fc;i++){
         const a0=i*sa, a1=(i+1)*sa, isStar=ring.starIndices.includes(i);
-        const path=elNS('path'); path.setAttribute('d',donutSlicePath(cx,cy,rIn,rOut,a0,a1)); path.setAttribute('class','ring-field'+(isStar?' star':'')); group.appendChild(path);
-        const pos=polarToXY(cx,cy,(rIn+rOut)/2,a0+sa/2);
-        const label=elNS('text'); label.setAttribute('x',pos.x); label.setAttribute('y',pos.y); label.setAttribute('class','field-label'); label.setAttribute('font-size',13*s); label.textContent=isStar?'★':String(i+1); group.appendChild(label);
-        arr.push(path); labs.push({el:label, px:pos.x, py:pos.y});
+        const path=elNS('path'); path.setAttribute('d',donutSlicePath(cx,cy,rInR,rOutR,a0,a1)); group.appendChild(path);
+        // Tor-Ring: nur das Sternenfeld ist echt, der Rest ist eine undurchdringliche Wand ohne Label.
+        if(ring.gate && !isStar){
+          path.setAttribute('class','ring-field wall');
+          arr.push(path); labs.push({el:null, px:0, py:0});
+        } else {
+          path.setAttribute('class','ring-field'+(isStar?' star':''));
+          const pos=polarToXY(cx,cy,(rInR+rOutR)/2,a0+sa/2);
+          const label=elNS('text'); label.setAttribute('x',pos.x); label.setAttribute('y',pos.y); label.setAttribute('class','field-label'); label.setAttribute('font-size',13*s); label.textContent=isStar?'★':String(i+1); group.appendChild(label);
+          arr.push(path); labs.push({el:label, px:pos.x, py:pos.y});
+        }
       }
       svg.appendChild(group); cs.fieldPaths.push(arr); cs.ringGroups.push(group); cs.ringLabels.push(labs);
     });
-    const goal=elNS('circle'); goal.setAttribute('cx',cx); goal.setAttribute('cy',cy); goal.setAttribute('r',innerStart-10*s); goal.setAttribute('class','svg-goal'); svg.appendChild(goal);
+    const goal=elNS('circle'); goal.setAttribute('cx',cx); goal.setAttribute('cy',cy); goal.setAttribute('r',Math.max(6,rIn[0]-8*s)); goal.setAttribute('class','svg-goal'); svg.appendChild(goal);
     const marker=elNS('circle'); marker.setAttribute('r',10*s); marker.setAttribute('class','ring-marker'); svg.appendChild(marker);
     cs.svg=svg; cs.marker=marker;
     host.innerHTML=''; host.appendChild(svg);
     applyRingTransforms(cs); positionMarker(cs);
   }
-  function applyRingTransforms(cs){ cs.ringGroups.forEach((g,i)=>{ const off=ringOffsetNow(cs.rings[i]); g.setAttribute('transform',`rotate(${off} ${cs.geo.cx} ${cs.geo.cy})`); if(cs.ringLabels && cs.ringLabels[i]) cs.ringLabels[i].forEach(l=>l.el.setAttribute('transform',`rotate(${-off} ${l.px} ${l.py})`)); }); }
+  function applyRingTransforms(cs){ cs.ringGroups.forEach((g,i)=>{ const off=ringOffsetNow(cs.rings[i]); g.setAttribute('transform',`rotate(${off} ${cs.geo.cx} ${cs.geo.cy})`); if(cs.ringLabels && cs.ringLabels[i]) cs.ringLabels[i].forEach(l=>{ if(l.el) l.el.setAttribute('transform',`rotate(${-off} ${l.px} ${l.py})`); }); }); }
   function positionMarker(cs){
     if(!cs.marker) return;
     let angle,radius;
@@ -1390,7 +1452,7 @@
   async function circleStep(cs, choice, mode){
     cs.animating=true;
     const ring=cs.rings[cs.ringIdx];
-    let figActual = mode==='rotate' ? 0 : stepTransform(ring.rule,choice);
+    let figActual = mode==='rotate' ? 0 : stepTransform(cs.figRule,choice);
     let rotActuals = cs.rings.map(r=>rotTransform(r.rotRule,choice));
     if(mode==='move') rotActuals=rotActuals.map(()=>0);
     cs.lastFlash = mode==='rotate' ? null : (figActual===choice?'good':'bad');
@@ -1476,6 +1538,20 @@
   // Klick auf den abgedunkelten Hintergrund schliesst; Klick in die Karte nicht.
   $('reveal-modal').addEventListener('click', e=>{ if(e.target===$('reveal-modal')) closeReveal(); });
 
+  // ===================== ZUG-PROTOKOLL-POPUP =====================
+  function openLog(html){ $('log-body').innerHTML=html; $('log-modal').classList.remove('hidden'); }
+  function closeLog(){ $('log-modal').classList.add('hidden'); }
+  $('log-close').addEventListener('click', closeLog);
+  $('log-modal').addEventListener('click', e=>{ if(e.target===$('log-modal')) closeLog(); });
+  // Baut das Log-HTML für einen oder zwei Spieler (renderFn schreibt in einen Container).
+  function logHtml(renderFn, entriesOrPairs){
+    const box=document.createElement('div');
+    if(Array.isArray(entriesOrPairs) && entriesOrPairs.length && entriesOrPairs[0] && entriesOrPairs[0].label!==undefined){
+      entriesOrPairs.forEach(pair=>{ const h=document.createElement('div'); const t=document.createElement('div'); t.className='mp-head '+pair.cls; t.style.marginBottom='6px'; t.textContent=pair.label; const c=document.createElement('div'); renderFn(c, pair.log); box.appendChild(t); box.appendChild(c); if(pair!==entriesOrPairs[entriesOrPairs.length-1]){ const sp=document.createElement('div'); sp.style.height='12px'; box.appendChild(sp); } });
+    } else { renderFn(box, entriesOrPairs); }
+    return box.innerHTML;
+  }
+
   // ===================== EINSTELLUNGEN / ANLEITUNG =====================
   function openSettings(){ $('settings-modal').classList.remove('hidden'); }
   function closeSettings(){ $('settings-modal').classList.add('hidden'); }
@@ -1495,7 +1571,7 @@
 
   let spgState=null, spcState=null, mp=null;
 
-  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); closeSettings(); closeGuide(); closeReveal(); }
+  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); }
   function teardownActive(){
     if(spcState) spcState.mounted=false;
     if(spgState && spgState.board) stopDogTimer(spgState.board);
@@ -1518,10 +1594,12 @@
   function availBoardWidth(){ const vw=window.innerWidth||800; return Math.min(vw-(vw<=680?20:48), 560); }
   // Die Aussenmasse setzt createGridBoard als cols*cell + (cols-1)*GAP + 2*PAD – Abstaende und Rand
   // muessen also abgezogen werden, sonst wird das Brett breiter als der Bildschirm.
-  function fitCell(cell, cols){ const inner=availBoardWidth()-((cols-1)*GAP+2*PAD); const maxCell=Math.floor(inner/cols); return Math.max(8, Math.min(cell, maxCell)); }
-  function cellSizeFor(shared){ const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols)); return fitCell(base, shared.cols); }
+  // Höhen-Budget fürs Brett während einer Partie: Kopfzeile + Steuerung + Ränder bleiben frei.
+  function availBoardHeight(){ const vh=window.innerHeight||800; return Math.max(200, vh-330); }
+  function fitCell(cell, cols, rows){ const innerW=availBoardWidth()-((cols-1)*GAP+2*PAD); let maxCell=Math.floor(innerW/cols); if(rows){ const innerH=availBoardHeight()-((rows-1)*GAP+2*PAD); maxCell=Math.min(maxCell, Math.floor(innerH/rows)); } return Math.max(8, Math.min(cell, maxCell)); }
+  function cellSizeFor(shared){ const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols)); return fitCell(base, shared.cols, shared.rows); }
   function spgStart(diffKey, variant, ov){
-    teardownActive(); hideAllScreens(); $('sp-grid').classList.remove('hidden');
+    teardownActive(); hideAllScreens(); $('sp-grid').classList.remove('hidden'); document.body.classList.add('playing');
     const shared=buildGridShared(diffKey, variant, false, ov);
     const board=createGridBoard($('spg-host'), shared, cellSizeFor(shared), [{startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:''}]);
     board.onChange=spgRender;
@@ -1555,7 +1633,7 @@
 
   // ===================== SP CIRCLE =====================
   function spcStart(diffKey, ov){
-    teardownActive(); hideAllScreens(); $('sp-circle').classList.remove('hidden');
+    teardownActive(); hideAllScreens(); $('sp-circle').classList.remove('hidden'); document.body.classList.add('playing');
     const config=buildCircleConfig(diffKey, ov); spcState=makeCircleState(config); spcState.ov=ov; spcState.revealed=false; spcState.revealedAtMove=null;
     setThemeBg(config.theme); circleBuildRings(spcState, $('spc-host'), 1);
     renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1);
@@ -1567,7 +1645,7 @@
     $('spc-moves').textContent=cs.moves;
     $('spc-ring').textContent = cs.phase==='won'?'Zentrum':(cs.ringIdx+1)+' / '+cs.rings.length;
     $('spc-field').textContent = cs.phase==='won'?'–':(cs.index+1);
-    renderLog($('spc-log'), cs.log);
+    if(!$('log-modal').classList.contains('hidden')) openLog(logHtml(renderLog, cs.log)); // offenes Protokoll live nachziehen
     document.querySelectorAll('#circle-steps button').forEach(b=>b.disabled=cs.phase!=='playing'||cs.animating);
     const ov=$('spc-overlay');
     if(cs.phase==='won'){
@@ -1589,7 +1667,7 @@
 
   // ===================== MULTIPLAYER =====================
   function mpStart(diffKey, ov, circVar){
-    teardownActive(); hideAllScreens();
+    teardownActive(); hideAllScreens(); document.body.classList.add('playing');
     if(currentMode==='grid'){ mpStartGrid(diffKey, ov); return; }
     const cv = circVar || circleVariant;
     if(cv==='gerangel') mpcgStart(diffKey, ov); else mpStartCircle(diffKey, ov);
@@ -1660,13 +1738,13 @@
   }
 
   function mpStartGrid(diffKey, ov){
-    $('mp-grid').classList.remove('hidden');
+    $('mp-grid').classList.remove('hidden'); document.body.classList.add('playing');
     const gerangel = gridVariant==='gerangel';
     const shared=buildGridShared(diffKey, gridVariant, gerangel, ov); setThemeBg(shared.theme);
     $('mpg-result').classList.add('hidden'); closeReveal();
     if(gerangel){
       $('mpg-twocol').classList.add('hidden'); $('mpg-shared-wrap').classList.remove('hidden');
-      const cell=fitCell(Math.max(20, Math.round(500/shared.cols)), shared.cols);
+      const cell=fitCell(Math.max(20, Math.round(500/shared.cols)), shared.cols, shared.rows);
       const board=createGridBoard($('mpg-shared-host'), shared, cell, [
         {startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p1'},
         {startX:shared.starts[1].x,startY:shared.starts[1].y,colorClass:'p2'} ]);
@@ -1677,7 +1755,7 @@
       mpgRenderScores();
     } else {
       $('mpg-shared-wrap').classList.add('hidden'); $('mpg-twocol').classList.remove('hidden');
-      const cell=fitCell(17, shared.cols);
+      const cell=fitCell(17, shared.cols, shared.rows*2);
       const b1=createGridBoard($('mpg-host1'), shared, cell, [{startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p1'}]);
       const b2=createGridBoard($('mpg-host2'), shared, cell, [{startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p2'}]);
       b1.onChange=mpUpdateHeads; b2.onChange=mpUpdateHeads;
@@ -1694,7 +1772,7 @@
   }
 
   function mpStartCircle(diffKey, ov){
-    $('mp-circle').classList.remove('hidden');
+    $('mp-circle').classList.remove('hidden'); document.body.classList.add('playing');
     const config=buildCircleConfig(diffKey, ov); setThemeBg(config.theme);
     const cs1=makeCircleState(config); const cs2=makeCircleState(config);
     circleBuildRings(cs1, $('mpc-host1'), 0.66); circleMarkerFlash(cs1);
@@ -1759,16 +1837,13 @@
     const pl=gs.players[pi], opp=gs.players[1-pi];
     gs.animating=true;
     const ring=gs.rings[pl.ringIdx];
-    let figActual = stepTransform(ring.rule, choice);
+    let figActual = stepTransform(gs.figRule, choice);
     let rotActuals = gs.rings.map(r=>rotTransform(r.rotRule, choice));
     pl.lastFlash = (figActual===choice?'good':'bad');
     const gEff = gs.poseEffects[pl.gandalfPose];
+    const isSabo = !!(gEff && gEff.kind==='sabotage');
     let saboInfo=null;
-    if(gEff && gEff.kind==='sabotage'){
-      // zwingt den Ring des Gegners, sich um die gewählte Schrittzahl zu drehen (auch wenn er sonst stillsteht)
-      rotActuals[opp.ringIdx] += choice;
-      saboInfo={ ring:opp.ringIdx+1, amount:choice };
-    } else if(gEff && gEff.kind!=='neutral'){
+    if(gEff && gEff.kind!=='neutral' && !isSabo){
       if(gEff.target==='move'){ if(gEff.kind==='reverse') figActual=-figActual; else figActual+=gEff.amount; }
       else { const ri=pl.ringIdx; if(gEff.kind==='reverse') rotActuals[ri]=-rotActuals[ri]; else rotActuals[ri]+=gEff.amount; }
     }
@@ -1799,10 +1874,42 @@
       else if(outerS!==null){ target=pl.ringIdx+1; targetStar=outerS; }
       if(target!==null){
         await animateHopG(gs,pl,pl.ringIdx,pl.index,target,targetStar);
-        if(!gs.mounted) return false;
+        if(!gs.mounted) return null;
         hopInfo={from:pl.ringIdx,to:target,randomTie:dirRandom};
         pl.ringIdx=target; pl.index=targetStar; positionMarkerG(gs,pl);
         if(pl.ringIdx===0 && gs.rings[0].starIndices.includes(pl.index)) won=true;
+      }
+    }
+    // Sabotage: die GEGNERISCHE Figur wird zwangsweise um deine Schrittzahl verschoben und kann dabei
+    // über Sternenfelder eine Ebene wechseln – bis hinein ins Zentrum (echtes Risiko: der Gegner gewinnt).
+    let oppWon=false;
+    if(isSabo && !won && !opp.done){
+      const oring=gs.rings[opp.ringIdx], osa=360/oring.fieldCount, ostart=(opp.index+0.5)*osa+oring.offset;
+      if(choice!==0){
+        await tween(dur(Math.max(300,Math.abs(choice)*160)), p=>{ if(!gs.mounted) return; opp.markerOverride={angle:ostart+choice*osa*p, radius:ringMidR(gs,opp.ringIdx)}; positionMarkerG(gs,opp); });
+        if(!gs.mounted) return null;
+        opp.markerOverride=null;
+        opp.index=((opp.index+choice)%oring.fieldCount+oring.fieldCount)%oring.fieldCount;
+        positionMarkerG(gs,opp);
+      }
+      const oFrom=opp.ringIdx;
+      const oi = opp.ringIdx>0 ? findAdjacentStar(gs,opp.ringIdx,opp.index,opp.ringIdx-1) : null;
+      const oo = opp.ringIdx<gs.rings.length-1 ? findAdjacentStar(gs,opp.ringIdx,opp.index,opp.ringIdx+1) : null;
+      let oT=null,oS=null,oRand=false;
+      if(oi!==null&&oo!==null){ if(Math.random()<0.5){oT=opp.ringIdx-1;oS=oi;}else{oT=opp.ringIdx+1;oS=oo;} oRand=true; }
+      else if(oi!==null){ oT=opp.ringIdx-1; oS=oi; }
+      else if(oo!==null){ oT=opp.ringIdx+1; oS=oo; }
+      if(oT!==null){
+        await animateHopG(gs,opp,opp.ringIdx,opp.index,oT,oS);
+        if(!gs.mounted) return null;
+        opp.ringIdx=oT; opp.index=oS; positionMarkerG(gs,opp);
+      }
+      saboInfo={ amount:choice, hop: oT!==null?{from:oFrom+1,to:oT+1,randomTie:oRand}:null };
+      if(opp.ringIdx===0 && gs.rings[0].starIndices.includes(opp.index)){
+        const rw=360/gs.rings[0].fieldCount, ang=(opp.index+0.5)*rw+gs.rings[0].offset;
+        await tween(dur(600), p=>{ if(!gs.mounted) return; opp.markerOverride={angle:ang, radius:ringMidR(gs,0)*(1-p)}; positionMarkerG(gs,opp); });
+        if(!gs.mounted) return null;
+        opp.markerOverride=null; opp.done=true; opp.doneAtMove=opp.moves; oppWon=true;
       }
     }
     pl.log.unshift({ move:pl.moves, choice, mode:'both', pose:pl.gandalfPose+1, poseName:gs.poseNames[pl.gandalfPose], figActual, rotActuals:rotActuals.slice(), sabotage:saboInfo, outcome: won?'center':hopInfo });
@@ -1810,18 +1917,18 @@
     if(won){
       const rw=360/gs.rings[0].fieldCount, ang=(pl.index+0.5)*rw+gs.rings[0].offset;
       await tween(dur(600), p=>{ if(!gs.mounted) return; pl.markerOverride={angle:ang, radius:ringMidR(gs,0)*(1-p)}; positionMarkerG(gs,pl); });
-      if(!gs.mounted) return false;
+      if(!gs.mounted) return null;
       pl.markerOverride=null; pl.done=true; pl.doneAtMove=pl.moves;
     }
     gs.animating=false;
-    return won;
+    return won ? pi : (oppWon ? (1-pi) : null);
   }
   function renderGerLogEntry(e){
     let html=`<div class="log-entry"><div class="log-head"><span class="log-move">Zug ${e.move}</span>${logChip('Auswahl',fmtDelta(e.choice),'choice')}<span class="log-pose">${e.poseName||('Pose '+e.pose)}</span></div><div class="log-vals">`;
     html+=logChip('Figur',fmtDelta(e.figActual),'fig')+`<span class="log-sep"></span>`;
     e.rotActuals.forEach((d,i)=> html+=logChip('R'+(i+1),fmtDelta(d),d===0?'zero':'rot'));
     html+=`</div>`;
-    if(e.sabotage) html+=`<div class="log-out"><span class="log-sabo">Sabotage &rarr; Ring ${e.sabotage.ring} dreht ${fmtDelta(e.sabotage.amount)}</span></div>`;
+    if(e.sabotage){ let t=`Sabotage &rarr; Gegner ${fmtDelta(e.sabotage.amount)}`; if(e.sabotage.hop) t+=` (Ebene ${e.sabotage.hop.from}&rarr;${e.sabotage.hop.to})`; html+=`<div class="log-out"><span class="log-sabo">${t}</span></div>`; }
     if(e.outcome==='center') html+=`<div class="log-out win">&rarr; ins Zentrum!</div>`;
     else if(e.outcome) html+=`<div class="log-out hop">&rarr; Sprung Ring ${e.outcome.from+1}&rarr;${e.outcome.to+1}${e.outcome.randomTie?' (Zufall)':''}</div>`;
     return html+`</div>`;
@@ -1853,12 +1960,12 @@
     });
   }
   function mpcgStart(diffKey, ov){
-    $('mpcg').classList.remove('hidden');
+    $('mpcg').classList.remove('hidden'); document.body.classList.add('playing');
     const config=buildCircleConfig(diffKey, ov); setThemeBg(config.theme);
     const outerIdx=config.outerIdx, fc=config.specs[outerIdx].fieldCount;
     const mkPlayer=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[] });
-    const gs={ diffKey, theme:config.theme, mounted:true, animating:false,
-      rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rule:s.rule, rotRule:s.rotRule, offset:0, offsetVisual:null })),
+    const gs={ diffKey, theme:config.theme, figRule:config.figRule, mounted:true, animating:false,
+      rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null })),
       poseEffects: config.poseEffects.concat([{kind:'sabotage'}]),
       poseNames: GER_POSE_NAMES,
       players:[ mkPlayer(config.startIndex), mkPlayer((config.startIndex+Math.floor(fc/2))%fc) ],
@@ -1881,11 +1988,11 @@
     if(!mp||mp.mode!=='circleGer'||mp.finished) return;
     const gs=mp.gs; if(gs.animating || gs.turn!==pi) return;
     const pl=gs.players[pi]; if(pl.done) return;
-    const won=await circleStepG(gs, pi, choice);
+    const winner=await circleStepG(gs, pi, choice);
     if(!gs.mounted) return;
-    markerFlashG(pl); updateHighlightG(gs);
+    markerFlashG(gs.players[0]); markerFlashG(gs.players[1]); updateHighlightG(gs);
     renderGerLog($('mpcg-log'+(pi+1)), pl.log);
-    if(won){ mp.finished=true; mp.winner=pi; mpcgUpdate(); mpcgShowResult(); return; }
+    if(winner!=null){ mp.finished=true; mp.winner=winner; mpcgUpdate(); mpcgShowResult(); return; }
     gs.turn=1-pi;
     mpcgUpdate();
   }
@@ -1896,7 +2003,7 @@
   }
   function mpcgShowReveal(){
     if(!mp||mp.mode!=='circleGer') return;
-    openReveal(circleExplain(mp.gs.rings, mp.gs.poseEffects));
+    openReveal(circleExplain(mp.gs.rings, mp.gs.poseEffects, mp.gs.figRule));
   }
 
   // ===================== ONLINE: KREIS-GERANGEL (zwei Geraete, Firebase) =====================
@@ -1929,6 +2036,8 @@
     ['onl-lobby','onl-wait','onl-game'].forEach(id=>$(id).classList.add('hidden'));
     $(which).classList.remove('hidden');
     $('onl-reveal').classList.toggle('hidden', which!=='onl-game');
+    $('onl-log-btn').classList.toggle('hidden', which!=='onl-game');
+    document.body.classList.toggle('playing', which==='onl-game');
   }
   function openOnline(){
     teardownActive(); hideAllScreens(); $('online').classList.remove('hidden'); startBg();
@@ -1966,7 +2075,8 @@
     return clean({
       v: 2, variant: 'circle',
       diffKey: onl.diffKey,
-      specs: config.specs.map(s=>({ fieldCount:s.fieldCount, star:s.star, rule:s.rule, rotRule:s.rotRule })),
+      figRule: config.figRule,
+      specs: config.specs.map(s=>({ fieldCount:s.fieldCount, star:s.star, rotRule:s.rotRule, gate:!!s.gate })),
       outerIdx: config.outerIdx,
       startIndex: config.startIndex,
       poseEffects: config.poseEffects.concat([{kind:'sabotage'}])
@@ -1991,24 +2101,31 @@
     const outerIdx=cfg.outerIdx, fc=cfg.specs[outerIdx].fieldCount;
     const mk=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[] });
     return {
-      diffKey: cfg.diffKey, theme: THEMES[cfg.diffKey]||THEMES.mittel,
+      diffKey: cfg.diffKey, theme: THEMES[cfg.diffKey]||THEMES.mittel, figRule: cfg.figRule||'normal',
       mounted:true, animating:false,
-      rings: cfg.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rule:s.rule, rotRule:s.rotRule, offset:0, offsetVisual:null })),
+      rings: cfg.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null })),
       poseEffects: cfg.poseEffects, poseNames: GER_POSE_NAMES,
       players: [ mk(cfg.startIndex), mk((cfg.startIndex+Math.floor(fc/2))%fc) ],
       turn: 0
     };
   }
+  // Baut die Partie frisch auf – auch beim Rematch (alte Instanz wird abgeräumt).
   function onlEnterGame(cfg){
+    onl.variant=onlVariantOf(cfg);
+    if(onl.board){ stopDogTimer(onl.board); onl.board=null; }
+    if(onl.gs) onl.gs.mounted=false;
+    onl.gs=null; onl.shared=null;
+    onl.finished=false; onl.winner=null; onl.stateSeq=0;
     onlShow('onl-game');
-    $('onl-result').classList.add('hidden'); closeReveal();
+    $('onl-result').classList.add('hidden'); $('onl-rematch').classList.add('hidden'); $('onl-rematch-btn').disabled=false;
+    closeReveal(); closeLog();
     if(onl.variant==='grid'){
-      if(!onl.shared) onl.shared=onlBuildGridShared(cfg);
+      onl.shared=onlBuildGridShared(cfg);
       const shared=onl.shared;
       setThemeBg(shared.theme);
       $('onl-circle-wrap').classList.add('hidden'); $('onl-grid-wrap').classList.remove('hidden');
       $('onl-title').innerHTML=`Online &middot; ${shared.theme.title} &middot; <small>Feld-Gerangel &middot; Raum ${onl.code}</small>`;
-      const cell=fitCell(Math.max(20, Math.round(500/shared.cols)), shared.cols);
+      const cell=fitCell(Math.max(20, Math.round(500/shared.cols)), shared.cols, shared.rows);
       onl.board=createGridBoard($('onl-grid-host'), shared, cell, [
         {startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:'p1'},
         {startX:shared.starts[1].x, startY:shared.starts[1].y, colorClass:'p2'} ]);
@@ -2018,14 +2135,13 @@
       onlRenderUi();
       return;
     }
-    if(!onl.gs) onl.gs=onlBuildGs(cfg);
+    onl.gs=onlBuildGs(cfg);
     const gs=onl.gs;
     setThemeBg(gs.theme);
     $('onl-grid-wrap').classList.add('hidden'); $('onl-circle-wrap').classList.remove('hidden');
     $('onl-title').innerHTML=`Online &middot; ${gs.theme.title} &middot; <small>Kreis-Gerangel &middot; Raum ${onl.code}</small>`;
     buildGerangelCircle(gs, $('onl-host'), 0.9);
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
-    renderGerLog($('onl-log'), []);
     onlRenderUi();
   }
   // Host: jede Aenderung am Brett (Zug, Hundetick, Ende einer Blink-Sperre) neu veroeffentlichen.
@@ -2087,19 +2203,24 @@
     onlShow('onl-wait');
     const cRef=roomRef.child('config');
     const cb=cRef.on('value', s=>{
-      const cfg=s.val(); if(!cfg || onl.started) return;
+      const cfg=s.val(); if(!cfg) return;
       onl.variant=onlVariantOf(cfg);
       // Schutz vor einem Gastgeber mit neuerer Version, dessen Config wir nicht lesen koennen.
       if(onl.variant==='grid' && typeof cfg.seed!=='number'){
         onlMsg('Dieser Raum braucht eine neuere Version des Spiels. Lade die Seite neu.', true);
         onlShow('onl-lobby'); return;
       }
-      onl.started=true; onl.config=cfg;
-      if(onl.variant==='grid') onl.shared=onlBuildGridShared(cfg); else onl.gs=onlBuildGs(cfg);
+      const seq=cfg.matchSeq||1;
+      if(seq===onl.matchSeq) return;    // dieses Match läuft schon
+      onl.matchSeq=seq; onl.started=true; onl.config=cfg;
       onlEnterGame(cfg);
-      const sRef=roomRef.child('state');
-      const cb2=sRef.on('value', s2=>{ const st=s2.val(); if(st) onlApplyState(st); });
-      onl.listeners.push({ref:sRef, ev:'value', cb:cb2});
+      if(!onl.wired){
+        onl.wired=true;
+        const sRef=roomRef.child('state');
+        const cb2=sRef.on('value', s2=>{ const st=s2.val(); if(st) onlApplyState(st); });
+        onl.listeners.push({ref:sRef, ev:'value', cb:cb2});
+        onlAttachRematch();
+      }
     });
     onl.listeners.push({ref:cRef, ev:'value', cb});
     const mRef=roomRef.child('meta');
@@ -2107,15 +2228,17 @@
     onl.listeners.push({ref:mRef, ev:'value', cb:cb3});
   }
 
+  function onlBuildConfig(){
+    return onl.variant==='grid' ? onlSerializeGridConfig() : onlSerializeConfig(buildCircleConfig(onl.diffKey, {}));
+  }
   function onlHostStart(){
     if(onl.started) return;
     onl.started=true;
     fbDb.ref('lobby/'+onl.code).remove();
-    let cfg;
-    if(onl.variant==='grid'){ cfg=onlSerializeGridConfig(); onl.shared=onlBuildGridShared(cfg); }
-    else { cfg=onlSerializeConfig(buildCircleConfig(onl.diffKey, {})); onl.gs=onlBuildGs(cfg); }
+    const cfg=onlBuildConfig(); cfg.matchSeq=1; onl.matchSeq=1;
     onl.config=cfg;
     onl.roomRef.child('inputs').remove();
+    onl.roomRef.child('rematch').remove();
     onl.roomRef.child('config').set(cfg);
     onl.roomRef.child('meta/status').set('playing');
     onlEnterGame(cfg);
@@ -2129,6 +2252,40 @@
       if(inp) onlApplyAction(1, inp);
     });
     onl.listeners.push({ref:iRef, ev:'child_added', cb});
+    onlAttachRematch();
+  }
+  // Rematch: beide Spieler müssen zustimmen. Der Host würfelt danach eine frische Config.
+  function onlAttachRematch(){
+    const rRef=onl.roomRef.child('rematch');
+    const cb=rRef.on('value', s=>{
+      const r=s.val()||{};
+      const meReady=!!r[onl.role], oppReady=!!r[onl.role==='host'?'guest':'host'];
+      onlUpdateRematchStatus(meReady, oppReady);
+      if(r.host && r.guest && onl.role==='host') onlHostNewMatch();
+    });
+    onl.listeners.push({ref:rRef, ev:'value', cb});
+  }
+  function onlHostNewMatch(){
+    if(onl.role!=='host') return;
+    const cfg=onlBuildConfig(); cfg.matchSeq=(onl.matchSeq||1)+1; onl.matchSeq=cfg.matchSeq; onl.config=cfg;
+    onl.roomRef.child('rematch').remove();
+    onl.roomRef.child('state').remove();
+    onl.roomRef.child('inputs').remove();
+    onl.roomRef.child('config').set(cfg);
+    onlEnterGame(cfg);
+    onlPublish();
+  }
+  function onlRequestRematch(){
+    if(!onl || !onl.finished) return;
+    onl.roomRef.child('rematch/'+onl.role).set(true);
+    $('onl-rematch-btn').disabled=true;
+  }
+  function onlUpdateRematchStatus(meReady, oppReady){
+    const el=$('onl-rematch-status'); if(!el) return;
+    if(meReady) $('onl-rematch-btn').disabled=true;
+    if(meReady && !oppReady) el.textContent='Warte auf Mitspieler …';
+    else if(!meReady && oppReady) el.textContent='Mitspieler möchte nochmal – tippe auf „Nochmal spielen".';
+    else el.textContent='';
   }
 
   function onlPublish(){
@@ -2137,7 +2294,7 @@
       const b=onl.board; if(!b) return;
       const now=Date.now();
       onl.roomRef.child('state').set(clean({
-        seq: ++onl.stateSeq,
+        seq: ++onl.stateSeq, m: onl.matchSeq,
         finished: !!onl.finished,
         winner: onlWinnerToWire(onl.winner),
         // blinkUntil ist ein lokaler Date.now()-Stempel und ueber zwei Geraete hinweg wertlos –
@@ -2152,7 +2309,7 @@
     }
     const gs=onl.gs; if(!gs) return;
     onl.roomRef.child('state').set(clean({
-      seq: ++onl.stateSeq,
+      seq: ++onl.stateSeq, m: onl.matchSeq,
       turn: gs.turn,
       finished: !!onl.finished,
       winner: (onl.winner==null ? -1 : onl.winner),
@@ -2162,6 +2319,7 @@
     }));
   }
   function onlApplyGridState(st){
+    if(st.m!=null && st.m!==onl.matchSeq) return;   // State aus einem anderen Match (Rematch-Umbruch)
     const b=onl.board; if(!b) return;
     const now=Date.now();
     (st.figs||[]).forEach((p,i)=>{ const f=b.figs[i]; if(!f) return;
@@ -2181,6 +2339,7 @@
   }
   function onlApplyState(st){
     if(onl.variant==='grid'){ onlApplyGridState(st); return; }
+    if(st.m!=null && st.m!==onl.matchSeq) return;   // State aus einem anderen Match (Rematch-Umbruch)
     const gs=onl.gs; if(!gs) return;
     (st.rings||[]).forEach((off,i)=>{ if(gs.rings[i]){ gs.rings[i].offset=off; gs.rings[i].offsetVisual=null; } });
     (st.p||[]).forEach((p,i)=>{ const pl=gs.players[i]; if(!pl) return;
@@ -2217,11 +2376,11 @@
     }
     if(act.kind==='move'){
       if(gs.animating || gs.turn!==pi) return;
-      const won=await circleStepG(gs, pi, act.choice);
+      const winner=await circleStepG(gs, pi, act.choice);
       if(!gs.mounted) return;
-      markerFlashG(pl); updateHighlightG(gs);
+      markerFlashG(gs.players[0]); markerFlashG(gs.players[1]); updateHighlightG(gs);
       renderGerLog($('onl-log'), gs.players[onl.myIdx].log||[]);
-      if(won){ onl.finished=true; onl.winner=pi; onlRenderUi(); onlPublish(); onlShowResult(); return; }
+      if(winner!=null){ onl.finished=true; onl.winner=winner; onlRenderUi(); onlPublish(); onlShowResult(); return; }
       gs.turn=1-pi;
       onlRenderUi(); onlPublish();
     }
@@ -2291,6 +2450,12 @@
     hostEl.firstChild.title='Pose wechseln';
     hostEl.firstChild.onclick=()=>onlPose();
   }
+  function onlShowRematchPanel(){
+    if(!$('onl-rematch').classList.contains('hidden')) return; // schon sichtbar, Zustand nicht zurücksetzen
+    $('onl-rematch').classList.remove('hidden');
+    $('onl-rematch-btn').disabled=false;
+    $('onl-rematch-status').textContent='';
+  }
   function onlShowResult(){
     const w=onl.winner; if(w==null) return;
     if(onl.variant==='grid'){
@@ -2300,17 +2465,20 @@
         ? `<div class="win-line">Unentschieden!</div>Beide ${me} Punkte.`
         : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Du ${me} : ${opp} Gegner.`;
       $('onl-result').classList.remove('hidden');
+      onlShowRematchPanel();
       return;
     }
     const gs=onl.gs;
     const mine=(w===onl.myIdx);
     $('onl-result').innerHTML=`<div class="win-line">${mine?'Du gewinnst!':'Gegner gewinnt!'}</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove||gs.players[w].moves} Z&uuml;gen.`;
     $('onl-result').classList.remove('hidden');
+    onlShowRematchPanel();
   }
   function onlOpponentLeft(hostLeft){
     if(!onl || onl.finished) return;
     onl.finished=true;
     if(onl.board) stopDogTimer(onl.board);
+    $('onl-rematch').classList.add('hidden');   // ohne Mitspieler kein Rematch
     const t=$('onl-turn'); t.classList.remove('mine','theirs'); t.classList.add('over');
     t.textContent = hostLeft ? 'Der Gastgeber hat den Raum geschlossen.' : 'Dein Gegner hat den Raum verlassen.';
     document.querySelectorAll('#onl-steps button, #onl-pad button').forEach(b=>b.disabled=true);
@@ -2318,14 +2486,14 @@
   function onlShowReveal(){
     if(!onl) return;
     if(onl.variant==='grid'){ if(onl.shared) openReveal(gridExplain(onl.shared)); return; }
-    if(onl.gs) openReveal(circleExplain(onl.gs.rings, onl.gs.poseEffects));
+    if(onl.gs) openReveal(circleExplain(onl.gs.rings, onl.gs.poseEffects, onl.gs.figRule));
   }
   function onlLeave(){
     if(onl){
       (onl.listeners||[]).forEach(l=>{ try{ l.ref.off(l.ev, l.cb); }catch(e){} });
       try{
         if(onl.role==='host'){ onl.roomRef.onDisconnect().cancel(); onl.roomRef.remove(); fbDb.ref('lobby/'+onl.code).remove(); }
-        else { onl.roomRef.child('players/guest').onDisconnect().cancel(); onl.roomRef.child('players/guest').remove(); }
+        else { onl.roomRef.child('players/guest').onDisconnect().cancel(); onl.roomRef.child('players/guest').remove(); onl.roomRef.child('rematch/guest').remove(); }
       }catch(e){}
       if(onl.gs) onl.gs.mounted=false;
       if(onl.board) stopDogTimer(onl.board);
@@ -2337,7 +2505,7 @@
 
   function mpShowReveal(){
     if(!mp) return;
-    openReveal(mp.mode==='grid' ? gridExplain(mp.shared) : circleExplain(mp.players[0].cs.rings, mp.players[0].cs.poseEffects));
+    openReveal(mp.mode==='grid' ? gridExplain(mp.shared) : circleExplain(mp.players[0].cs.rings, mp.players[0].cs.poseEffects, mp.players[0].cs.figRule));
   }
 
   // ===================== START SCREEN WIRING =====================
@@ -2410,6 +2578,7 @@
   const STEP_OPTS=[['random','Zufällig'],['normal','so viele wie gewählt'],['reverse','rückwärts'],['half','halbe Schrittzahl'],['double','doppelte Schrittzahl']];
   const ROT_OPTS=[['random','Zufällig'],['still','steht still'],['sync','mit (gleiches Vorz.)'],['counter','Gegenrichtung'],['halfRot','halbe Rotation']];
   function fillSel(sel, opts, prefix){ opts.forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=(prefix||'')+t; sel.appendChild(o); }); }
+  fillSel($('ed-fig'), STEP_OPTS, '');
   function edBuildZoneRows(){
     const host=$('ed-zone-rows'); const prev=Array.from(host.querySelectorAll('select')).map(s=>s.value); host.innerHTML='';
     ZONE_COLORS.forEach((zc,i)=>{
@@ -2420,14 +2589,13 @@
   }
   function edBuildRingRows(){
     const host=$('ed-ring-rows'); const n=edN('ed-rings');
-    const ps=Array.from(host.querySelectorAll('select.step')).map(s=>s.value); const pr=Array.from(host.querySelectorAll('select.rot')).map(s=>s.value);
+    const pr=Array.from(host.querySelectorAll('select.rot')).map(s=>s.value);
     host.innerHTML='';
     for(let i=0;i<n;i++){
       const row=el('div','ed-adv-item'); const lbl=el('span','lbl'); lbl.textContent='Ring '+(i+1);
-      const s1=el('select'); s1.className='step'; fillSel(s1,STEP_OPTS,'Figur: ');
       const s2=el('select'); s2.className='rot'; fillSel(s2,ROT_OPTS,'Dreht: ');
-      if(ps[i]) s1.value=ps[i]; if(pr[i]) s2.value=pr[i];
-      row.appendChild(lbl); row.appendChild(s1); row.appendChild(s2); host.appendChild(row);
+      if(pr[i]) s2.value=pr[i];
+      row.appendChild(lbl); row.appendChild(s2); host.appendChild(row);
     }
   }
   const RULE_TITLES={
@@ -2456,8 +2624,8 @@
     if(vals.length!==4 || vals.every(v=>v==='random')) return null; return vals;
   }
   function edReadRings(){
-    const rr=Array.from($('ed-ring-rows').querySelectorAll('.ed-adv-item')).map(r=>({rule:r.querySelector('.step').value, rot:r.querySelector('.rot').value}));
-    if(!rr.length || rr.every(r=>r.rule==='random' && r.rot==='random')) return null; return rr;
+    const rr=Array.from($('ed-ring-rows').querySelectorAll('.ed-adv-item')).map(r=>({rot:r.querySelector('.rot').value}));
+    if(!rr.length || rr.every(r=>r.rot==='random')) return null; return rr;
   }
   function edCollect(){
     return { mode:edV('ed-mode'), variant:edV('ed-variant'), players:edN('ed-players'), bg:edV('ed-bg'),
@@ -2466,7 +2634,7 @@
       wall:$('ed-wall').checked, coins:edN('ed-coins'), mile:edN('ed-mile'),
       jumpmode:edV('ed-jumpmode'), jumplen:edN('ed-jumplen'),
       jumpPattern:Array.from($('ed-jump-rows').querySelectorAll('select')).map(s=>parseInt(s.value,10)),
-      rings:edN('ed-rings'), pose2:edV('ed-pose2'), pose3:edV('ed-pose3'),
+      rings:edN('ed-rings'), figRule:edV('ed-fig'), pose2:edV('ed-pose2'), pose3:edV('ed-pose3'),
       zoneEffects:edReadZones(), ringRules:edReadRings() };
   }
   function edApply(sp){
@@ -2479,10 +2647,10 @@
     let jm=sp.jumpmode; if(jm==null) jm = sp.jump ? 'random' : 'none';
     set('ed-jumpmode',jm); set('ed-jumplen', sp.jumplen||2);
     edBuildJumpRows(); if(sp.jumpPattern && sp.jumpPattern.length){ const js=$('ed-jump-rows').querySelectorAll('select'); sp.jumpPattern.forEach((v,i)=>{ if(js[i]) js[i].value=String(v); }); }
-    set('ed-rings',sp.rings); set('ed-pose2',sp.pose2); set('ed-pose3',sp.pose3);
+    set('ed-rings',sp.rings); set('ed-fig',sp.figRule); set('ed-pose2',sp.pose2); set('ed-pose3',sp.pose3);
     // erweiterte Regeln (immer sichtbar, Standard zufällig)
     edBuildZoneRows(); if(sp.zoneEffects){ const sels=$('ed-zone-rows').querySelectorAll('select'); sp.zoneEffects.forEach((v,i)=>{ if(sels[i]) sels[i].value=v; }); }
-    edBuildRingRows(); if(sp.ringRules){ const items=$('ed-ring-rows').querySelectorAll('.ed-adv-item'); sp.ringRules.forEach((rr,i)=>{ if(items[i]){ items[i].querySelector('.step').value=rr.rule; items[i].querySelector('.rot').value=rr.rot; } }); }
+    edBuildRingRows(); if(sp.ringRules){ const items=$('ed-ring-rows').querySelectorAll('.ed-adv-item'); sp.ringRules.forEach((rr,i)=>{ if(items[i] && rr.rot!=null){ items[i].querySelector('.rot').value=rr.rot; } }); }
     edRefresh();
   }
   function edRefresh(){
@@ -2526,6 +2694,7 @@
       if(sp.players===2) mpStart('mittel', ov); else spgStart('mittel', sp.variant, ov);
     } else {
       ov.ringCount=sp.rings; ov.poseEffects=[poseFromVal(sp.pose2), poseFromVal(sp.pose3)];
+      if(sp.figRule && sp.figRule!=='random') ov.figRule=sp.figRule;
       if(sp.ringRules && sp.ringRules.length) ov.ringRules=sp.ringRules;
       if(sp.players===2) mpStart('mittel', ov, 'duell'); else spcStart('mittel', ov);
     }
@@ -2544,6 +2713,8 @@
   $('onl-code').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); onlJoin($('onl-code').value); } });
   $('onl-leave').addEventListener('click', onlLeave);
   $('onl-reveal').addEventListener('click', onlShowReveal);
+  $('onl-log-btn').addEventListener('click',()=>{ if(onl&&onl.gs) openLog(logHtml(renderGerLog, onl.gs.players[onl.myIdx].log||[])); });
+  $('onl-rematch-btn').addEventListener('click', onlRequestRematch);
   document.querySelectorAll('#onl-steps button[data-step]').forEach(b=>{
     b.addEventListener('click', ()=>onlMove(parseInt(b.dataset.step,10)));
   });
@@ -2573,9 +2744,10 @@
 
   // SP circle controls
   document.querySelectorAll('#circle-steps button[data-step]').forEach(btn=>{ btn.addEventListener('click',()=>spcMove(parseInt(btn.dataset.step,10))); });
-  $('spc-reveal').addEventListener('click',()=>{ if(!spcState) return; if(!spcState.revealed){ spcState.revealed=true; spcState.revealedAtMove=spcState.moves; } openReveal(circleExplain(spcState.rings, spcState.poseEffects)); });
+  $('spc-reveal').addEventListener('click',()=>{ if(!spcState) return; if(!spcState.revealed){ spcState.revealed=true; spcState.revealedAtMove=spcState.moves; } openReveal(circleExplain(spcState.rings, spcState.poseEffects, spcState.figRule)); });
   $('spc-reset').addEventListener('click',()=>{ if(spcState && !spcState.animating) spcStart(spcState.diffKey, spcState.ov); });
   $('spc-back').addEventListener('click',backToMenu);
+  $('spc-log-btn').addEventListener('click',()=>{ if(spcState) openLog(logHtml(renderLog, spcState.log)); });
 
   // MP controls
   $('mpg-reveal').addEventListener('click',mpShowReveal);
@@ -2584,7 +2756,9 @@
   $('mpc-reveal').addEventListener('click',mpShowReveal);
   $('mpc-again').addEventListener('click',()=>{ if(mp) mpStart(mp.config.diffKey, mp.ov); });
   $('mpc-back').addEventListener('click',backToMenu);
+  $('mpc-log-btn').addEventListener('click',()=>{ if(mp&&mp.players) openLog(logHtml(renderLog, [{label:'Spieler 1',cls:'p1',log:mp.players[0].cs.log},{label:'Spieler 2',cls:'p2',log:mp.players[1].cs.log}])); });
   $('mpcg-reveal').addEventListener('click',mpcgShowReveal);
+  $('mpcg-log-btn').addEventListener('click',()=>{ if(mp&&mp.gs) openLog(logHtml(renderGerLog, [{label:'Spieler 1',cls:'p1',log:mp.gs.players[0].log},{label:'Spieler 2',cls:'p2',log:mp.gs.players[1].log}])); });
   $('mpcg-again').addEventListener('click',()=>{ if(mp&&mp.gs){ teardownActive(); hideAllScreens(); mpcgStart(mp.gs.diffKey, mp.ov); } });
   $('mpcg-back').addEventListener('click',backToMenu);
 
