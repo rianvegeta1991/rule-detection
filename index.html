@@ -160,14 +160,15 @@
   .ring-field.current-p1{stroke:var(--p1); stroke-width:2.5;}
   .ring-field.current-p2{stroke:var(--p2); stroke-width:2.5;}
   /* Kreis-Gerangel */
-  .ger-det{display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px; border-radius:12px; border:1px solid var(--cell-border); background:rgba(11,18,32,0.6); cursor:pointer; user-select:none; opacity:0.72; transition:opacity 0.15s, box-shadow 0.15s;}
+  /* Posen-Farben statt Namen: gelb=1, grün=2, blau=3, rot=Sabotage */
+  .pose-c0{--pose:250,204,21;} .pose-c1{--pose:34,197,94;} .pose-c2{--pose:59,130,246;} .pose-c3{--pose:239,68,68;}
+  .ger-det{display:flex; flex-direction:column; align-items:center; gap:5px; padding:8px; border-radius:12px; border:1px solid rgba(var(--pose,148,163,184),0.85); background:rgba(var(--pose,11,18,32),0.22); cursor:pointer; user-select:none; opacity:0.72; transition:opacity 0.15s, box-shadow 0.15s;}
   .ger-det.active{opacity:1;}
-  .ger-det.p1.active{box-shadow:0 0 0 2px var(--p1); border-color:var(--p1);}
-  .ger-det.p2.active{box-shadow:0 0 0 2px var(--p2); border-color:var(--p2);}
+  .ger-det.p1.active{box-shadow:0 0 0 2px var(--p1);}
+  .ger-det.p2.active{box-shadow:0 0 0 2px var(--p2);}
   .ger-det svg{filter:drop-shadow(0 2px 4px rgba(0,0,0,0.55));}
-  .ger-det:hover svg{filter:drop-shadow(0 0 6px rgba(250,204,21,0.7));}
-  .ger-det .d-pose2{font-size:0.72rem; font-weight:700; color:#0b1220; background:rgba(250,204,21,0.9); border-radius:999px; padding:1px 9px;}
-  .ger-det.sabotage .d-pose2{background:var(--bad); color:#fff;}
+  .ger-det:hover svg{filter:drop-shadow(0 0 6px rgba(var(--pose,250,204,21),0.8));}
+  .pose-dot{display:inline-block; width:11px; height:11px; border-radius:50%; background:rgb(var(--pose,148,163,184)); border:1px solid rgba(0,0,0,0.45); vertical-align:middle; box-shadow:0 0 4px rgba(var(--pose,148,163,184),0.7);}
   #mpcg-turn.p1{border-color:var(--p1); color:#fff;}
   #mpcg-turn.p2{border-color:var(--p2); color:#fff;}
   .log-sabo{color:var(--bad); font-weight:600;}
@@ -176,13 +177,11 @@
   .detective-center{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
     text-align:center; cursor:pointer; user-select:none; z-index:5; line-height:0;
+    border-radius:50%; padding:7px 9px;
+    background:radial-gradient(circle at 50% 42%, rgba(var(--pose,250,204,21),0.95), rgba(var(--pose,250,204,21),0.4) 68%, transparent 90%);
   }
   .detective-center svg{width:auto; display:block; margin:0 auto; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.55));}
-  .detective-center .d-pose{
-    display:inline-block; line-height:1.3; font-size:0.6rem; font-weight:700; color:#0b1220;
-    background:rgba(250,204,21,0.9); border-radius:999px; padding:0 7px; margin-top:3px;
-  }
-  .detective-center:hover svg{filter:drop-shadow(0 0 6px rgba(250,204,21,0.7));}
+  .detective-center:hover svg{filter:drop-shadow(0 0 6px rgba(var(--pose,250,204,21),0.85));}
 
   /* ===== game layout ===== */
   /* Einzelspieler-Ansichten (Feld & Kreis): Spalte, Steuerung füllt den Raum unter dem Brett. */
@@ -216,13 +215,22 @@
   label.small{font-size:0.8rem; color:var(--muted); display:block; margin-bottom:8px;}
   .overlay-msg{font-size:0.95rem; line-height:1.5; margin-bottom:8px;}
   .footer-row{display:flex; gap:8px; margin-top:4px; flex-wrap:wrap; align-items:center;}
-  .dpad{display:grid; grid-template-columns:repeat(3, 56px); grid-template-rows:repeat(3, 48px); gap:6px; margin:0 auto;}
+  /* Feld-Steuerkreuz im geprägten Hardware-Look (dunkel, 3D, gefüllte Pfeile) */
+  .dpad{display:grid; grid-template-columns:repeat(3, 56px); grid-template-rows:repeat(3, 48px); gap:7px; margin:0 auto;}
   .dpad .spacer{visibility:hidden;}
-  .dpad button{background:#334155; color:var(--text); border:1px solid #475569; border-radius:10px; font-size:1.2rem; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
-  .dpad button:hover:not(:disabled){border-color:var(--accent);}
-  .dpad button:active:not(:disabled){transform:scale(0.93);}
-  .dpad button:disabled{opacity:0.35; cursor:not-allowed;}
-  .dpad button.stay{font-size:0.95rem; background:#3f3352; border-color:#7c3aed;}
+  .dpad button{
+    background:linear-gradient(160deg,#565a61 0%,#3d4046 45%,#25272b 100%);
+    color:#eceef1; border:1px solid #0f1013; border-radius:14px;
+    font-size:1.35rem; font-weight:700; cursor:pointer; font-family:inherit;
+    display:flex; align-items:center; justify-content:center; line-height:1;
+    box-shadow:inset 0 2px 2px rgba(255,255,255,0.22), inset 0 -3px 5px rgba(0,0,0,0.55), 0 3px 6px rgba(0,0,0,0.6);
+    text-shadow:0 1px 2px rgba(0,0,0,0.7);
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+  }
+  .dpad button:hover:not(:disabled){filter:brightness(1.12);}
+  .dpad button:active:not(:disabled){box-shadow:inset 0 3px 8px rgba(0,0,0,0.7), 0 1px 2px rgba(0,0,0,0.5); transform:translateY(1px);}
+  .dpad button:disabled{opacity:0.4; cursor:not-allowed;}
+  .dpad button.stay{border-radius:50%; font-size:0.8rem; background:radial-gradient(circle at 50% 36%,#5d616a,#34373c 68%,#202226);}
   .dpad.p1 button{border-color:var(--p1);} .dpad.p2 button{border-color:var(--p2);}
   #circle-steps button{min-width:44px; font-size:1rem; font-weight:600;}
   /* Touch-Steuerung Multiplayer */
@@ -469,9 +477,9 @@
     <div class="ed-row"><label class="small">Anzahl Ringe: <b id="ed-rings-val"></b></label><input type="range" id="ed-rings" min="2" max="5" step="1"></div>
     <div class="hint" style="color:var(--muted); font-size:0.78rem;">Dazu kommt automatisch ein d&uuml;nner Tor-Ring vor dem Zentrum.</div>
     <div class="ed-row"><label class="small">Figur-Bewegung (unabh&auml;ngig vom Ring)</label><select id="ed-fig" class="ed-sel"></select></div>
-    <div class="ed-row"><label class="small">Detektiv-Pose 2</label><select id="ed-pose2" class="ed-sel"></select></div>
-    <div class="ed-row"><label class="small">Detektiv-Pose 3</label><select id="ed-pose3" class="ed-sel"></select></div>
-    <div class="hint" style="color:var(--muted); font-size:0.78rem;">Pose 1 ist immer neutral.</div>
+    <div class="ed-row"><label class="small">Pose <b style="color:#22c55e">Grün</b></label><select id="ed-pose2" class="ed-sel"></select></div>
+    <div class="ed-row"><label class="small">Pose <b style="color:#3b82f6">Blau</b></label><select id="ed-pose3" class="ed-sel"></select></div>
+    <div class="hint" style="color:var(--muted); font-size:0.78rem;">Pose <b style="color:#facc15">Gelb</b> ist immer neutral (Sabotage = Rot, nur im Gerangel).</div>
     <details class="ed-adv"><summary>Erweitert: Ring-Rotationen (pro Ring)</summary>
       <div class="hint" style="margin-left:0;">Drehung je Ring auf deine Eingabe. Standard: zuf&auml;llig.</div>
       <div id="ed-ring-rows" style="margin-top:8px;"></div>
@@ -1317,7 +1325,8 @@
     let ov=hostEl.querySelector('.detective-center');
     if(!ov){ ov=el('div','detective-center'); hostEl.appendChild(ov); }
     const h=Math.round(56*scale);
-    ov.innerHTML = detectiveSvg(pose,h) + `<span class="d-pose">Pose ${pose+1}</span>`;
+    ov.className='detective-center pose-c'+pose;   // Farbe zeigt die Pose (kein Name mehr)
+    ov.innerHTML = detectiveSvg(pose,h);
     ov.title = 'Detektiv – Pose wechseln ('+keyHint+' oder Klick)';
     ov.onclick = onClick;
   }
@@ -1356,9 +1365,10 @@
     let startIndex=0; const cands=shuffle([...Array(specs[outerIdx].fieldCount).keys()]);
     startIndex=cands[0];
     for(const c of cands){ if(outerIdx===0 || findAdjacentStar(tmp,outerIdx,c,outerIdx-1)===null){ startIndex=c; break; } }
-    // Pose 1 immer neutral; Pose 2 und 3 haben garantiert Einfluss
+    // Pose 1 immer neutral; Pose 2 und 3 haben garantiert Einfluss – und dürfen nicht identisch wirken.
     const p2 = (ov.poseEffects&&ov.poseEffects[0]) ? ov.poseEffects[0] : makeActivePoseEffect();
-    const p3 = (ov.poseEffects&&ov.poseEffects[1]) ? ov.poseEffects[1] : makeActivePoseEffect();
+    let p3 = (ov.poseEffects&&ov.poseEffects[1]) ? ov.poseEffects[1] : makeActivePoseEffect();
+    if(!(ov.poseEffects&&ov.poseEffects[1])){ let g=0; while(g++<16 && JSON.stringify(p3)===JSON.stringify(p2)) p3=makeActivePoseEffect(); }
     const poseEffects=[ {kind:'neutral'}, p2, p3 ];
     return { theme, diffKey, specs, outerIdx, startIndex, poseEffects, figRule };
   }
@@ -1378,8 +1388,9 @@
     rings.forEach((ring,i)=> html += `<li><b>Ring ${i+1}${ring.gate?' &middot; Tor':''}</b>: ${rotTransformLabel(ring.rotRule)}</li>`);
     html += '</ul>Jeder Ring dreht sich auf deine Eingabe nach eigener Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug; innen und au&szlig;en zugleich &rarr; Zufall). Der innerste <b>Tor-Ring</b> ist nur ein einzelnes &starf; &ndash; erreichst du es, geht es direkt ins Zentrum.';
     if(poseEffects){
-      html += '<br><br><b>Detektivs Posen:</b><ul>';
-      poseEffects.forEach((e,i)=> html += `<li><b>${e.kind==='sabotage'?'Sabotage':('Pose '+(i+1))}</b>${i===0?' (Start)':''}: ${poseEffectLabel(e)}</li>`);
+      const POSE_COLNAMES=['Gelb','Grün','Blau','Rot'];
+      html += '<br><br><b>Detektivs Posen (erkennbar an der Farbe des Zentrums):</b><ul>';
+      poseEffects.forEach((e,i)=> html += `<li><span class="pose-dot pose-c${i}"></span> <b>${POSE_COLNAMES[i]||('#'+(i+1))}</b>${i===0?' (Start)':''}: ${poseEffectLabel(e)}</li>`);
       html += '</ul>';
     }
     return html;
@@ -1520,7 +1531,7 @@
   function logChip(label,val,cls){ return `<span class="log-chip ${cls||''}"><span class="k">${label}</span><span class="v">${val}</span></span>`; }
   function renderLogEntry(e){
     const modeTag = e.mode==='move'?'<span class="log-mode">nur Figur</span>' : e.mode==='rotate'?'<span class="log-mode">nur Rotation</span>':'';
-    const poseTag = e.pose ? `<span class="log-pose">Pose ${e.pose}</span>` : '';
+    const poseTag = e.pose ? `<span class="pose-dot pose-c${e.pose-1}" title="Pose-Farbe"></span>` : '';
     let html=`<div class="log-entry"><div class="log-head"><span class="log-move">Zug ${e.move}</span>${logChip('Auswahl',fmtDelta(e.choice),'choice')}${poseTag}${modeTag}</div><div class="log-vals">`;
     html+=logChip('Figur',fmtDelta(e.figActual),'fig')+`<span class="log-sep"></span>`;
     e.rotActuals.forEach((d,i)=> html+=logChip('R'+(i+1),fmtDelta(d),d===0?'zero':'rot'));
@@ -1924,7 +1935,7 @@
     return won ? pi : (oppWon ? (1-pi) : null);
   }
   function renderGerLogEntry(e){
-    let html=`<div class="log-entry"><div class="log-head"><span class="log-move">Zug ${e.move}</span>${logChip('Auswahl',fmtDelta(e.choice),'choice')}<span class="log-pose">${e.poseName||('Pose '+e.pose)}</span></div><div class="log-vals">`;
+    let html=`<div class="log-entry"><div class="log-head"><span class="log-move">Zug ${e.move}</span>${logChip('Auswahl',fmtDelta(e.choice),'choice')}<span class="pose-dot pose-c${e.pose-1}" title="Pose-Farbe"></span></div><div class="log-vals">`;
     html+=logChip('Figur',fmtDelta(e.figActual),'fig')+`<span class="log-sep"></span>`;
     e.rotActuals.forEach((d,i)=> html+=logChip('R'+(i+1),fmtDelta(d),d===0?'zero':'rot'));
     html+=`</div>`;
@@ -1936,11 +1947,9 @@
   function renderGerLog(container, log){ container.innerHTML = log.length ? log.map(renderGerLogEntry).join('') : '<span style="color:var(--muted)">Noch keine Z&uuml;ge.</span>'; }
   function renderGerDetective(gs, pi){
     const pl=gs.players[pi]; const host=$('mpcg-det'+(pi+1)); if(!host) return;
-    const isSabo = gs.poseEffects[pl.gandalfPose].kind==='sabotage';
     const active = gs.turn===pi && !mp.finished && !pl.done;
-    host.innerHTML = `<div class="ger-det ${pi===0?'p1':'p2'}${active?' active':''}${isSabo?' sabotage':''}">`
-      + detectiveSvg(pl.gandalfPose, 62)
-      + `<span class="d-pose2">${gs.poseNames[pl.gandalfPose]}</span></div>`;
+    host.innerHTML = `<div class="ger-det pose-c${pl.gandalfPose} ${pi===0?'p1':'p2'}${active?' active':''}">`
+      + detectiveSvg(pl.gandalfPose, 62) + `</div>`;
     host.firstChild.title='Pose wechseln';
     host.firstChild.onclick=()=>mpcgPose(pi);
   }
@@ -2441,12 +2450,9 @@
   }
   function onlRenderDet(){
     const gs=onl.gs, pl=gs.players[onl.myIdx];
-    const eff=gs.poseEffects[pl.gandalfPose];
-    const isSabo=eff && eff.kind==='sabotage';
     const hostEl=$('onl-det');
-    hostEl.innerHTML=`<div class="ger-det ${onl.myIdx===0?'p1':'p2'} active${isSabo?' sabotage':''}">`
-      + detectiveSvg(pl.gandalfPose, 62)
-      + `<span class="d-pose2">${gs.poseNames[pl.gandalfPose]}</span></div>`;
+    hostEl.innerHTML=`<div class="ger-det pose-c${pl.gandalfPose} ${onl.myIdx===0?'p1':'p2'} active">`
+      + detectiveSvg(pl.gandalfPose, 62) + `</div>`;
     hostEl.firstChild.title='Pose wechseln';
     hostEl.firstChild.onclick=()=>onlPose();
   }
@@ -2735,6 +2741,9 @@
   $('ed-jumpmode').value='random'; $('ed-jumplen').value=2;
 
   // SP grid controls
+  // Alle Steuerkreuze auf gefüllte Pfeile setzen (statt dünner Linienpfeile) – passt zum Hardware-Look.
+  { const glyph={'0':'▲','1':'▶','2':'▼','3':'◀','stay':'●'};
+    document.querySelectorAll('.dpad button[data-dir]').forEach(b=>{ if(glyph[b.dataset.dir]) b.textContent=glyph[b.dataset.dir]; }); }
   document.querySelectorAll('#sp-grid .dpad button[data-dir]').forEach(btn=>{
     btn.addEventListener('click',()=>{ const d=btn.dataset.dir; spgMove(d==='stay'?null:parseInt(d,10)); });
   });
