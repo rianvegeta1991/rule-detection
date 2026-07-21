@@ -50,8 +50,9 @@
     font-size:1.15rem; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center;
   }
   #gear-btn:hover{color:var(--gold); border-color:var(--gold); transform:rotate(40deg);}
-  .modal-card{background:var(--panel); border:1px solid var(--cell-border); border-radius:var(--radius); padding:20px 22px; max-width:480px; width:92%; box-shadow:0 20px 60px rgba(0,0,0,0.5);}
-  .modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+  .modal-card{background:var(--panel); border:1px solid var(--cell-border); border-radius:var(--radius); padding:0 22px 20px; max-width:480px; width:92%; box-shadow:0 20px 60px rgba(0,0,0,0.5); max-height:calc(100dvh - 32px); overflow-y:auto; overscroll-behavior:contain;}
+  /* Kopfzeile bleibt beim Scrollen bündig oben (× immer erreichbar). */
+  .modal-head{display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:1; background:var(--panel); margin:0 -22px 12px; padding:16px 22px 10px;}
   .modal-head h2{margin:0; font-size:1.15rem; color:var(--gold);}
   .modal-close{background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer; line-height:1;}
   .modal-close:hover{color:var(--text);}
@@ -2805,8 +2806,12 @@
 
   document.addEventListener('keydown',(e)=>{
     // Offene Popups fangen Escape ab und schlucken sonst nichts.
-    if(e.key==='Escape'){ if(!$('reveal-modal').classList.contains('hidden')){ e.preventDefault(); closeReveal(); } return; }
-    if(!$('reveal-modal').classList.contains('hidden')) return;
+    if(e.key==='Escape'){
+      const m=['reveal-modal','log-modal','settings-modal','guide-modal'].find(id=>!$(id).classList.contains('hidden'));
+      if(m){ e.preventDefault(); $(m).classList.add('hidden'); }
+      return;
+    }
+    if(!$('reveal-modal').classList.contains('hidden') || !$('log-modal').classList.contains('hidden')) return;
     if(!$('sp-grid').classList.contains('hidden') && spgState){
       const m={ 'ArrowUp':0,'ArrowRight':1,'ArrowDown':2,'ArrowLeft':3 };
       if(e.key in m){ e.preventDefault(); spgMove(m[e.key]); } else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); spgMove(null); }
