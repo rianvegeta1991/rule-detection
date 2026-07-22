@@ -229,6 +229,20 @@
   .pad-stay:active{box-shadow:inset 0 3px 8px rgba(0,0,0,0.7); transform:translate(-50%,-50%) translateY(1px);}
   .pad-stay-dot{width:clamp(20px,7vw,30px); height:clamp(20px,7vw,30px); border-radius:50%; border:3px solid rgb(var(--accent-rgb,203,210,218)); background:radial-gradient(circle at 50% 38%, rgba(var(--accent-rgb,107,112,121),0.9),#33363b); box-shadow:0 0 6px rgba(var(--accent-rgb,0,0,0),0.6);}
   .pad-frame.done .pad-zone, .pad-frame.done .pad-stay{pointer-events:none; opacity:0.3;}
+  /* Online mit getrennten Brettern: Gegner-Minikarte links vom Steuerfeld */
+  .onl-solo{display:flex; flex-direction:column; align-items:center; gap:8px; width:100%;}
+  .onl-solo-head{width:100%; font-size:0.82rem; color:var(--muted); text-align:center;}
+  .onl-solo .board-wrap{flex:0 0 auto;}
+  #onl-gsolo-host, #onl-csolo-host{max-height:40vh;}
+  #onl-csolo-host{max-height:40vh; overflow:hidden;}
+  #onl-csolo-host svg{max-height:40vh; width:auto !important;}
+  .onl-solo-ctrl{display:flex; gap:8px; width:100%; align-items:stretch; height:29vh; min-height:180px;}
+  .onl-solo-ctrl .pad-frame{flex:1 1 auto; min-height:0;}
+  .onl-solo-ctrl .mp-steps{flex:1 1 auto; align-content:center; margin-top:0;}
+  .onl-mini{flex:0 0 auto; width:34%; max-width:132px; min-width:86px; background:rgba(11,18,32,0.55); border:1px solid var(--cell-border); border-radius:12px; padding:5px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; overflow:hidden; -webkit-tap-highlight-color:transparent;}
+  .onl-mini .onl-mini-label{font-size:0.6rem; color:var(--muted); line-height:1.2; text-align:center;}
+  .onl-mini svg, .onl-mini .board-outer{max-width:100%; height:auto; pointer-events:none;}
+  .onl-mini:active{border-color:var(--accent);}
   .board-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%;}
   .sidebar{flex:1; min-width:290px; max-width:420px; display:flex; flex-direction:column; gap:12px;}
   .panel{background:rgba(30,41,59,0.92); border:1px solid var(--cell-border); border-radius:var(--radius); padding:12px 14px;}
@@ -324,7 +338,7 @@
   .room-item .rt{font-size:0.76rem; color:var(--muted);}
   .room-item button{padding:8px 14px; min-height:44px;}
   #onl-rooms .empty{color:var(--muted); font-size:0.82rem; padding:8px 2px;}
-  #onl-create, #onl-join, #onl-code, #onl-theme, #onl-variant{min-height:44px;}
+  #onl-create, #onl-join, #onl-code, #onl-theme, #onl-mode, #onl-gvariant, #onl-wincond, #onl-profile{min-height:44px;}
   #onl-code{font-size:1.1rem;}
   #onl-msg.err{background:#7f1d1d; border-color:var(--bad); color:#fecaca;}
   #onl-turn.mine{background:#134e4a; border-color:var(--good); color:#ccfbf1;}
@@ -400,7 +414,7 @@
       <circle cx="44" cy="42" r="7" fill="#ffffff" opacity="0.18"/>
     </svg>
     <h1>Regelsuche</h1>
-    <div class="tagline serif">Ermittle die verborgenen Regeln &ndash; Fall f&uuml;r Fall.</div>
+    <div class="tagline serif">Finde die Regeln, regel das Spiel.</div>
     <div class="app-version" id="app-version"></div>
   </div>
 
@@ -725,10 +739,18 @@
     <div class="panel">
       <div class="tab-caption" style="margin-top:0;">Neuen Raum er&ouml;ffnen</div>
       <div class="btn-row" style="margin-bottom:6px;">
-        <select id="onl-variant" class="ed-sel" style="flex:1;">
-          <option value="circle">Kreis-Gerangel</option>
-          <option value="grid">Feld-Gerangel</option>
+        <select id="onl-mode" class="ed-sel" style="flex:1;">
+          <option value="grid">Feld-Modus</option>
+          <option value="circle">Kreis-Modus</option>
         </select>
+        <select id="onl-gvariant" class="ed-sel" style="flex:1;"></select>
+      </div>
+      <div class="btn-row" style="margin-bottom:6px;">
+        <select id="onl-wincond" class="ed-sel hidden" style="flex:1;">
+          <option value="fastest">Schnellster ins Ziel</option>
+          <option value="fewest">Wenigste Z&uuml;ge</option>
+        </select>
+        <select id="onl-profile" class="ed-sel" style="flex:1;"><option value="">&mdash; Standard &mdash;</option></select>
       </div>
       <div class="btn-row">
         <select id="onl-theme" class="ed-sel" style="flex:1;"></select>
@@ -784,6 +806,35 @@
         <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
         <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
         <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
+      </div>
+    </div>
+
+    <!-- Feld-Spurensuche (getrennte Bretter): eigenes Brett oben, darunter [Minikarte][Kreuz] -->
+    <div id="onl-gsolo-wrap" class="hidden onl-solo">
+      <div id="onl-gsolo-head" class="onl-solo-head"></div>
+      <div class="board-wrap" style="position:relative;"><div id="onl-gsolo-host"></div></div>
+      <div class="onl-solo-ctrl">
+        <button class="onl-mini" id="onl-gsolo-mini" title="Gegner &ndash; tippen zum Vergr&ouml;&szlig;ern"></button>
+        <div class="pad-frame" id="onl-gsolo-frame">
+          <svg class="pad-lines" id="onl-gsolo-lines" aria-hidden="true" preserveAspectRatio="none"></svg>
+          <div class="pad-zone up"    data-dir="0"><span class="pad-ic">&#9650;</span></div>
+          <div class="pad-zone right" data-dir="1"><span class="pad-ic">&#9654;</span></div>
+          <div class="pad-zone down"  data-dir="2"><span class="pad-ic">&#9660;</span></div>
+          <div class="pad-zone left"  data-dir="3"><span class="pad-ic">&#9664;</span></div>
+          <button class="pad-stay" data-dir="stay"><span class="pad-stay-dot"></span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kreis-Duell (getrennte Kreise): eigener Kreis oben, darunter [Minikarte][Schrittknöpfe] -->
+    <div id="onl-csolo-wrap" class="hidden onl-solo">
+      <div id="onl-csolo-head" class="onl-solo-head"></div>
+      <div class="board-wrap"><div id="onl-csolo-host" class="circle-host"></div></div>
+      <div class="onl-solo-ctrl">
+        <button class="onl-mini" id="onl-csolo-mini" title="Gegner &ndash; tippen zum Vergr&ouml;&szlig;ern"></button>
+        <div class="mp-steps" id="onl-csolo-steps" style="flex:1 1 auto; max-width:none;">
+          <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
+        </div>
       </div>
     </div>
 
@@ -870,6 +921,17 @@
   </div>
 </div>
 
+<!-- Gegner-Minikarte groß -->
+<div id="mini-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2 id="mini-title">Gegner</h2>
+      <button class="modal-close" id="mini-close" aria-label="Schlie&szlig;en">&times;</button>
+    </div>
+    <div id="mini-body" style="display:flex; justify-content:center;"></div>
+  </div>
+</div>
+
 <!-- Firebase (nur fuer den Online-Modus; alles andere laeuft ohne Netz) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -953,7 +1015,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.8";
+  const APP_VERSION = "1.9";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1643,7 +1705,7 @@
 
   let spgState=null, spcState=null, mp=null;
 
-  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); }
+  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
   function teardownActive(){
     if(spcState) spcState.mounted=false;
     if(spgState && spgState.board) stopDogTimer(spgState.board);
@@ -1687,7 +1749,7 @@
   // muessen also abgezogen werden, sonst wird das Brett breiter als der Bildschirm.
   // Höhen-Budget fürs Brett während einer Partie: Kopfzeile + Steuerung + Ränder bleiben frei.
   function availBoardHeight(){ const vh=window.innerHeight||800; return Math.max(200, vh-330); }
-  function fitCell(cell, cols, rows){ const innerW=availBoardWidth()-((cols-1)*GAP+2*PAD); let maxCell=Math.floor(innerW/cols); if(rows){ const innerH=availBoardHeight()-((rows-1)*GAP+2*PAD); maxCell=Math.min(maxCell, Math.floor(innerH/rows)); } return Math.max(8, Math.min(cell, maxCell)); }
+  function fitCell(cell, cols, rows, maxH){ const innerW=availBoardWidth()-((cols-1)*GAP+2*PAD); let maxCell=Math.floor(innerW/cols); if(rows){ const innerH=(maxH||availBoardHeight())-((rows-1)*GAP+2*PAD); maxCell=Math.min(maxCell, Math.floor(innerH/rows)); } return Math.max(8, Math.min(cell, maxCell)); }
   function cellSizeFor(shared){ const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols));
     return fitCell(base, shared.cols, shared.rows); }
   function spgStart(diffKey, variant, ov){
@@ -1700,9 +1762,9 @@
     requestAnimationFrame(layoutSpgPad);
   }
   // berechnet die vier Trapez-Zonen + die Linien passend zur tatsächlichen Brettgröße
-  function layoutSpgPad(){
-    const frame=$('spg-frame'), board=frame&&frame.querySelector('.pad-stay'); if(!frame||!board) return;
-    if($('sp-grid').classList.contains('hidden')) return;
+  // Berechnet die vier Trapez-Zonen + die Linien für ein beliebiges Steuerkreuz (Feld-SP und Online-Solo).
+  function layoutPadFrame(frame){
+    const board=frame&&frame.querySelector('.pad-stay'); if(!frame||!board) return;
     const fr=frame.getBoundingClientRect(), br=board.getBoundingClientRect();
     if(fr.width<2 || br.width<2) return;
     const W=fr.width, H=fr.height;
@@ -1713,7 +1775,7 @@
     set('right', `polygon(100% 0, 100% 100%, ${pR}% ${pB}%, ${pR}% ${pT}%)`);
     set('down',  `polygon(100% 100%, 0 100%, ${pL}% ${pB}%, ${pR}% ${pB}%)`);
     set('left',  `polygon(0 100%, 0 0, ${pL}% ${pT}%, ${pL}% ${pB}%)`);
-    const svg=$('spg-pad-lines');
+    const svg=frame.querySelector('.pad-lines');
     if(svg){
       svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
       const line=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(148,163,184,0.32)" stroke-width="1.5"/>`;
@@ -1723,6 +1785,8 @@
         line(1.5,1.5,L,T)+line(W-1.5,1.5,R,T)+line(W-1.5,H-1.5,R,B)+line(1.5,H-1.5,L,B);
     }
   }
+  function layoutSpgPad(){ if($('sp-grid').classList.contains('hidden')) return; layoutPadFrame($('spg-frame')); }
+  function layoutOnlSoloPad(){ if($('onl-gsolo-wrap').classList.contains('hidden')) return; layoutPadFrame($('onl-gsolo-frame')); }
   function spgRender(){
     const {shared,board}=spgState; const f=board.figs[0];
     let s2;
@@ -2171,7 +2235,7 @@
       const hostEl=$('onl-rooms'); hostEl.innerHTML='';
       const val=snap.val()||{}; const now=Date.now();
       const rooms=Object.keys(val)
-        .map(code=>({ code, ts:val[code].ts||0, theme:val[code].theme||'', variant:(val[code].variant==='grid'?'grid':'circle') }))
+        .map(code=>({ code, ts:val[code].ts||0, theme:val[code].theme||'', label:val[code].label||'', mode:onlModeOf(val[code]), variant:onlVariantOf(val[code]) }))
         .filter(r=> now-r.ts < 30*60*1000)   // nur frische Raeume zeigen
         .sort((a,b)=>b.ts-a.ts);
       if(!rooms.length){ const d=el('div','empty'); d.textContent='Gerade keine offenen Räume – erstelle selbst einen.'; hostEl.appendChild(d); return; }
@@ -2179,7 +2243,7 @@
         const row=el('div','room-item');
         const left=el('div');
         const c=el('div','rc'); c.textContent=r.code;
-        const t=el('div','rt'); t.textContent=(THEMES[r.theme]?THEMES[r.theme].title:'')+' · '+(r.variant==='grid'?'Feld':'Kreis');
+        const t=el('div','rt'); t.textContent=r.label || ((THEMES[r.theme]?THEMES[r.theme].title:'')+' · '+onlVariantLabel(r.mode,r.variant));
         left.appendChild(c); left.appendChild(t);
         const b=el('button','action'); b.textContent='Beitreten'; b.onclick=()=>onlJoin(r.code);
         row.appendChild(left); row.appendChild(b); hostEl.appendChild(row);
@@ -2188,29 +2252,37 @@
     onlLobbyRef={ref, cb};
   }
 
-  function onlSerializeConfig(config){
-    return clean({
-      v: 2, variant: 'circle',
-      diffKey: onl.diffKey,
+  // Vereinheitlichte Config v3. Grid reist als Seed+ov (beide bauen dasselbe Brett), Circle als
+  // fertige specs/poseEffects (auch für Editor-Konfigurationen, da buildCircleConfig ov schon auflöst).
+  function onlBuildConfig(){
+    const base={ v:3, mode:onl.mode, variant:onl.variant, shared:onl.shared, diffKey:onl.diffKey, winCond:onl.winCond||'fastest' };
+    if(onl.mode==='grid'){
+      return clean(Object.assign(base, { seed:(Math.random()*4294967296)>>>0, ov:onl.ov||{} }));
+    }
+    const config=buildCircleConfig(onl.diffKey, onl.ov||{});
+    // Duell hat keine Sabotage-Pose (die wirkt nur im geteilten Gerangel auf die Gegnerfigur).
+    const poses = onl.variant==='duell' ? config.poseEffects : config.poseEffects.concat([{kind:'sabotage'}]);
+    return clean(Object.assign(base, {
+      bg: (onl.ov&&onl.ov.bg)||null,
       figRule: config.figRule,
       specs: config.specs.map(s=>({ fieldCount:s.fieldCount, star:s.star, rotRule:s.rotRule, gate:!!s.gate })),
-      outerIdx: config.outerIdx,
-      startIndex: config.startIndex,
-      poseEffects: config.poseEffects.concat([{kind:'sabotage'}])
-    });
+      outerIdx: config.outerIdx, startIndex: config.startIndex, poseEffects: poses
+    }));
   }
-  // Das Feld laesst sich nicht wie der Kreis als Daten uebertragen: shared.rule und shared.zoneOf sind
-  // Closures, wallSet ist ein Set. Stattdessen einigen sich beide Geraete auf einen Seed und bauen
-  // daraus dasselbe Brett.
-  function onlSerializeGridConfig(){
-    return clean({ v:2, variant:'grid', diffKey: onl.diffKey, seed: (Math.random()*4294967296)>>>0 });
-  }
+  // Das Feld reist per Seed (+ov): shared.rule/zoneOf sind Closures, wallSet ein Set – beide Geräte
+  // bauen aus demselben Seed und denselben Overrides dasselbe Brett.
   function onlBuildGridShared(cfg){
     seedRng(cfg.seed>>>0);
-    try{ return buildGridShared(cfg.diffKey, 'gerangel', true, {}); }
-    finally{ unseedRng(); }
+    try{
+      const variant = cfg.variant==='spurensuche' ? 'spurensuche' : 'gerangel';
+      return buildGridShared(cfg.diffKey, variant, variant==='gerangel', cfg.ov||{});
+    } finally{ unseedRng(); }
   }
-  function onlVariantOf(cfg){ return (cfg && cfg.variant==='grid') ? 'grid' : 'circle'; }
+  // Modus aus der Config lesen (v3: cfg.mode; v2-Fallback: cfg.variant war 'grid'/'circle').
+  function onlModeOf(cfg){ if(cfg && (cfg.mode==='grid'||cfg.mode==='circle')) return cfg.mode; return (cfg && cfg.variant==='grid') ? 'grid' : 'circle'; }
+  // Variante (gerangel/spurensuche/duell) und ob ein geteiltes Brett gespielt wird.
+  function onlVariantOf(cfg){ if(cfg && cfg.variant && cfg.variant!=='grid' && cfg.variant!=='circle') return cfg.variant; return 'gerangel'; }
+  function onlSharedOf(cfg){ if(cfg && typeof cfg.shared==='boolean') return cfg.shared; return true; }
   // Sieger ueber die Leitung: -1 = noch keiner, 2 = unentschieden, sonst der Spielerindex.
   function onlWinnerToWire(w){ return w==null ? -1 : (w==='tie' ? 2 : w); }
   function onlWinnerFromWire(w){ return (w==null || w<0) ? null : (w===2 ? 'tie' : w); }
@@ -2228,17 +2300,24 @@
   }
   // Baut die Partie frisch auf – auch beim Rematch (alte Instanz wird abgeräumt).
   function onlEnterGame(cfg){
-    onl.variant=onlVariantOf(cfg);
+    onl.mode=onlModeOf(cfg); onl.variant=onlVariantOf(cfg); onl.shared=onlSharedOf(cfg); onl.winCond=cfg.winCond||'fastest'; onl.ov=cfg.ov||{};
     if(onl.board){ stopDogTimer(onl.board); onl.board=null; }
+    if(onl.cs){ onl.cs.mounted=false; onl.cs=null; }
     if(onl.gs) onl.gs.mounted=false;
-    onl.gs=null; onl.shared=null;
+    onl.gs=null; onl.gridShared=null;
     onl.finished=false; onl.winner=null; onl.stateSeq=0;
+    if(onl.miniListener){ try{ onl.miniListener.ref.off('value', onl.miniListener.cb); }catch(e){} onl.miniListener=null; }
+    if(onl.resultListener){ try{ onl.resultListener.ref.off('value', onl.resultListener.cb); }catch(e){} onl.resultListener=null; }
     onlShow('onl-game');
     $('onl-result').classList.add('hidden'); $('onl-rematch').classList.add('hidden'); $('onl-rematch-btn').disabled=false;
-    closeReveal(); closeLog();
-    if(onl.variant==='grid'){
-      onl.shared=onlBuildGridShared(cfg);
-      const shared=onl.shared;
+    closeReveal(); closeLog(); closeMini();
+    ['onl-circle-wrap','onl-grid-wrap','onl-gsolo-wrap','onl-csolo-wrap'].forEach(id=>$(id).classList.add('hidden'));
+    $('onl-turn').classList.toggle('hidden', !onl.shared);   // Zug-Banner nur im geteilten Brett
+    $('onl-log-btn').classList.toggle('hidden', onl.mode!=='circle');
+    if(!onl.shared){ onlEnterSolo(cfg); return; }
+    if(onl.mode==='grid'){
+      onl.gridShared=onlBuildGridShared(cfg);
+      const shared=onl.gridShared;
       setThemeBg(shared.theme);
       $('onl-circle-wrap').classList.add('hidden'); $('onl-grid-wrap').classList.remove('hidden');
       $('onl-title').innerHTML=`Online &middot; ${shared.theme.title} &middot; <small>Feld-Gerangel &middot; Raum ${onl.code}</small>`;
@@ -2275,19 +2354,189 @@
     if(onl.finished) onlShowResult();
   }
 
+  // ===================== ONLINE: GETRENNTE BRETTER (Spurensuche / Kreis-Duell) =====================
+  // Jedes Gerät spielt sein eigenes Brett (identische Config) und veröffentlicht nur seinen Fortschritt
+  // nach state/<role>. Der Host schiedst den Sieger und schreibt ihn nach result.
+  function onlOppRole(){ return onl.role==='host'?'guest':'host'; }
+  function onlSoloCircleConfig(cfg){
+    return { diffKey:cfg.diffKey, theme: cfg.bg ? themeFromBg(cfg.bg) : (THEMES[cfg.diffKey]||THEMES.mittel),
+      figRule:cfg.figRule||'normal', specs:cfg.specs, outerIdx:cfg.outerIdx, startIndex:cfg.startIndex, poseEffects:cfg.poseEffects };
+  }
+  function onlEnterSolo(cfg){
+    const myCls = onl.myIdx===0?'p1':'p2';
+    onl.soloCfg=cfg; onl.oppSnap=null; onl.myDone=false; onl.myDoneAt=0;
+    if(onl.mode==='grid'){
+      onl.gridShared=onlBuildGridShared(cfg); const shared=onl.gridShared;
+      setThemeBg(shared.theme);
+      $('onl-gsolo-wrap').classList.remove('hidden');
+      $('onl-title').innerHTML=`Online &middot; ${shared.theme.title} &middot; <small>Spurensuche &middot; Raum ${onl.code}</small>`;
+      // kleineres Brett als im Einzelspieler: darunter müssen Minikarte + Steuerkreuz Platz haben
+      const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols));
+      const cell=fitCell(base, shared.cols, shared.rows, Math.round((window.innerHeight||800)*0.40));
+      onl.board=createGridBoard($('onl-gsolo-host'), shared, cell, [{startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:myCls}]);
+      onl.board.onChange=()=>{ onlSoloRenderHead(); onlPublishSolo(); };
+      renderGridBoard(onl.board); startDogTimer(onl.board);
+      requestAnimationFrame(layoutOnlSoloPad);
+    } else {
+      onl.cs=makeCircleState(onlSoloCircleConfig(cfg));
+      setThemeBg(onl.cs.theme);
+      $('onl-csolo-wrap').classList.remove('hidden');
+      $('onl-title').innerHTML=`Online &middot; ${onl.cs.theme.title} &middot; <small>Kreis-Duell &middot; Raum ${onl.code}</small>`;
+      circleBuildRings(onl.cs, $('onl-csolo-host'), 0.78);
+      renderDetectiveCenter($('onl-csolo-host'), onl.cs.gandalfPose, 'W / ↑', ()=>onlSoloPose(), 0.78);
+    }
+    onlBuildMini(cfg);
+    onlSoloRenderHead();
+    onlPublishSolo();
+    onlAttachSoloListeners();
+  }
+  function onlAttachSoloListeners(){
+    const oRef=onl.roomRef.child('state/'+onlOppRole());
+    const cb=oRef.on('value', s=>{ const snap=s.val(); if(snap){ onl.oppSnap=snap; onlRenderMini(snap); onlSoloRenderHead(); if(onl.role==='host') onlRefereeSolo(); } });
+    onl.miniListener={ref:oRef, cb}; onl.listeners.push({ref:oRef, ev:'value', cb});
+    const rRef=onl.roomRef.child('result');
+    const cb3=rRef.on('value', s=>{ const r=s.val(); if(r && r.m===onl.matchSeq && !onl.finished){ onl.finished=true; onl.winner=onlWinnerFromWire(r.winner); onlSoloRenderHead(); onlShowResult(); } });
+    onl.resultListener={ref:rRef, cb:cb3}; onl.listeners.push({ref:rRef, ev:'value', cb:cb3});
+  }
+  function onlPublishSolo(){
+    if(!onl || onl.shared) return;
+    let snap;
+    if(onl.mode==='grid'){
+      const f=onl.board.figs[0];
+      snap={ moves:f.moves, done:!!f.done, doneAt:f.doneAtMove||0, x:f.x, y:f.y, cp:f.checkpointIdx||0, reached:(f.reached||[]).map(p=>({x:p.x,y:p.y})) };
+    } else {
+      const cs=onl.cs;
+      snap={ moves:cs.moves, done:cs.phase==='won', doneAt:cs.doneAtMove||0, ringIdx:cs.ringIdx, index:cs.index, offs:cs.rings.map(r=>r.offset), pose:cs.gandalfPose };
+    }
+    onl.myDone=snap.done; onl.myDoneAt=snap.doneAt;
+    onl.roomRef.child('state/'+onl.role).set(clean(Object.assign({m:onl.matchSeq}, snap)));
+    if(onl.role==='host') onlRefereeSolo();
+  }
+  function onlRefereeSolo(){
+    if(!onl || onl.role!=='host' || onl.finished || onl.shared) return;
+    const me={ done:!!onl.myDone, at:onl.myDoneAt||0 };
+    const opp=onl.oppSnap ? { done:!!onl.oppSnap.done, at:onl.oppSnap.doneAt||0 } : { done:false, at:0 };
+    let winner=null, finished=false;
+    if(onl.winCond==='fewest'){ if(me.done && opp.done){ finished=true; winner = me.at<opp.at?0 : opp.at<me.at?1 : 'tie'; } }
+    else { if(me.done){ winner=0; finished=true; } else if(opp.done){ winner=1; finished=true; } }
+    if(finished){
+      onl.finished=true; onl.winner=winner;
+      onl.roomRef.child('result').set(clean({ m:onl.matchSeq, winner:onlWinnerToWire(winner), finished:true }));
+      onlSoloRenderHead(); onlShowResult();
+    }
+  }
+  function onlSoloGridMove(dir){
+    if(!onl || onl.shared || onl.mode!=='grid' || onl.finished) return;
+    const f=onl.board.figs[0]; if(f.done || Date.now()<f.blinkUntil) return;
+    gridBoardSubmit(onl.board, 0, dir);
+    onlSoloRenderHead(); onlPublishSolo();
+  }
+  async function onlSoloCircleMove(choice){
+    if(!onl || onl.shared || onl.mode!=='circle' || onl.finished) return;
+    const cs=onl.cs; if(!cs || cs.phase!=='playing' || cs.animating) return;
+    await circleStep(cs, choice, 'both');
+    if(!cs.mounted) return;
+    circleMarkerFlash(cs);
+    onlSoloRenderHead(); onlPublishSolo();
+  }
+  function onlSoloPose(){
+    const cs=onl.cs; if(!cs || cs.phase!=='playing') return;
+    cs.gandalfPose=(cs.gandalfPose+1)%3;
+    renderDetectiveCenter($('onl-csolo-host'), cs.gandalfPose, 'W / ↑', ()=>onlSoloPose(), 0.78);
+    onlPublishSolo();
+  }
+  function onlSoloRenderHead(){
+    const meMoves = onl.mode==='grid' ? (onl.board?onl.board.figs[0].moves:0) : (onl.cs?onl.cs.moves:0);
+    const meDone = onl.mode==='grid' ? !!(onl.board&&onl.board.figs[0].done) : !!(onl.cs&&onl.cs.phase==='won');
+    const opp=onl.oppSnap||{};
+    const head=onl.mode==='grid'?$('onl-gsolo-head'):$('onl-csolo-head');
+    const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
+    const wc = onl.winCond==='fewest'?'Wenigste Züge':'Schnellster';
+    if(head) head.innerHTML=`<span style="color:var(--${meCol})">Du &middot; Z&uuml;ge <b>${meMoves}</b>${meDone?' &#10003;':''}</span> &nbsp;&middot;&nbsp; `
+      +`<span style="color:var(--${oppCol})">Gegner &middot; Z&uuml;ge <b>${opp.moves||0}</b>${opp.done?' &#10003;':''}</span> &nbsp;&middot;&nbsp; <small>${wc}</small>`;
+    const blocked = onl.finished || meDone;
+    document.querySelectorAll('#onl-gsolo-frame .pad-zone, #onl-gsolo-frame .pad-stay').forEach(e=>e.style.pointerEvents=blocked?'none':'');
+    document.querySelectorAll('#onl-csolo-steps button').forEach(b=>b.disabled=blocked);
+  }
+  // ---- Gegner-Minikarte ----
+  function onlBuildMini(cfg){
+    const host = onl.mode==='grid' ? $('onl-gsolo-mini') : $('onl-csolo-mini');
+    onl.miniBoard=null; onl.miniCs=null;
+    host.innerHTML='';
+    const label=el('div','onl-mini-label'); label.textContent='Gegner'; host.appendChild(label);
+    const wrap=el('div'); wrap.style.width='100%'; wrap.style.display='flex'; wrap.style.justifyContent='center';
+    if(onl.mode==='circle') wrap.className='circle-host';
+    host.appendChild(wrap);
+    if(onl.mode==='grid'){
+      const s=onl.gridShared; const cell=Math.max(3, Math.min(Math.floor(108/s.cols), Math.floor(150/s.rows)));
+      onl.miniBoard=createGridBoard(wrap, s, cell, [{startX:s.starts[0].x,startY:s.starts[0].y,colorClass:onl.myIdx===0?'p2':'p1'}]);
+      renderGridBoard(onl.miniBoard);
+    } else {
+      onl.miniCs=makeCircleState(onlSoloCircleConfig(cfg));
+      circleBuildRings(onl.miniCs, wrap, 0.5);
+    }
+    if(onl.oppSnap) onlRenderMini(onl.oppSnap);
+  }
+  function onlApplyMiniSnap(target, snap){
+    if(onl.mode==='grid'){ const f=target.figs[0]; f.x=snap.x; f.y=snap.y; f.checkpointIdx=snap.cp||0; f.reached=(snap.reached||[]).map(p=>({x:p.x,y:p.y})); f.done=!!snap.done; renderGridBoard(target); }
+    else { const cs=target; (snap.offs||[]).forEach((o,i)=>{ if(cs.rings[i]){ cs.rings[i].offset=o; cs.rings[i].offsetVisual=null; } }); cs.ringIdx=(snap.ringIdx!=null?snap.ringIdx:cs.ringIdx); cs.index=snap.index||0; cs.phase=snap.done?'won':'playing'; applyRingTransforms(cs); updateHighlight(cs); positionMarker(cs); circleMarkerFlash(cs); }
+  }
+  function onlRenderMini(snap){
+    const target = onl.mode==='grid' ? onl.miniBoard : onl.miniCs;
+    if(target) onlApplyMiniSnap(target, snap);
+    if(!$('mini-modal').classList.contains('hidden')) onlRenderMiniBig();
+  }
+  function openMini(){
+    if(!onl || onl.shared) return;
+    const body=$('mini-body'); body.innerHTML='';
+    const wrap=el('div'); wrap.style.display='flex'; wrap.style.justifyContent='center'; wrap.style.width='100%';
+    if(onl.mode==='circle') wrap.className='circle-host';
+    body.appendChild(wrap);
+    if(onl.mode==='grid'){ const s=onl.gridShared; onl.miniBig=createGridBoard(wrap, s, cellSizeFor(s), [{startX:s.starts[0].x,startY:s.starts[0].y,colorClass:onl.myIdx===0?'p2':'p1'}]); onl.miniBigCs=null; }
+    else { onl.miniBigCs=makeCircleState(onlSoloCircleConfig(onl.soloCfg)); onl.miniBig=null; circleBuildRings(onl.miniBigCs, wrap, 0.95); }
+    if(onl.oppSnap) onlRenderMiniBig();
+    $('mini-modal').classList.remove('hidden');
+  }
+  function onlRenderMiniBig(){
+    const snap=onl.oppSnap; if(!snap) return;
+    const target = onl.mode==='grid' ? onl.miniBig : onl.miniBigCs;
+    if(target) onlApplyMiniSnap(target, snap);
+  }
+  function closeMini(){ $('mini-modal').classList.add('hidden'); }
+
+  // Liest die Lobby-Auswahl (Standard oder Editor-Profil) zu {mode, variant, diffKey, ov, winCond, label}.
+  function onlReadLobbySelection(){
+    const profName=$('onl-profile').value;
+    let mode, variant, ov={}, diffKey, label;
+    if(profName && edUsers[profName]){
+      const r=ovFromSpec(edUsers[profName]);
+      mode=r.mode; variant=r.variant; ov=r.ov; diffKey='mittel';
+      label='Editor: '+profName;
+    } else {
+      mode=$('onl-mode').value==='circle'?'circle':'grid';
+      variant=$('onl-gvariant').value || (mode==='grid'?'gerangel':'gerangel');
+      diffKey=$('onl-theme').value;
+      label=(THEMES[diffKey]?THEMES[diffKey].title:'')+' · '+onlVariantLabel(mode,variant);
+    }
+    const shared = variant==='gerangel';
+    const winCond = shared ? 'fastest' : ($('onl-wincond').value==='fewest'?'fewest':'fastest');
+    return { mode, variant, shared, diffKey, ov, winCond, label };
+  }
+  function onlVariantLabel(mode, variant){
+    return variant==='spurensuche'?'Spurensuche' : variant==='duell'?'Duell' : (mode==='grid'?'Feld-Gerangel':'Kreis-Gerangel');
+  }
   async function onlCreate(){
     if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst.', true); return; }
     onlMsg('');
-    const diffKey=$('onl-theme').value;
-    const variant=$('onl-variant').value==='grid'?'grid':'circle';
+    const sel=onlReadLobbySelection();
     let code=onlGenCode();
     for(let i=0;i<5;i++){ const s=await fbDb.ref('rooms/'+code).once('value'); if(!s.exists()) break; code=onlGenCode(); }
     const myId=onlGenId(), roomRef=fbDb.ref('rooms/'+code);
-    await roomRef.set({ meta:{ status:'waiting', diffKey, variant, created: firebase.database.ServerValue.TIMESTAMP, hostId:myId }, players:{ host:{ id:myId } } });
-    await fbDb.ref('lobby/'+code).set({ ts: firebase.database.ServerValue.TIMESTAMP, theme:diffKey, variant });
+    await roomRef.set({ meta:{ status:'waiting', diffKey:sel.diffKey, mode:sel.mode, variant:sel.variant, created: firebase.database.ServerValue.TIMESTAMP, hostId:myId }, players:{ host:{ id:myId } } });
+    await fbDb.ref('lobby/'+code).set({ ts: firebase.database.ServerValue.TIMESTAMP, theme:sel.diffKey, mode:sel.mode, variant:sel.variant, label:sel.label });
     fbDb.ref('lobby/'+code).onDisconnect().remove();
     roomRef.onDisconnect().remove();     // Raum verschwindet, wenn der Gastgeber weg ist
-    onl={ code, role:'host', myIdx:0, roomRef, myId, diffKey, variant, stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
+    onl={ code, role:'host', myIdx:0, roomRef, myId, diffKey:sel.diffKey, mode:sel.mode, variant:sel.variant, shared:sel.shared, winCond:sel.winCond, ov:sel.ov, stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
     onlDetachLobby();
     $('onl-wait-code').textContent=code;
     $('onl-wait-status').textContent='Warte auf Mitspieler …';
@@ -2312,7 +2561,7 @@
     const myId=onlGenId();
     await roomRef.child('players/guest').set({ id:myId });
     await fbDb.ref('lobby/'+code).remove();
-    onl={ code, role:'guest', myIdx:1, roomRef, myId, diffKey:v.meta.diffKey, variant:(v.meta.variant==='grid'?'grid':'circle'), stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
+    onl={ code, role:'guest', myIdx:1, roomRef, myId, diffKey:v.meta.diffKey, mode:onlModeOf(v.meta), variant:onlVariantOf(v.meta), shared:onlSharedOf(v.meta), stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
     roomRef.child('players/guest').onDisconnect().remove();
     onlDetachLobby(); onlMsg('');
     $('onl-wait-code').textContent=code;
@@ -2321,9 +2570,9 @@
     const cRef=roomRef.child('config');
     const cb=cRef.on('value', s=>{
       const cfg=s.val(); if(!cfg) return;
-      onl.variant=onlVariantOf(cfg);
+      onl.mode=onlModeOf(cfg);
       // Schutz vor einem Gastgeber mit neuerer Version, dessen Config wir nicht lesen koennen.
-      if(onl.variant==='grid' && typeof cfg.seed!=='number'){
+      if(onl.mode==='grid' && typeof cfg.seed!=='number'){
         onlMsg('Dieser Raum braucht eine neuere Version des Spiels. Lade die Seite neu.', true);
         onlShow('onl-lobby'); return;
       }
@@ -2333,9 +2582,13 @@
       onlEnterGame(cfg);
       if(!onl.wired){
         onl.wired=true;
-        const sRef=roomRef.child('state');
-        const cb2=sRef.on('value', s2=>{ const st=s2.val(); if(st) onlApplyState(st); });
-        onl.listeners.push({ref:sRef, ev:'value', cb:cb2});
+        // Nur geteilte Bretter haben einen autoritativen Gesamt-Zustand; getrennte Bretter lauschen
+        // stattdessen (in onlEnterSolo) auf state/<gegner> und result.
+        if(onl.shared){
+          const sRef=roomRef.child('state');
+          const cb2=sRef.on('value', s2=>{ const st=s2.val(); if(st && onl.shared) onlApplyState(st); });
+          onl.listeners.push({ref:sRef, ev:'value', cb:cb2});
+        }
         onlAttachRematch();
       }
     });
@@ -2345,9 +2598,6 @@
     onl.listeners.push({ref:mRef, ev:'value', cb:cb3});
   }
 
-  function onlBuildConfig(){
-    return onl.variant==='grid' ? onlSerializeGridConfig() : onlSerializeConfig(buildCircleConfig(onl.diffKey, {}));
-  }
   function onlHostStart(){
     if(onl.started) return;
     onl.started=true;
@@ -2356,19 +2606,23 @@
     onl.config=cfg;
     onl.roomRef.child('inputs').remove();
     onl.roomRef.child('rematch').remove();
+    onl.roomRef.child('state').remove();
+    onl.roomRef.child('result').remove();
     onl.roomRef.child('config').set(cfg);
     onl.roomRef.child('meta/status').set('playing');
     onlEnterGame(cfg);
-    onlPublish();
-    // Eingaben laufen als Warteschlange: im Feld-Gerangel ziehen beide gleichzeitig, ein einzelner
-    // ueberschriebener Slot wuerde schnell aufeinanderfolgende Zuege verschlucken.
-    const iRef=onl.roomRef.child('inputs/guest');
-    const cb=iRef.on('child_added', s=>{
-      const inp=s.val();
-      try{ s.ref.remove(); }catch(e){}
-      if(inp) onlApplyAction(1, inp);
-    });
-    onl.listeners.push({ref:iRef, ev:'child_added', cb});
+    if(onl.shared){
+      onlPublish();
+      // Eingaben laufen als Warteschlange: im geteilten Brett ziehen beide gleichzeitig; ein einzelner
+      // ueberschriebener Slot wuerde schnell aufeinanderfolgende Zuege verschlucken.
+      const iRef=onl.roomRef.child('inputs/guest');
+      const cb=iRef.on('child_added', s=>{
+        const inp=s.val();
+        try{ s.ref.remove(); }catch(e){}
+        if(inp) onlApplyAction(1, inp);
+      });
+      onl.listeners.push({ref:iRef, ev:'child_added', cb});
+    }
     onlAttachRematch();
   }
   // Rematch: beide Spieler müssen zustimmen. Der Host würfelt danach eine frische Config.
@@ -2387,10 +2641,11 @@
     const cfg=onlBuildConfig(); cfg.matchSeq=(onl.matchSeq||1)+1; onl.matchSeq=cfg.matchSeq; onl.config=cfg;
     onl.roomRef.child('rematch').remove();
     onl.roomRef.child('state').remove();
+    onl.roomRef.child('result').remove();
     onl.roomRef.child('inputs').remove();
     onl.roomRef.child('config').set(cfg);
     onlEnterGame(cfg);
-    onlPublish();
+    if(onl.shared) onlPublish();
   }
   function onlRequestRematch(){
     if(!onl || !onl.finished) return;
@@ -2407,7 +2662,7 @@
 
   function onlPublish(){
     if(!onl || onl.role!=='host') return;
-    if(onl.variant==='grid'){
+    if(onl.mode==='grid'){
       const b=onl.board; if(!b) return;
       const now=Date.now();
       onl.roomRef.child('state').set(clean({
@@ -2455,7 +2710,7 @@
     if(onl.finished) onlShowResult();
   }
   function onlApplyState(st){
-    if(onl.variant==='grid'){ onlApplyGridState(st); return; }
+    if(onl.mode==='grid'){ onlApplyGridState(st); return; }
     if(st.m!=null && st.m!==onl.matchSeq) return;   // State aus einem anderen Match (Rematch-Umbruch)
     const gs=onl.gs; if(!gs) return;
     (st.rings||[]).forEach((off,i)=>{ if(gs.rings[i]){ gs.rings[i].offset=off; gs.rings[i].offsetVisual=null; } });
@@ -2476,7 +2731,7 @@
 
   async function onlApplyAction(pi, act){
     if(!onl || onl.role!=='host' || onl.finished) return;
-    if(onl.variant==='grid'){
+    if(onl.mode==='grid'){
       const b=onl.board; if(!b || act.kind!=='move') return;
       // Kein Zugwechsel: im Feld-Gerangel ziehen beide jederzeit. gridBoardSubmit sperrt selbst,
       // solange eine Figur nach einer Kollision blinkt.
@@ -2518,14 +2773,14 @@
     onlSend({ kind:'pose', choice:0 });
   }
   function onlGridMove(dir){
-    if(!onl || onl.variant!=='grid' || !onl.board || onl.finished) return;
+    if(!onl || onl.mode!=='grid' || !onl.board || onl.finished) return;
     const f=onl.board.figs[onl.myIdx];
     if(f.done || Date.now()<f.blinkUntil) return;
     onlSend({ kind:'move', dir:(dir==null ? -1 : dir) });
   }
 
   function onlRenderUi(){
-    if(onl.variant==='grid'){ onlRenderGridUi(); return; }
+    if(onl.mode==='grid'){ onlRenderGridUi(); return; }
     const gs=onl.gs; if(!gs) return;
     const me=gs.players[onl.myIdx], opp=gs.players[1-onl.myIdx];
     const meLbl=onl.myIdx===0?'Spieler 1':'Spieler 2', oppLbl=onl.myIdx===0?'Spieler 2':'Spieler 1';
@@ -2572,7 +2827,17 @@
   }
   function onlShowResult(){
     const w=onl.winner; if(w==null) return;
-    if(onl.variant==='grid'){
+    if(!onl.shared){
+      const meMoves = onl.mode==='grid' ? (onl.board?onl.board.figs[0].moves:0) : (onl.cs?onl.cs.moves:0);
+      const oppMoves = onl.oppSnap?onl.oppSnap.moves:0;
+      $('onl-result').innerHTML = w==='tie'
+        ? `<div class="win-line">Unentschieden!</div>Beide ${meMoves} Z&uuml;ge.`
+        : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Du ${meMoves} &middot; Gegner ${oppMoves} Z&uuml;ge.`;
+      $('onl-result').classList.remove('hidden');
+      onlSoloRenderHead(); onlShowRematchPanel();
+      return;
+    }
+    if(onl.mode==='grid'){
       const b=onl.board; if(!b) return;
       const me=b.figs[onl.myIdx].score, opp=b.figs[1-onl.myIdx].score;
       $('onl-result').innerHTML = w==='tie'
@@ -2592,14 +2857,17 @@
     if(!onl || onl.finished) return;
     onl.finished=true;
     if(onl.board) stopDogTimer(onl.board);
+    if(onl.cs) onl.cs.mounted=false;
     $('onl-rematch').classList.add('hidden');   // ohne Mitspieler kein Rematch
-    const t=$('onl-turn'); t.classList.remove('mine','theirs'); t.classList.add('over');
+    const t=$('onl-turn'); t.classList.remove('mine','theirs'); t.classList.add('over'); t.classList.remove('hidden');
     t.textContent = hostLeft ? 'Der Gastgeber hat den Raum geschlossen.' : 'Dein Gegner hat den Raum verlassen.';
-    document.querySelectorAll('#onl-steps button, #onl-pad button').forEach(b=>b.disabled=true);
+    document.querySelectorAll('#onl-steps button, #onl-pad button, #onl-csolo-steps button').forEach(b=>b.disabled=true);
+    document.querySelectorAll('#onl-gsolo-frame .pad-zone, #onl-gsolo-frame .pad-stay').forEach(e=>e.style.pointerEvents='none');
   }
   function onlShowReveal(){
     if(!onl) return;
-    if(onl.variant==='grid'){ if(onl.shared) openReveal(gridExplain(onl.shared)); return; }
+    if(onl.mode==='grid'){ if(onl.gridShared) openReveal(gridExplain(onl.gridShared)); return; }
+    if(onl.cs){ openReveal(circleExplain(onl.cs.rings, onl.cs.poseEffects, onl.cs.figRule)); return; }
     if(onl.gs) openReveal(circleExplain(onl.gs.rings, onl.gs.poseEffects, onl.gs.figRule));
   }
   function onlLeave(){
@@ -2607,9 +2875,10 @@
       (onl.listeners||[]).forEach(l=>{ try{ l.ref.off(l.ev, l.cb); }catch(e){} });
       try{
         if(onl.role==='host'){ onl.roomRef.onDisconnect().cancel(); onl.roomRef.remove(); fbDb.ref('lobby/'+onl.code).remove(); }
-        else { onl.roomRef.child('players/guest').onDisconnect().cancel(); onl.roomRef.child('players/guest').remove(); onl.roomRef.child('rematch/guest').remove(); }
+        else { onl.roomRef.child('players/guest').onDisconnect().cancel(); onl.roomRef.child('players/guest').remove(); onl.roomRef.child('rematch/guest').remove(); onl.roomRef.child('state/guest').remove(); }
       }catch(e){}
       if(onl.gs) onl.gs.mounted=false;
+      if(onl.cs) onl.cs.mounted=false;
       if(onl.board) stopDogTimer(onl.board);
       onl=null;
     }
@@ -2797,12 +3066,13 @@
   }
   function openEditor(){ teardownActive(); hideAllScreens(); $('editor-screen').classList.remove('hidden'); document.body.style.backgroundImage=''; edPopulateUsers(); edRefresh(); }
 
-  function startFromSpec(sp){
-    currentMode=sp.mode; const ov={ bg:sp.bg };
+  // Baut aus einem Editor-Spec die Overrides (ohne ein Spiel zu starten). Zufalls-Overrides
+  // (zoneEffects 'random') werden hier aufgelöst, damit sie online für beide gleich sind.
+  function ovFromSpec(sp){
+    const ov={ bg:sp.bg };
     if(sp.mode==='grid'){
-      gridVariant=sp.variant; ov.ruleMode=sp.rule; ov.ruleSec=sp.sec;
+      ov.ruleMode=sp.rule; ov.ruleSec=sp.sec;
       ov.hazardType=sp.haz; ov.hazardCount=sp.hazn; if(sp.haz==='dog') ov.hazardTick=sp.haztick;
-      // Sprung-Muster (Teil der Grundregel)
       let jm=sp.jumpmode; if(jm==null) jm = sp.jump ? 'random' : 'none';
       if(jm==='custom'){ const pat=(sp.jumpPattern&&sp.jumpPattern.length)?sp.jumpPattern.slice(0, clamp(sp.jumplen||sp.jumpPattern.length,2,4)):[]; ov.stepPattern = pat.length ? pat : null; }
       else if(jm==='random'){ ov.jump=true; }
@@ -2810,13 +3080,17 @@
       if(sp.zoneEffects && sp.zoneEffects.length===4) ov.zoneEffects = sp.zoneEffects.map(e=> e==='random' ? pick(['normal',...ZONE_EFFECTS]) : e);
       if(sp.variant==='gerangel'){ ov.cols=sp.size; ov.wall=sp.wall; ov.coins=sp.coins; }
       else { ov.rows=sp.size; ov.cols=clamp(Math.round(sp.size*0.55),6,11); ov.milestones=sp.mile; }
-      if(sp.players===2) mpStart('mittel', ov); else spgStart('mittel', sp.variant, ov);
-    } else {
-      ov.ringCount=sp.rings; ov.poseEffects=[poseFromVal(sp.pose2), poseFromVal(sp.pose3)];
-      if(sp.figRule && sp.figRule!=='random') ov.figRule=sp.figRule;
-      if(sp.ringRules && sp.ringRules.length) ov.ringRules=sp.ringRules;
-      if(sp.players===2) mpStart('mittel', ov, 'duell'); else spcStart('mittel', ov);
+      return { mode:'grid', variant:sp.variant, ov };
     }
+    ov.ringCount=sp.rings; ov.poseEffects=[poseFromVal(sp.pose2), poseFromVal(sp.pose3)];
+    if(sp.figRule && sp.figRule!=='random') ov.figRule=sp.figRule;
+    if(sp.ringRules && sp.ringRules.length) ov.ringRules=sp.ringRules;
+    return { mode:'circle', variant:'duell', ov };
+  }
+  function startFromSpec(sp){
+    const r=ovFromSpec(sp); currentMode=r.mode;
+    if(r.mode==='grid'){ gridVariant=r.variant; if(sp.players===2) mpStart('mittel', r.ov); else spgStart('mittel', r.variant, r.ov); }
+    else { if(sp.players===2) mpStart('mittel', r.ov, 'duell'); else spcStart('mittel', r.ov); }
   }
   $('ed-jumpmode').addEventListener('change', edRefresh);
   $('ed-jumplen').addEventListener('input', ()=>{ $('ed-jumplen-val').textContent=edV('ed-jumplen'); edBuildJumpRows(); });
@@ -2826,13 +3100,37 @@
   // ---- Online-Modus verkabeln ----
   Object.keys(THEMES).forEach(k=>{ const o=el('option'); o.value=k; o.textContent=THEMES[k].title+' ('+THEMES[k].sub+')'; $('onl-theme').appendChild(o); });
   $('onl-theme').value='mittel';
-  $('open-online').addEventListener('click', openOnline);
+  const ONL_VARIANTS={ grid:[['gerangel','Gerangel'],['spurensuche','Spurensuche']], circle:[['gerangel','Gerangel'],['duell','Duell']] };
+  function onlLobbyRefresh(){
+    const prof=$('onl-profile').value;
+    // Bei gewähltem Editor-Profil bestimmen dessen Regeln Modus/Variante/Theme – Selects sperren.
+    const locked=!!prof;
+    ['onl-mode','onl-gvariant','onl-theme'].forEach(id=>$(id).disabled=locked);
+    if(!locked){
+      const mode=$('onl-mode').value;
+      const cur=$('onl-gvariant').value;
+      $('onl-gvariant').innerHTML=''; ONL_VARIANTS[mode].forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=t; $('onl-gvariant').appendChild(o); });
+      if(ONL_VARIANTS[mode].some(([v])=>v===cur)) $('onl-gvariant').value=cur;
+    }
+    const variant = locked ? ovFromSpec(edUsers[prof]).variant : $('onl-gvariant').value;
+    $('onl-wincond').classList.toggle('hidden', variant==='gerangel');
+  }
+  function onlPopulateProfiles(){
+    const s=$('onl-profile'); const names=Object.keys(edUsers=edUsersLoad());
+    s.innerHTML='<option value="">— Standard —</option>';
+    names.forEach(n=>{ const o=el('option'); o.value=n; o.textContent='Editor: '+n; s.appendChild(o); });
+  }
+  $('onl-mode').addEventListener('change', onlLobbyRefresh);
+  $('onl-gvariant').addEventListener('change', onlLobbyRefresh);
+  $('onl-profile').addEventListener('change', onlLobbyRefresh);
+  onlLobbyRefresh();
+  $('open-online').addEventListener('click', ()=>{ openOnline(); onlPopulateProfiles(); onlLobbyRefresh(); });
   $('onl-create').addEventListener('click', onlCreate);
   $('onl-join').addEventListener('click', ()=>onlJoin($('onl-code').value));
   $('onl-code').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); onlJoin($('onl-code').value); } });
   $('onl-leave').addEventListener('click', onlLeave);
   $('onl-reveal').addEventListener('click', onlShowReveal);
-  $('onl-log-btn').addEventListener('click',()=>{ if(onl&&onl.gs) openLog(logHtml(renderGerLog, onl.gs.players[onl.myIdx].log||[])); });
+  $('onl-log-btn').addEventListener('click',()=>{ if(!onl) return; if(onl.cs) openLog(logHtml(renderLog, onl.cs.log||[])); else if(onl.gs) openLog(logHtml(renderGerLog, onl.gs.players[onl.myIdx].log||[])); });
   $('onl-rematch-btn').addEventListener('click', onlRequestRematch);
   document.querySelectorAll('#onl-steps button[data-step]').forEach(b=>{
     b.addEventListener('click', ()=>onlMove(parseInt(b.dataset.step,10)));
@@ -2840,6 +3138,17 @@
   document.querySelectorAll('#onl-pad button[data-dir]').forEach(b=>{
     b.addEventListener('click', ()=>{ const d=b.dataset.dir; onlGridMove(d==='stay'?null:parseInt(d,10)); });
   });
+  // Getrennte Bretter: eigenes Steuerkreuz / Schrittknöpfe + Minikarte-Popup
+  document.querySelectorAll('#onl-gsolo-frame .pad-zone[data-dir], #onl-gsolo-frame .pad-stay[data-dir]').forEach(z=>{
+    z.addEventListener('click',()=>{ const d=z.dataset.dir; onlSoloGridMove(d==='stay'?null:parseInt(d,10)); });
+  });
+  document.querySelectorAll('#onl-csolo-steps button[data-step]').forEach(b=>{
+    b.addEventListener('click', ()=>onlSoloCircleMove(parseInt(b.dataset.step,10)));
+  });
+  $('onl-gsolo-mini').addEventListener('click', openMini);
+  $('onl-csolo-mini').addEventListener('click', openMini);
+  $('mini-close').addEventListener('click', closeMini);
+  $('mini-modal').addEventListener('click', e=>{ if(e.target===$('mini-modal')) closeMini(); });
   ['ed-mode','ed-variant','ed-rule','ed-haz'].forEach(id=>$(id).addEventListener('change', edRefresh));
   ['ed-size','ed-hazn','ed-haztick','ed-coins','ed-mile','ed-rings'].forEach(id=>$(id).addEventListener('input', edRefresh));
   $('ed-back').addEventListener('click', backToMenu);
@@ -2862,7 +3171,7 @@
     z.addEventListener('click',()=>{ const d=z.dataset.dir; spgMove(d==='stay'?null:parseInt(d,10)); });
   });
   let spgPadResizeT=null;
-  window.addEventListener('resize',()=>{ clearTimeout(spgPadResizeT); spgPadResizeT=setTimeout(layoutSpgPad,120); });
+  window.addEventListener('resize',()=>{ clearTimeout(spgPadResizeT); spgPadResizeT=setTimeout(()=>{ layoutSpgPad(); layoutOnlSoloPad(); },120); });
   $('spg-reveal').addEventListener('click',()=>{ if(!spgState) return; if(!spgState.revealed){ spgState.revealed=true; spgState.revealedAtMove=spgState.board.figs[0].moves; } openReveal(gridExplain(spgState.shared)); });
   $('spg-reset').addEventListener('click',()=>{ if(spgState) spgStart(spgState.shared.diffKey, spgState.shared.variant, spgState.ov); });
   $('spg-back').addEventListener('click',backToMenu);
@@ -2922,11 +3231,11 @@
   document.addEventListener('keydown',(e)=>{
     // Offene Popups fangen Escape ab und schlucken sonst nichts.
     if(e.key==='Escape'){
-      const m=['reveal-modal','log-modal','settings-modal','guide-modal'].find(id=>!$(id).classList.contains('hidden'));
+      const m=['reveal-modal','log-modal','settings-modal','guide-modal','mini-modal'].find(id=>!$(id).classList.contains('hidden'));
       if(m){ e.preventDefault(); $(m).classList.add('hidden'); }
       return;
     }
-    if(!$('reveal-modal').classList.contains('hidden') || !$('log-modal').classList.contains('hidden')) return;
+    if(!$('reveal-modal').classList.contains('hidden') || !$('log-modal').classList.contains('hidden') || !$('mini-modal').classList.contains('hidden')) return;
     if(!$('sp-grid').classList.contains('hidden') && spgState){
       const m={ 'ArrowUp':0,'ArrowRight':1,'ArrowDown':2,'ArrowLeft':3 };
       if(e.key in m){ e.preventDefault(); spgMove(m[e.key]); } else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); spgMove(null); }
@@ -2953,11 +3262,20 @@
       const c2=circleKeyS2(e); if(c2!==null){ e.preventDefault(); mpcgMove(1,c2); }
     } else if(!$('online').classList.contains('hidden') && onl){
       if(document.activeElement && document.activeElement.tagName==='INPUT') return;
-      if(onl.variant==='grid'){
+      if(onl.mode==='grid'){
         if(!onl.board) return;
         const m={ 'ArrowUp':0,'ArrowRight':1,'ArrowDown':2,'ArrowLeft':3 };
-        if(e.key in m){ e.preventDefault(); onlGridMove(m[e.key]); }
-        else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); onlGridMove(null); }
+        const mv = onl.shared ? onlGridMove : onlSoloGridMove;
+        if(e.key in m){ e.preventDefault(); mv(m[e.key]); }
+        else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); mv(null); }
+        return;
+      }
+      // Kreis: geteilt (Gerangel) über onl.gs, getrennt (Duell) über onl.cs
+      if(!onl.shared){
+        if(!onl.cs) return;
+        if(e.key==='w'||e.key==='W'||e.key==='ArrowUp'){ e.preventDefault(); onlSoloPose(); return; }
+        let c=circleKeyS1(e); if(c===null) c=circleKeyS2(e);
+        if(c!==null){ e.preventDefault(); onlSoloCircleMove(c); }
         return;
       }
       if(!onl.gs) return;
