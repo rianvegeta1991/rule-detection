@@ -199,13 +199,23 @@
   .dpad.big button{width:100%; height:100%; font-size:1.9rem; border-radius:16px;}
   .dpad.big button.stay{font-size:1.4rem;}
   .btn-row.big{display:flex; gap:8px; width:100%; max-width:440px; justify-content:center;}
-  .btn-row.big button{flex:1 1 0; min-height:56px; font-size:1.25rem; font-weight:700; border-radius:12px;}
+  .btn-row.big button{flex:1 1 0; min-height:64px; font-size:1.35rem; font-weight:800; border-radius:12px;}
+  /* Kreis-Schrittknöpfe thematisch: Motiv (per JS als background-image) + Farbe des Schwierigkeitsgrads */
+  #circle-steps button[data-step], .mp-steps button[data-step]{
+    background-color:rgba(var(--accent-rgb,148,163,184),0.18);
+    background-repeat:no-repeat; background-position:center 4px; background-size:auto 46%;
+    border:1px solid rgba(var(--accent-rgb,148,163,184),0.75);
+    display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px;
+    color:#fff; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.85);}
+  #circle-steps button[data-step]:hover:not(:disabled), .mp-steps button[data-step]:hover:not(:disabled){
+    background-color:rgba(var(--accent-rgb,148,163,184),0.34); border-color:rgb(var(--accent-rgb,148,163,184));}
+  #circle-steps button[data-step]:active:not(:disabled), .mp-steps button[data-step]:active:not(:disabled){transform:scale(0.94);}
   /* Feld-Steuerkreuz unter dem Brett: vier Trapez-Tasten + Neutral-Taste in der Mitte, füllt den Raum. */
   .pad-frame{position:relative; width:100%; flex:1 1 auto; min-height:210px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; overflow:hidden;}
   .pad-lines{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:3;}
   .pad-zone{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; cursor:pointer; -webkit-tap-highlight-color:transparent;
-    background:linear-gradient(180deg,#3f4247 0%,#303338 55%,#232529 100%);}
-  .pad-zone:active{filter:brightness(1.35);}
+    background:linear-gradient(180deg, rgba(var(--accent-rgb,148,163,184),0.24), rgba(var(--accent-rgb,148,163,184),0.06)), linear-gradient(180deg,#3f4247 0%,#303338 55%,#232529 100%);}
+  .pad-zone:active{filter:brightness(1.4) saturate(1.3);}
   .pad-zone .pad-ic{font-size:2.4rem; line-height:1; color:#e8eaed; pointer-events:none; text-shadow:0 1px 2px rgba(0,0,0,0.7); transition:transform .1s;}
   .pad-zone:active .pad-ic{transform:scale(1.18);}
   .pad-zone.up{align-items:flex-start;}    .pad-zone.up .pad-ic{margin-top:5%;}
@@ -213,11 +223,11 @@
   .pad-zone.left{justify-content:flex-start;} .pad-zone.left .pad-ic{margin-left:5%;}
   .pad-zone.right{justify-content:flex-end;}  .pad-zone.right .pad-ic{margin-right:5%;}
   .pad-stay{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(40%,156px); height:min(44%,118px); z-index:4;
-    border-radius:16px; border:1px solid #0f1013; cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;
-    background:linear-gradient(160deg,#565a61 0%,#3d4046 45%,#25272b 100%);
+    border-radius:16px; border:1px solid rgba(var(--accent-rgb,15,16,19),0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;
+    background:linear-gradient(160deg, rgba(var(--accent-rgb,86,90,97),0.28), rgba(var(--accent-rgb,86,90,97),0.05)), linear-gradient(160deg,#565a61 0%,#3d4046 45%,#25272b 100%);
     box-shadow:inset 0 2px 2px rgba(255,255,255,0.22), inset 0 -3px 5px rgba(0,0,0,0.55), 0 3px 6px rgba(0,0,0,0.5);}
   .pad-stay:active{box-shadow:inset 0 3px 8px rgba(0,0,0,0.7); transform:translate(-50%,-50%) translateY(1px);}
-  .pad-stay-dot{width:clamp(20px,7vw,30px); height:clamp(20px,7vw,30px); border-radius:50%; border:3px solid #cbd2da; background:radial-gradient(circle at 50% 38%,#6b7079,#33363b); box-shadow:0 0 5px rgba(0,0,0,0.55);}
+  .pad-stay-dot{width:clamp(20px,7vw,30px); height:clamp(20px,7vw,30px); border-radius:50%; border:3px solid rgb(var(--accent-rgb,203,210,218)); background:radial-gradient(circle at 50% 38%, rgba(var(--accent-rgb,107,112,121),0.9),#33363b); box-shadow:0 0 6px rgba(var(--accent-rgb,0,0,0),0.6);}
   .pad-frame.done .pad-zone, .pad-frame.done .pad-stay{pointer-events:none; opacity:0.3;}
   .board-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%;}
   .sidebar{flex:1; min-width:290px; max-width:420px; display:flex; flex-direction:column; gap:12px;}
@@ -900,9 +910,9 @@
   };
   const ROT_POOLS = {
     leicht: ['sync','still'],
-    mittel: ['sync','counter','still'],
-    schwer: ['sync','counter','halfRot','still'],
-    experte: ['sync','counter','halfRot','still']
+    mittel: ['sync','counter','still','fixP1','fixM1'],
+    schwer: ['sync','counter','halfRot','still','fixP1','fixP2','fixM1','fixM2','synP1','synM1'],
+    experte: ['sync','counter','halfRot','still','fixP1','fixP2','fixM1','fixM2','synP1','synP2','synM1','synM2']
   };
   const GAP = 3, PAD = 6;
   const CHOICES = [-2,-1,0,1,2];
@@ -943,7 +953,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.7";
+  const APP_VERSION = "1.8";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1004,6 +1014,10 @@
       case 'counter': return -choice;
       case 'halfRot': return Math.trunc(choice/2);
       case 'still': return 0;
+      // unabhängig von der Eingabe: feste Drehung um ±1/±2
+      case 'fixP1': return 1;  case 'fixP2': return 2;  case 'fixM1': return -1;  case 'fixM2': return -2;
+      // abhängig von der Eingabe: gewählte Schrittzahl, zusätzlich verschoben um ±1/±2
+      case 'synP1': return choice+1; case 'synP2': return choice+2; case 'synM1': return choice-1; case 'synM2': return choice-2;
       default: return 0;
     }
   }
@@ -1013,6 +1027,14 @@
       case 'counter': return 'dreht sich um deine gew&auml;hlte Schrittzahl, aber in die Gegenrichtung.';
       case 'halfRot': return 'dreht sich um die H&auml;lfte deiner Schrittzahl (abgerundet).';
       case 'still': return 'reagiert nicht auf deine Eingabe &ndash; bleibt immer stehen.';
+      case 'fixP1': return 'dreht sich <b>immer um +1</b> Feld &ndash; unabh&auml;ngig von deiner Eingabe.';
+      case 'fixP2': return 'dreht sich <b>immer um +2</b> Felder &ndash; unabh&auml;ngig von deiner Eingabe.';
+      case 'fixM1': return 'dreht sich <b>immer um &minus;1</b> Feld &ndash; unabh&auml;ngig von deiner Eingabe.';
+      case 'fixM2': return 'dreht sich <b>immer um &minus;2</b> Felder &ndash; unabh&auml;ngig von deiner Eingabe.';
+      case 'synP1': return 'dreht sich um deine Schrittzahl <b>+1</b> (abh&auml;ngig von der Eingabe).';
+      case 'synP2': return 'dreht sich um deine Schrittzahl <b>+2</b> (abh&auml;ngig von der Eingabe).';
+      case 'synM1': return 'dreht sich um deine Schrittzahl <b>&minus;1</b> (abh&auml;ngig von der Eingabe).';
+      case 'synM2': return 'dreht sich um deine Schrittzahl <b>&minus;2</b> (abh&auml;ngig von der Eingabe).';
       default: return '';
     }
   }
@@ -1306,8 +1328,10 @@
 
   // Detektiv (Sherlock)
   function makeActivePoseEffect(){
-    const target = Math.random()<0.8 ? 'move' : 'rotate';
-    if(Math.random()<0.7) return { target, kind:'offset', amount:pick([-2,-1,1,2]) };
+    const target = Math.random()<0.72 ? 'move' : 'rotate';
+    const r=Math.random();
+    if(r<0.4) return { target, kind:'offset', amount:pick([-2,-1,1,2]) };   // unabhängig: feste ±1/±2
+    if(r<0.72) return { target, kind:'chadd', amount:pick([-2,-1,1,2]) };   // abhängig: Schrittzahl ±1/±2
     return { target, kind:'reverse' };
   }
   function poseEffectLabel(e){
@@ -1315,7 +1339,8 @@
     if(e.kind==='sabotage') return 'verschiebt die <b>gegnerische Figur</b> zwangsweise um deine gew&auml;hlte Schrittzahl &ndash; sie kann dabei &uuml;ber Sternenfelder eine Ebene wechseln, im Extremfall bis ins Zentrum (dann gewinnt der Gegner!).';
     const tgt = e.target==='move' ? 'die Bewegung der Spielfigur' : 'die Rotation des Rings, auf dem die Figur steht';
     if(e.kind==='reverse') return `kehrt ${tgt} um (Richtungsumkehr).`;
-    return `ver&auml;ndert ${tgt} zus&auml;tzlich um ${fmtDelta(e.amount)} Feld${Math.abs(e.amount)>1?'er':''}.`;
+    if(e.kind==='chadd') return `verschiebt ${tgt} um deine Schrittzahl <b>${fmtDelta(e.amount)}</b> (abh&auml;ngig von der Eingabe).`;
+    return `ver&auml;ndert ${tgt} <b>fest um ${fmtDelta(e.amount)}</b> Feld${Math.abs(e.amount)>1?'er':''} (unabh&auml;ngig von der Eingabe).`;
   }
   function detectiveSvg(pose, heightPx){
     const common = `
@@ -1505,11 +1530,12 @@
     // Detektivs Pose (Pose 1 = neutral)
     const gEff = cs.poseEffects[cs.gandalfPose];
     if(gEff && gEff.kind!=='neutral'){
+      const delta = gEff.kind==='chadd' ? (choice+gEff.amount) : gEff.amount;   // abhängig vs. fest
       if(gEff.target==='move'){
-        if(gEff.kind==='reverse') figActual=-figActual; else figActual+=gEff.amount;
+        if(gEff.kind==='reverse') figActual=-figActual; else figActual+=delta;
       } else {
         const ri=cs.ringIdx;
-        if(gEff.kind==='reverse') rotActuals[ri]=-rotActuals[ri]; else rotActuals[ri]+=gEff.amount;
+        if(gEff.kind==='reverse') rotActuals[ri]=-rotActuals[ri]; else rotActuals[ri]+=delta;
       }
     }
     cs.moves++;
@@ -1629,9 +1655,28 @@
   }
   function startBg(){ document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`; }
   function backToMenu(){ teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); startBg(); }
+  // Themen-Motiv für die Steuerung: Garten=Blume, Büro=Uhr, Nachtleben=Flasche, Friedhof=Totenkopf.
+  function mixWhite(rgb, f){ const p=(rgb||'148,163,184').split(',').map(Number); const m=v=>Math.round(v+(255-v)*f); return `${m(p[0])},${m(p[1])},${m(p[2])}`; }
+  function motifSvg(key, rgb){
+    const c=`rgb(${mixWhite(rgb,0.4)})`;
+    const M={
+      garden:`<circle cx="24" cy="24" r="4.5" fill="${c}"/>`+[0,60,120,180,240,300].map(a=>`<ellipse cx="24" cy="10" rx="4.6" ry="8.5" fill="${c}" transform="rotate(${a} 24 24)"/>`).join(''),
+      office:`<circle cx="24" cy="24" r="15" fill="none" stroke="${c}" stroke-width="3"/><circle cx="24" cy="24" r="1.8" fill="${c}"/><line x1="24" y1="24" x2="24" y2="13" stroke="${c}" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="24" x2="32" y2="27" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`,
+      night:`<path d="M20.5 5 h7 v5.5 l3 6.5 v22 a3 3 0 0 1 -3 3 h-7 a3 3 0 0 1 -3 -3 v-22 l3 -6.5 z" fill="${c}"/><rect x="19.5" y="26" width="9" height="8" rx="1" fill="rgba(15,23,42,0.55)"/>`,
+      graveyard:`<path d="M24 7 c9 0 14 6 14 15 c0 4.5 -1.6 7.6 -4 9.8 v5.2 h-20 v-5.2 c-2.4 -2.2 -4 -5.3 -4 -9.8 c0 -9 5 -15 14 -15 z" fill="${c}"/><circle cx="18" cy="23" r="3.4" fill="rgba(15,23,42,0.8)"/><circle cx="30" cy="23" r="3.4" fill="rgba(15,23,42,0.8)"/><path d="M24 27 l-2.4 4 h4.8 z" fill="rgba(15,23,42,0.8)"/>`
+    };
+    return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">${M[key]||M.office}</svg>`);
+  }
+  function applyControlTheme(theme){
+    const key=theme.svg||'office';
+    document.body.dataset.theme=key;
+    const uri=motifSvg(key, theme.accent);
+    document.querySelectorAll('#circle-steps button[data-step], .mp-steps button[data-step]').forEach(b=>{ b.style.backgroundImage=`url("${uri}")`; });
+  }
   function setThemeBg(theme){
     document.documentElement.style.setProperty('--accent-rgb', theme.accent);
     document.body.style.backgroundImage=`linear-gradient(rgba(15,23,42,0.88),rgba(15,23,42,0.88)), url("${svgUrl(theme.svg)}")`;
+    applyControlTheme(theme);
   }
 
   // ===================== SP GRID =====================
@@ -1917,8 +1962,9 @@
     const isSabo = !!(gEff && gEff.kind==='sabotage');
     let saboInfo=null;
     if(gEff && gEff.kind!=='neutral' && !isSabo){
-      if(gEff.target==='move'){ if(gEff.kind==='reverse') figActual=-figActual; else figActual+=gEff.amount; }
-      else { const ri=pl.ringIdx; if(gEff.kind==='reverse') rotActuals[ri]=-rotActuals[ri]; else rotActuals[ri]+=gEff.amount; }
+      const delta = gEff.kind==='chadd' ? (choice+gEff.amount) : gEff.amount;   // abhängig vs. fest
+      if(gEff.target==='move'){ if(gEff.kind==='reverse') figActual=-figActual; else figActual+=delta; }
+      else { const ri=pl.ringIdx; if(gEff.kind==='reverse') rotActuals[ri]=-rotActuals[ri]; else rotActuals[ri]+=delta; }
     }
     pl.moves++;
     const sa=360/ring.fieldCount, startAngle=(pl.index+0.5)*sa+ring.offset;
@@ -2635,8 +2681,11 @@
 
   // ===================== EDITOR =====================
   const ED_KEY='regel-detektiv-users';
-  const POSE_OPTS=[['random','Zufällig'],['neutral','Neutral'],['move:1','Bewegung +1'],['move:2','Bewegung +2'],['move:-1','Bewegung −1'],['move:-2','Bewegung −2'],['move:rev','Bewegung umkehren'],['rot:1','Rotation +1'],['rot:-1','Rotation −1'],['rot:rev','Rotation umkehren']];
-  function poseFromVal(v){ if(v==='random') return null; if(v==='neutral') return {kind:'neutral'}; const p=v.split(':'); const target=p[0]==='move'?'move':'rotate'; if(p[1]==='rev') return {target,kind:'reverse'}; return {target,kind:'offset',amount:parseInt(p[1],10)}; }
+  const POSE_OPTS=[['random','Zufällig'],['neutral','Neutral'],
+    ['move:1','Bewegung +1 (fest)'],['move:2','Bewegung +2 (fest)'],['move:-1','Bewegung −1 (fest)'],['move:-2','Bewegung −2 (fest)'],
+    ['move:c1','Bewegung Schrittzahl +1'],['move:c-1','Bewegung Schrittzahl −1'],['move:rev','Bewegung umkehren'],
+    ['rot:1','Rotation +1 (fest)'],['rot:-1','Rotation −1 (fest)'],['rot:c1','Rotation Schrittzahl +1'],['rot:c-1','Rotation Schrittzahl −1'],['rot:rev','Rotation umkehren']];
+  function poseFromVal(v){ if(v==='random') return null; if(v==='neutral') return {kind:'neutral'}; const p=v.split(':'); const target=p[0]==='move'?'move':'rotate'; if(p[1]==='rev') return {target,kind:'reverse'}; if(p[1][0]==='c') return {target,kind:'chadd',amount:parseInt(p[1].slice(1),10)}; return {target,kind:'offset',amount:parseInt(p[1],10)}; }
   function edUsersLoad(){ try{ return JSON.parse(localStorage.getItem(ED_KEY))||{}; }catch(e){ return {}; } }
   function edUsersSave(u){ localStorage.setItem(ED_KEY, JSON.stringify(u)); }
   let edUsers=edUsersLoad();
@@ -2644,7 +2693,9 @@
 
   const ZONE_EFFECT_OPTS=[['random','Zufällig'],['normal','Neutral (keine)'],['invert','180° Umkehr'],['mirror','Links/Rechts spiegeln'],['rotateCW','90° im Uhrzeigersinn'],['rotateCCW','90° gegen Uhrzeigersinn'],['swapAxes','Achsen tauschen']];
   const STEP_OPTS=[['random','Zufällig'],['normal','so viele wie gewählt'],['reverse','rückwärts'],['half','halbe Schrittzahl'],['double','doppelte Schrittzahl']];
-  const ROT_OPTS=[['random','Zufällig'],['still','steht still'],['sync','mit (gleiches Vorz.)'],['counter','Gegenrichtung'],['halfRot','halbe Rotation']];
+  const ROT_OPTS=[['random','Zufällig'],['still','steht still'],['sync','mit (gleiches Vorz.)'],['counter','Gegenrichtung'],['halfRot','halbe Rotation'],
+    ['fixP1','immer +1 (fest)'],['fixP2','immer +2 (fest)'],['fixM1','immer −1 (fest)'],['fixM2','immer −2 (fest)'],
+    ['synP1','Schrittzahl +1'],['synP2','Schrittzahl +2'],['synM1','Schrittzahl −1'],['synM2','Schrittzahl −2']];
   function fillSel(sel, opts, prefix){ opts.forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=(prefix||'')+t; sel.appendChild(o); }); }
   fillSel($('ed-fig'), STEP_OPTS, '');
   function edBuildZoneRows(){
