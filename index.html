@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>Regel-Detektiv</title>
+<title>Regelsuche</title>
 <meta name="theme-color" content="#0f172a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Regel-Detektiv">
+<meta name="apple-mobile-web-app-title" content="Regelsuche">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -77,6 +77,7 @@
     text-shadow:0 0 24px rgba(250,204,21,0.15);
   }
   .hero .tagline{color:var(--muted); font-style:italic; font-size:0.98rem; margin-top:6px;}
+  .app-version{color:var(--muted); opacity:0.55; font-size:0.68rem; letter-spacing:0.05em; margin-top:5px;}
   .intro{background:rgba(30,41,59,0.85); border:1px solid var(--cell-border); border-radius:var(--radius); padding:14px 18px; font-size:0.9rem; color:var(--muted); line-height:1.55; margin-top:14px;}
   .intro b{color:var(--text);}
   .tab-caption{font-size:0.7rem; color:#8896ab; text-transform:uppercase; letter-spacing:0.12em; margin:16px 2px 6px;}
@@ -152,7 +153,8 @@
   .ring-field.wall{fill:#0b1220; stroke:rgba(148,163,184,0.14); pointer-events:none;}
   .ring-field.current{stroke:var(--good); stroke-width:3;}
   .field-label{fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle; pointer-events:none; font-family:inherit;}
-  .svg-goal{fill:var(--gold); filter:drop-shadow(0 0 6px var(--gold)); animation:pulse 1s infinite alternate;}
+  /* Kreiszentrum glüht in der Pose-Farbe (Standard Gold), damit es sich mit der Detektiv-Aura deckt */
+  .svg-goal{fill:rgb(var(--pose,250,204,21)); filter:drop-shadow(0 0 9px rgba(var(--pose,250,204,21),0.95)); animation:pulse 1s infinite alternate;}
   .ring-marker{fill:var(--accent); stroke:transparent; stroke-width:4; filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),0.9));}
   .ring-marker.flash-good{stroke:var(--good);}
   .ring-marker.flash-bad{stroke:var(--bad);}
@@ -177,9 +179,10 @@
   .circle-host{position:relative; display:inline-block;}
   .detective-center{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    text-align:center; cursor:pointer; user-select:none; z-index:5; line-height:0;
-    border-radius:50%; padding:7px 9px;
-    background:radial-gradient(circle at 50% 42%, rgba(var(--pose,250,204,21),0.95), rgba(var(--pose,250,204,21),0.4) 68%, transparent 90%);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; user-select:none; z-index:5; line-height:0; padding:0;
+    width:var(--dc-size,70px); height:var(--dc-size,70px); border-radius:50%;
+    background:radial-gradient(circle, rgba(var(--pose,250,204,21),0.95) 0%, rgba(var(--pose,250,204,21),0.42) 60%, transparent 82%);
   }
   .detective-center svg{width:auto; display:block; margin:0 auto; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.55));}
   .detective-center:hover svg{filter:drop-shadow(0 0 6px rgba(var(--pose,250,204,21),0.85));}
@@ -197,6 +200,21 @@
   .dpad.big button.stay{font-size:1.4rem;}
   .btn-row.big{display:flex; gap:8px; width:100%; max-width:440px; justify-content:center;}
   .btn-row.big button{flex:1 1 0; min-height:56px; font-size:1.25rem; font-weight:700; border-radius:12px;}
+  /* Feld-Steuerkreuz: Brett in der Mitte, vier Trapez-Zonen ringsum (füllt den Raum ums Brett) */
+  .pad-frame{position:relative; width:100%; flex:1 1 auto; min-height:260px; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent; overflow:hidden;}
+  .pad-lines{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1;}
+  .pad-zone{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+  .pad-zone .pad-ic{font-size:1.9rem; line-height:1; color:var(--muted); opacity:0.85; pointer-events:none; transition:color .1s, transform .1s;}
+  .pad-zone:active .pad-ic{color:var(--accent); transform:scale(1.3);}
+  .pad-zone.up{align-items:flex-start;}    .pad-zone.up .pad-ic{margin-top:5%;}
+  .pad-zone.down{align-items:flex-end;}     .pad-zone.down .pad-ic{margin-bottom:5%;}
+  .pad-zone.left{justify-content:flex-start;} .pad-zone.left .pad-ic{margin-left:4%;}
+  .pad-zone.right{justify-content:flex-end;}  .pad-zone.right .pad-ic{margin-right:4%;}
+  .pad-center{position:relative; z-index:3;}
+  .pad-stay{position:absolute; inset:0; z-index:4; background:transparent; border:none; color:var(--muted); font-family:inherit; cursor:pointer; display:flex; align-items:flex-end; justify-content:center; padding-bottom:5px; -webkit-tap-highlight-color:transparent;}
+  .pad-stay span{font-size:0.72rem; opacity:0.55; background:rgba(11,18,32,0.5); border-radius:999px; padding:1px 8px;}
+  .pad-stay:active span{color:var(--accent); opacity:0.9;}
+  .pad-frame.done .pad-zone, .pad-frame.done .pad-stay{pointer-events:none; opacity:0.3;}
   .board-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%;}
   .sidebar{flex:1; min-width:290px; max-width:420px; display:flex; flex-direction:column; gap:12px;}
   .panel{background:rgba(30,41,59,0.92); border:1px solid var(--cell-border); border-radius:var(--radius); padding:12px 14px;}
@@ -367,8 +385,9 @@
       <circle cx="52" cy="50" r="30" fill="none" stroke="#fde68a" stroke-width="1.2" stroke-dasharray="3 7" opacity="0.85"/>
       <circle cx="44" cy="42" r="7" fill="#ffffff" opacity="0.18"/>
     </svg>
-    <h1>Regel-Detektiv</h1>
+    <h1>Regelsuche</h1>
     <div class="tagline serif">Ermittle die verborgenen Regeln &ndash; Fall f&uuml;r Fall.</div>
+    <div class="app-version" id="app-version"></div>
   </div>
 
   <!-- Reihenfolge ist bewusst so: jede Wahl blendet nur Bloecke UNTER sich ein/aus. -->
@@ -503,18 +522,19 @@
       <button class="action mini" id="spg-back">Zur&uuml;ck</button>
     </div>
   </div>
-  <div class="board-wrap">
-    <div id="spg-host"></div>
-    <div id="spg-overlay" class="panel hidden" style="width:100%; text-align:center;">
+  <div class="pad-frame" id="spg-frame">
+    <svg class="pad-lines" id="spg-pad-lines" aria-hidden="true" preserveAspectRatio="none"></svg>
+    <div class="pad-zone up"    data-dir="0"><span class="pad-ic">&#9650;</span></div>
+    <div class="pad-zone right" data-dir="1"><span class="pad-ic">&#9654;</span></div>
+    <div class="pad-zone down"  data-dir="2"><span class="pad-ic">&#9660;</span></div>
+    <div class="pad-zone left"  data-dir="3"><span class="pad-ic">&#9664;</span></div>
+    <div class="pad-center">
+      <div id="spg-host"></div>
+      <button class="pad-stay" data-dir="stay"><span>bleiben</span></button>
+    </div>
+    <div id="spg-overlay" class="panel hidden" style="position:absolute; z-index:6; left:50%; top:50%; transform:translate(-50%,-50%); width:min(92%,360px); text-align:center;">
       <div class="overlay-msg" id="spg-overlay-msg"></div>
       <div class="footer-row" style="justify-content:center;" id="spg-overlay-actions"></div>
-    </div>
-  </div>
-  <div class="control-area">
-    <div class="dpad big">
-      <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
-      <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
-      <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
     </div>
   </div>
 </div>
@@ -915,6 +935,11 @@
   function randInt(n){ return Math.floor(rnd()*n); }
   function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=randInt(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
   function $(id){ return document.getElementById(id); }
+
+  // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
+  // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
+  const APP_VERSION = "1.6";
+  (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
   function pickSecondary(exclude){ const pool=SECONDARIES.filter(s=>s!==exclude); return pick(pool); }
@@ -1323,10 +1348,14 @@
   }
   function renderDetectiveCenter(hostEl, pose, keyHint, onClick, scale){
     if(!hostEl) return;
+    // Pose-Farbe auch auf den Host legen, damit das Kreiszentrum (.svg-goal) sie erbt
+    hostEl.classList.remove('pose-c0','pose-c1','pose-c2','pose-c3');
+    hostEl.classList.add('pose-c'+pose);
     let ov=hostEl.querySelector('.detective-center');
     if(!ov){ ov=el('div','detective-center'); hostEl.appendChild(ov); }
     const h=Math.round(56*scale);
     ov.className='detective-center pose-c'+pose;   // Farbe zeigt die Pose (kein Name mehr)
+    ov.style.setProperty('--dc-size', Math.round(h*1.25)+'px');   // runde Aura, deckt sich mit dem Zentrum
     ov.innerHTML = detectiveSvg(pose,h);
     ov.title = 'Detektiv – Pose wechseln ('+keyHint+' oder Klick)';
     ov.onclick = onClick;
@@ -1609,7 +1638,9 @@
   // Höhen-Budget fürs Brett während einer Partie: Kopfzeile + Steuerung + Ränder bleiben frei.
   function availBoardHeight(){ const vh=window.innerHeight||800; return Math.max(200, vh-330); }
   function fitCell(cell, cols, rows){ const innerW=availBoardWidth()-((cols-1)*GAP+2*PAD); let maxCell=Math.floor(innerW/cols); if(rows){ const innerH=availBoardHeight()-((rows-1)*GAP+2*PAD); maxCell=Math.min(maxCell, Math.floor(innerH/rows)); } return Math.max(8, Math.min(cell, maxCell)); }
-  function cellSizeFor(shared){ const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols)); return fitCell(base, shared.cols, shared.rows); }
+  function cellSizeFor(shared){ const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols));
+    // etwas kleiner als das Maximum, damit rund ums Brett Platz für die Trapez-Steuerung bleibt
+    return Math.max(8, Math.round(fitCell(base, shared.cols, shared.rows)*0.9)); }
   function spgStart(diffKey, variant, ov){
     teardownActive(); hideAllScreens(); $('sp-grid').classList.remove('hidden'); document.body.classList.add('playing');
     const shared=buildGridShared(diffKey, variant, false, ov);
@@ -1617,6 +1648,31 @@
     board.onChange=spgRender;
     spgState={ shared, board, ov, revealed:false, revealedAtMove:null };
     setThemeBg(shared.theme); renderGridBoard(board); startDogTimer(board); spgRender();
+    requestAnimationFrame(layoutSpgPad);
+  }
+  // berechnet die vier Trapez-Zonen + die Linien passend zur tatsächlichen Brettgröße
+  function layoutSpgPad(){
+    const frame=$('spg-frame'), board=$('spg-host'); if(!frame||!board) return;
+    if($('sp-grid').classList.contains('hidden')) return;
+    const fr=frame.getBoundingClientRect(), br=board.getBoundingClientRect();
+    if(fr.width<2 || br.width<2) return;
+    const W=fr.width, H=fr.height;
+    const L=(br.left-fr.left), T=(br.top-fr.top), R=(br.right-fr.left), B=(br.bottom-fr.top);
+    const pL=(L/W*100).toFixed(2), pR=(R/W*100).toFixed(2), pT=(T/H*100).toFixed(2), pB=(B/H*100).toFixed(2);
+    const set=(sel,poly)=>{ const e=frame.querySelector('.pad-zone.'+sel); if(e){ e.style.clipPath=poly; e.style.webkitClipPath=poly; } };
+    set('up',    `polygon(0 0, 100% 0, ${pR}% ${pT}%, ${pL}% ${pT}%)`);
+    set('right', `polygon(100% 0, 100% 100%, ${pR}% ${pB}%, ${pR}% ${pT}%)`);
+    set('down',  `polygon(100% 100%, 0 100%, ${pL}% ${pB}%, ${pR}% ${pB}%)`);
+    set('left',  `polygon(0 100%, 0 0, ${pL}% ${pT}%, ${pL}% ${pB}%)`);
+    const svg=$('spg-pad-lines');
+    if(svg){
+      svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+      const line=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(148,163,184,0.32)" stroke-width="1.5"/>`;
+      svg.innerHTML =
+        `<rect x="1.5" y="1.5" width="${(W-3).toFixed(1)}" height="${(H-3).toFixed(1)}" rx="18" fill="none" stroke="rgba(148,163,184,0.32)" stroke-width="2"/>`+
+        `<rect x="${L.toFixed(1)}" y="${T.toFixed(1)}" width="${(R-L).toFixed(1)}" height="${(B-T).toFixed(1)}" rx="14" fill="none" stroke="rgba(148,163,184,0.5)" stroke-width="2"/>`+
+        line(1.5,1.5,L,T)+line(W-1.5,1.5,R,T)+line(W-1.5,H-1.5,R,B)+line(1.5,H-1.5,L,B);
+    }
   }
   function spgRender(){
     const {shared,board}=spgState; const f=board.figs[0];
@@ -1624,7 +1680,8 @@
     if(shared.layoutKind==='bands'){ const ag=shared.checkpoints[f.checkpointIdx]; s2=`Abstand <b>${Math.abs(f.x-ag.x)+Math.abs(f.y-ag.y)}</b> · Optimal <b>${shared.optimal}</b>`; }
     else { const left=board.coins.length+(board.centerItem&&!board.centerItem.taken?1:0); s2=`Münzen <b>${left}</b>`; }
     $('spg-stats').innerHTML = `Züge <b>${f.moves}</b> · ${s2} · <b>${shared.zones[shared.zoneOf(f.x,f.y)].name}</b>`;
-    document.querySelectorAll('#sp-grid .dpad button').forEach(b=>b.disabled=f.done);
+    $('spg-frame').classList.toggle('done', f.done);
+    layoutSpgPad();
     const ov=$('spg-overlay');
     if(f.done){
       stopDogTimer(board);
@@ -2745,9 +2802,12 @@
   // Alle Steuerkreuze auf gefüllte Pfeile setzen (statt dünner Linienpfeile) – passt zum Hardware-Look.
   { const glyph={'0':'▲','1':'▶','2':'▼','3':'◀','stay':'●'};
     document.querySelectorAll('.dpad button[data-dir]').forEach(b=>{ if(glyph[b.dataset.dir]) b.textContent=glyph[b.dataset.dir]; }); }
-  document.querySelectorAll('#sp-grid .dpad button[data-dir]').forEach(btn=>{
-    btn.addEventListener('click',()=>{ const d=btn.dataset.dir; spgMove(d==='stay'?null:parseInt(d,10)); });
+  // Feld-Steuerkreuz (Trapez-Zonen + „bleiben" auf dem Brett)
+  document.querySelectorAll('#sp-grid .pad-zone[data-dir], #sp-grid .pad-stay[data-dir]').forEach(z=>{
+    z.addEventListener('click',()=>{ const d=z.dataset.dir; spgMove(d==='stay'?null:parseInt(d,10)); });
   });
+  let spgPadResizeT=null;
+  window.addEventListener('resize',()=>{ clearTimeout(spgPadResizeT); spgPadResizeT=setTimeout(layoutSpgPad,120); });
   $('spg-reveal').addEventListener('click',()=>{ if(!spgState) return; if(!spgState.revealed){ spgState.revealed=true; spgState.revealedAtMove=spgState.board.figs[0].moves; } openReveal(gridExplain(spgState.shared)); });
   $('spg-reset').addEventListener('click',()=>{ if(spgState) spgStart(spgState.shared.diffKey, spgState.shared.variant, spgState.ov); });
   $('spg-back').addEventListener('click',backToMenu);

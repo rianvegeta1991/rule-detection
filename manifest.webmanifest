@@ -1,6 +1,6 @@
 {
-  "name": "Regel-Detektiv",
-  "short_name": "Regel-Detektiv",
+  "name": "Regelsuche",
+  "short_name": "Regelsuche",
   "description": "Ermittle die verborgenen Regeln – Fall für Fall. Ein Rätsel-Detektivspiel für Feld- und Kreis-Modus, allein oder im Duell.",
   "lang": "de",
   "start_url": "./index.html",

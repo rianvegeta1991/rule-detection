@@ -1,5 +1,5 @@
 /* Regel-Detektiv – Service Worker (Offline-Cache) */
-const CACHE = 'regel-detektiv-v7';
+const CACHE = 'regel-detektiv-v8';
 const ASSETS = [
   './',
   './index.html',
