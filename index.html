@@ -201,12 +201,13 @@
   .btn-row.big{display:flex; gap:8px; width:100%; max-width:440px; justify-content:center;}
   .btn-row.big button{flex:1 1 0; min-height:64px; font-size:1.35rem; font-weight:800; border-radius:12px;}
   /* Kreis-Schrittknöpfe thematisch: Motiv (per JS als background-image) + Farbe des Schwierigkeitsgrads */
+  /* Die Zahl steckt im Motiv (SVG) – der Button-Text selbst bleibt nur für Screenreader. */
   #circle-steps button[data-step], .mp-steps button[data-step]{
     background-color:rgba(var(--accent-rgb,148,163,184),0.18);
-    background-repeat:no-repeat; background-position:center 4px; background-size:auto 46%;
+    background-repeat:no-repeat; background-position:center; background-size:contain;
     border:1px solid rgba(var(--accent-rgb,148,163,184),0.75);
-    display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px;
-    color:#fff; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.85);}
+    display:flex; align-items:center; justify-content:center; padding:3px;
+    font-size:0; color:transparent;}
   #circle-steps button[data-step]:hover:not(:disabled), .mp-steps button[data-step]:hover:not(:disabled){
     background-color:rgba(var(--accent-rgb,148,163,184),0.34); border-color:rgb(var(--accent-rgb,148,163,184));}
   #circle-steps button[data-step]:active:not(:disabled), .mp-steps button[data-step]:active:not(:disabled){transform:scale(0.94);}
@@ -216,7 +217,7 @@
     border-radius:18px; background-size:cover; background-position:center 42%; background-repeat:no-repeat;}
   .pad-lines{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:3;}
   .pad-zone{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; cursor:pointer; -webkit-tap-highlight-color:transparent;
-    background:linear-gradient(180deg, rgba(var(--accent-rgb,148,163,184),0.18), rgba(var(--accent-rgb,148,163,184),0.04)), linear-gradient(180deg, rgba(63,66,71,0.42) 0%, rgba(48,51,56,0.48) 55%, rgba(35,37,41,0.56) 100%);}
+    background:linear-gradient(180deg, rgba(var(--accent-rgb,148,163,184),0.20), rgba(var(--accent-rgb,148,163,184),0.06)), linear-gradient(180deg, rgba(63,66,71,0.66) 0%, rgba(48,51,56,0.72) 55%, rgba(35,37,41,0.78) 100%);}
   .pad-zone:active{filter:brightness(1.4) saturate(1.3);}
   .pad-zone .pad-ic{font-size:2.4rem; line-height:1; color:#f2f4f7; pointer-events:none; text-shadow:0 2px 4px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.7); transition:transform .1s;}
   .pad-zone:active .pad-ic{transform:scale(1.18);}
@@ -226,8 +227,8 @@
   .pad-zone.right{justify-content:flex-end;}  .pad-zone.right .pad-ic{margin-right:5%;}
   .pad-stay{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(40%,156px); height:min(44%,118px); z-index:4;
     border-radius:16px; border:1px solid rgba(var(--accent-rgb,15,16,19),0.6); cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;
-    background:linear-gradient(160deg, rgba(var(--accent-rgb,86,90,97),0.28), rgba(var(--accent-rgb,86,90,97),0.05)), linear-gradient(160deg,#565a61 0%,#3d4046 45%,#25272b 100%);
-    box-shadow:inset 0 2px 2px rgba(255,255,255,0.22), inset 0 -3px 5px rgba(0,0,0,0.55), 0 3px 6px rgba(0,0,0,0.5);}
+    background:linear-gradient(180deg, rgba(var(--accent-rgb,148,163,184),0.20), rgba(var(--accent-rgb,148,163,184),0.06)), linear-gradient(180deg, rgba(63,66,71,0.66) 0%, rgba(48,51,56,0.72) 55%, rgba(35,37,41,0.78) 100%);
+    box-shadow:inset 0 2px 2px rgba(255,255,255,0.18), inset 0 -3px 5px rgba(0,0,0,0.4), 0 3px 6px rgba(0,0,0,0.4);}
   .pad-stay:active{box-shadow:inset 0 3px 8px rgba(0,0,0,0.7); transform:translate(-50%,-50%) translateY(1px);}
   .pad-stay-dot{width:clamp(20px,7vw,30px); height:clamp(20px,7vw,30px); border-radius:50%; border:3px solid rgb(var(--accent-rgb,203,210,218)); background:radial-gradient(circle at 50% 38%, rgba(var(--accent-rgb,107,112,121),0.9),#33363b); box-shadow:0 0 6px rgba(var(--accent-rgb,0,0,0),0.6);}
   .pad-frame.done .pad-zone, .pad-frame.done .pad-stay{pointer-events:none; opacity:0.3;}
@@ -283,9 +284,13 @@
   .dpad.p1 button{border-color:var(--p1);} .dpad.p2 button{border-color:var(--p2);}
   #circle-steps button{min-width:44px; font-size:1rem; font-weight:600;}
   /* Touch-Steuerung Multiplayer */
-  .dual-pads{display:flex; gap:22px; justify-content:center; flex-wrap:wrap; margin-top:10px;}
-  .pad-wrap{display:flex; flex-direction:column; align-items:center; gap:5px;}
+  .dual-pads{display:flex; gap:10px; justify-content:center; flex-wrap:nowrap; margin-top:8px; width:100%;}
+  .pad-wrap{display:flex; flex-direction:column; align-items:center; gap:4px; flex:1 1 50%; min-width:0;}
   .pad-wrap .pad-lbl{font-size:0.72rem; font-weight:700;}
+  /* Duell-Steuerkreuze: zwei nebeneinander, daher flacher als im Einzelspieler */
+  .mp-pad{min-height:118px; height:20vh; max-height:190px;}
+  .mp-pad-slot{width:100%; margin-top:6px;}
+  .mp-pad.p1{outline:1px solid rgba(56,189,248,0.45);} .mp-pad.p2{outline:1px solid rgba(244,114,182,0.45);}
   .mp-steps{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:8px; max-width:280px;}
   .mp-steps button{min-width:46px; min-height:46px; padding:8px 10px; background:#334155; color:var(--text); border:1px solid #475569; border-radius:10px; font-size:1rem; font-weight:600; font-family:inherit; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
   .mp-steps button:active:not(:disabled){transform:scale(0.93);}
@@ -381,6 +386,11 @@
     .mp-screen{max-width:100%;}
     .mp-wrap{gap:14px;}
     .mp-col{max-width:100% !important; width:100%;}
+    /* Feld-Duell: beide Bretter samt Steuerkreuz nebeneinander statt untereinander */
+    #mpg-twocol{flex-wrap:nowrap; gap:6px; justify-content:center;}
+    #mpg-twocol .mp-col{flex:1 1 50%; max-width:50% !important; width:50%; min-width:0;}
+    #mpg-twocol .mp-head{font-size:0.68rem;}
+    .dual-pads{gap:8px;}
     .intro{font-size:0.8rem; line-height:1.5;}
     /* zwei Kacheln je Zeile; die Blurbs entfallen – Artwork + Titel tragen das Thema */
     .diff-grid{grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
@@ -626,45 +636,24 @@
       <button class="action" id="mpg-back">Zur&uuml;ck</button>
     </div>
   </div>
+  <!-- Spurensuche: beide Bretter samt Steuerkreuz direkt nebeneinander -->
   <div class="mp-wrap" id="mpg-twocol">
     <div class="mp-col">
       <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpg-m1">0</b> <span class="mp-status" id="mpg-s1"></span></div>
       <div id="mpg-host1"></div>
-      <div class="dpad p1" data-pad="0">
-        <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
-        <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
-        <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
-      </div>
+      <div class="mp-pad-slot" id="mpg-pad1"></div>
     </div>
     <div class="mp-col">
       <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpg-m2">0</b> <span class="mp-status" id="mpg-s2"></span></div>
       <div id="mpg-host2"></div>
-      <div class="dpad p2" data-pad="1">
-        <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
-        <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
-        <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
-      </div>
+      <div class="mp-pad-slot" id="mpg-pad2"></div>
     </div>
   </div>
+  <!-- Gerangel: gemeinsames Brett, darunter beide Steuerkreuze nebeneinander -->
   <div id="mpg-shared-wrap" class="hidden" style="display:flex; flex-direction:column; align-items:center; gap:10px;">
     <div id="mpg-score" style="font-size:0.95rem;"></div>
     <div id="mpg-shared-host"></div>
-    <div class="dual-pads">
-      <div class="pad-wrap"><span class="pad-lbl p1" style="color:var(--p1)">Spieler 1</span>
-        <div class="dpad p1" data-pad="0">
-          <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
-          <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
-          <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
-        </div>
-      </div>
-      <div class="pad-wrap"><span class="pad-lbl p2" style="color:var(--p2)">Spieler 2</span>
-        <div class="dpad p2" data-pad="1">
-          <span class="spacer"></span><button data-dir="0">&uarr;</button><span class="spacer"></span>
-          <button data-dir="3">&larr;</button><button data-dir="stay" class="stay">&bull;</button><button data-dir="1">&rarr;</button>
-          <span class="spacer"></span><button data-dir="2">&darr;</button><span class="spacer"></span>
-        </div>
-      </div>
-    </div>
+    <div class="dual-pads" id="mpg-dual"></div>
   </div>
   <div id="mpg-result" class="mp-result hidden"></div>
 </div>
@@ -1030,7 +1019,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.0";
+  const APP_VERSION = "2.1";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1734,24 +1723,43 @@
   function backToMenu(){ teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); startBg(); }
   // Themen-Motiv für die Steuerung: Garten=Blume, Büro=Uhr, Nachtleben=Flasche, Friedhof=Totenkopf.
   function mixWhite(rgb, f){ const p=(rgb||'148,163,184').split(',').map(Number); const m=v=>Math.round(v+(255-v)*f); return `${m(p[0])},${m(p[1])},${m(p[2])}`; }
-  function motifSvg(key, rgb){
+  // Die Schrittzahl steckt IM Motiv: Blumenmitte, Zifferblatt, Flaschenetikett, Totenkopf-Mund.
+  function motifSvg(key, rgb, label){
     const c=`rgb(${mixWhite(rgb,0.4)})`;
+    const slot='rgba(10,16,28,0.9)';                       // dunkles Feld, auf dem die Zahl steht
+    const txt=(x,y,s)=>label==null?'':`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-weight="800" font-size="${s}" fill="#fff">${label}</text>`;
     const M={
-      garden:`<circle cx="24" cy="24" r="4.5" fill="${c}"/>`+[0,60,120,180,240,300].map(a=>`<ellipse cx="24" cy="10" rx="4.6" ry="8.5" fill="${c}" transform="rotate(${a} 24 24)"/>`).join(''),
-      office:`<circle cx="24" cy="24" r="15" fill="none" stroke="${c}" stroke-width="3"/><circle cx="24" cy="24" r="1.8" fill="${c}"/><line x1="24" y1="24" x2="24" y2="13" stroke="${c}" stroke-width="3" stroke-linecap="round"/><line x1="24" y1="24" x2="32" y2="27" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`,
-      night:`<path d="M20.5 5 h7 v5.5 l3 6.5 v22 a3 3 0 0 1 -3 3 h-7 a3 3 0 0 1 -3 -3 v-22 l3 -6.5 z" fill="${c}"/><rect x="19.5" y="26" width="9" height="8" rx="1" fill="rgba(15,23,42,0.55)"/>`,
-      graveyard:`<path d="M24 7 c9 0 14 6 14 15 c0 4.5 -1.6 7.6 -4 9.8 v5.2 h-20 v-5.2 c-2.4 -2.2 -4 -5.3 -4 -9.8 c0 -9 5 -15 14 -15 z" fill="${c}"/><circle cx="18" cy="23" r="3.4" fill="rgba(15,23,42,0.8)"/><circle cx="30" cy="23" r="3.4" fill="rgba(15,23,42,0.8)"/><path d="M24 27 l-2.4 4 h4.8 z" fill="rgba(15,23,42,0.8)"/>`
+      // Blume: Blütenblätter außen, Zahl in der Blütenmitte
+      garden:[0,60,120,180,240,300].map(a=>`<ellipse cx="24" cy="10.5" rx="5" ry="8.6" fill="${c}" transform="rotate(${a} 24 24)"/>`).join('')
+        +`<circle cx="24" cy="24" r="10.5" fill="${slot}"/><circle cx="24" cy="24" r="10.5" fill="none" stroke="${c}" stroke-width="1.6"/>`+txt(24,24,12),
+      // Uhr: Ring mit Markern, Zahl auf dem Zifferblatt
+      office:`<circle cx="24" cy="24" r="17.5" fill="none" stroke="${c}" stroke-width="3"/>`
+        +[0,90,180,270].map(a=>`<line x1="24" y1="8.5" x2="24" y2="12.5" stroke="${c}" stroke-width="2.6" stroke-linecap="round" transform="rotate(${a} 24 24)"/>`).join('')
+        +`<circle cx="24" cy="24" r="12" fill="${slot}"/>`+txt(24,24,12),
+      // Flasche: Zahl auf dem Etikett
+      night:`<path d="M20.5 3 h7 v6 l3 6.5 v25 a3 3 0 0 1 -3 3 h-7 a3 3 0 0 1 -3 -3 v-25 l3 -6.5 z" fill="${c}"/>`
+        +`<rect x="16.5" y="24" width="15" height="13" rx="2" fill="${slot}"/>`+txt(24,30.5,9.5),
+      // Totenkopf: Zahl im Mund
+      graveyard:`<path d="M24 4 c10 0 15 6.5 15 16 c0 5 -2 8.6 -4.5 10.9 v6.6 c0 1.6 -1.3 2.9 -2.9 2.9 h-15.2 c-1.6 0 -2.9 -1.3 -2.9 -2.9 v-6.6 c-2.5 -2.3 -4.5 -5.9 -4.5 -10.9 c0 -9.5 5 -16 15 -16 z" fill="${c}"/>`
+        +`<circle cx="17.5" cy="18.5" r="3.8" fill="${slot}"/><circle cx="30.5" cy="18.5" r="3.8" fill="${slot}"/>`
+        +`<path d="M24 23 l-2.3 4 h4.6 z" fill="${slot}"/>`
+        +`<rect x="14.5" y="30.5" width="19" height="10" rx="3" fill="${slot}"/>`+txt(24,35.5,9)
     };
     return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">${M[key]||M.office}</svg>`);
   }
   function applyControlTheme(theme){
     const key=theme.svg||'office';
     document.body.dataset.theme=key;
-    const uri=motifSvg(key, theme.accent);
-    document.querySelectorAll('#circle-steps button[data-step], .mp-steps button[data-step]').forEach(b=>{ b.style.backgroundImage=`url("${uri}")`; });
-    // Das Steuerkreuz zeigt das Themen-Artwork hinter den halbtransparenten Tasten.
+    // Jeder Schrittknopf bekommt sein eigenes Motiv – mit der Zahl im Motiv selbst.
+    document.querySelectorAll('#circle-steps button[data-step], .mp-steps button[data-step]').forEach(b=>{
+      const n=parseInt(b.dataset.step,10);
+      const lbl = n>0 ? '+'+n : (n<0 ? '−'+Math.abs(n) : '0');
+      if(!b.getAttribute('aria-label')) b.setAttribute('aria-label', lbl+(Math.abs(n)===1?' Feld':' Felder'));
+      b.style.backgroundImage=`url("${motifSvg(key, theme.accent, lbl)}")`;
+    });
+    // Jedes Steuerkreuz zeigt das Themen-Artwork hinter den halbtransparenten Tasten.
     const art=`url("${svgUrl(theme.svg)}")`;
-    ['spg-frame','onl-gsolo-frame'].forEach(id=>{ const f=$(id); if(f) f.style.backgroundImage=art; });
+    document.querySelectorAll('.pad-frame').forEach(f=>{ f.style.backgroundImage=art; });
   }
   function setThemeBg(theme){
     document.documentElement.style.setProperty('--accent-rgb', theme.accent);
@@ -1767,7 +1775,7 @@
   // muessen also abgezogen werden, sonst wird das Brett breiter als der Bildschirm.
   // Höhen-Budget fürs Brett während einer Partie: Kopfzeile + Steuerung + Ränder bleiben frei.
   function availBoardHeight(){ const vh=window.innerHeight||800; return Math.max(200, vh-330); }
-  function fitCell(cell, cols, rows, maxH){ const innerW=availBoardWidth()-((cols-1)*GAP+2*PAD); let maxCell=Math.floor(innerW/cols); if(rows){ const innerH=(maxH||availBoardHeight())-((rows-1)*GAP+2*PAD); maxCell=Math.min(maxCell, Math.floor(innerH/rows)); } return Math.max(8, Math.min(cell, maxCell)); }
+  function fitCell(cell, cols, rows, maxH, maxW){ const innerW=(maxW||availBoardWidth())-((cols-1)*GAP+2*PAD); let maxCell=Math.floor(innerW/cols); if(rows){ const innerH=(maxH||availBoardHeight())-((rows-1)*GAP+2*PAD); maxCell=Math.min(maxCell, Math.floor(innerH/rows)); } return Math.max(6, Math.min(cell, maxCell)); }
   function cellSizeFor(shared){ const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols));
     return fitCell(base, shared.cols, shared.rows); }
   function spgStart(diffKey, variant, ov){
@@ -1777,7 +1785,7 @@
     board.onChange=spgRender;
     spgState={ shared, board, ov, revealed:false, revealedAtMove:null };
     setThemeBg(shared.theme); renderGridBoard(board); startDogTimer(board); spgRender();
-    requestAnimationFrame(layoutSpgPad);
+    schedulePadLayout(layoutSpgPad);
   }
   // berechnet die vier Trapez-Zonen + die Linien passend zur tatsächlichen Brettgröße
   // Berechnet die vier Trapez-Zonen + die Linien für ein beliebiges Steuerkreuz (Feld-SP und Online-Solo).
@@ -1805,6 +1813,49 @@
   }
   function layoutSpgPad(){ if($('sp-grid').classList.contains('hidden')) return; layoutPadFrame($('spg-frame')); }
   function layoutOnlSoloPad(){ if($('onl-gsolo-wrap').classList.contains('hidden')) return; layoutPadFrame($('onl-gsolo-frame')); }
+  // Legt alle gerade sichtbaren Steuerkreuze neu aus (Duell hat zwei davon).
+  function layoutVisiblePads(){
+    document.querySelectorAll('.pad-frame').forEach(f=>{ if(f.getBoundingClientRect().width>2) layoutPadFrame(f); });
+  }
+  // rAF allein reicht nicht: in einem nicht gerenderten (Hintergrund-)Tab feuert es nicht.
+  function schedulePadLayout(fn){ requestAnimationFrame(fn); setTimeout(fn, 60); }
+  // Baut ein Steuerkreuz als DOM (statt es viermal im HTML zu wiederholen).
+  function buildPadFrame(colorCls, onMove){
+    const f=el('div','pad-frame mp-pad'+(colorCls?' '+colorCls:''));
+    const svg=elNS('svg'); svg.setAttribute('class','pad-lines'); svg.setAttribute('preserveAspectRatio','none'); svg.setAttribute('aria-hidden','true');
+    f.appendChild(svg);
+    const glyph={'0':'▲','1':'▶','2':'▼','3':'◀'};
+    [['up','0'],['right','1'],['down','2'],['left','3']].forEach(([cls,dir])=>{
+      const z=el('div','pad-zone '+cls); z.dataset.dir=dir;
+      const ic=el('span','pad-ic'); ic.textContent=glyph[dir]; z.appendChild(ic);
+      z.addEventListener('click',()=>onMove(parseInt(dir,10)));
+      f.appendChild(z);
+    });
+    const stay=document.createElement('button'); stay.className='pad-stay'; stay.dataset.dir='stay'; stay.title='Bleiben (neutral)';
+    stay.appendChild(el('span','pad-stay-dot'));
+    stay.addEventListener('click',()=>onMove(null));
+    f.appendChild(stay);
+    return f;
+  }
+  function mountMpPads(gerangel){
+    if(gerangel){
+      const host=$('mpg-dual'); host.innerHTML='';
+      [0,1].forEach(i=>{
+        const wrap=el('div','pad-wrap');
+        const lbl=el('span','pad-lbl '+(i===0?'p1':'p2')); lbl.style.color=`var(--${i===0?'p1':'p2'})`; lbl.textContent='Spieler '+(i+1);
+        wrap.appendChild(lbl); wrap.appendChild(buildPadFrame(i===0?'p1':'p2', d=>mpGridMove(i,d)));
+        host.appendChild(wrap);
+      });
+    } else {
+      [0,1].forEach(i=>{
+        const slot=$('mpg-pad'+(i+1)); slot.innerHTML='';
+        slot.appendChild(buildPadFrame(i===0?'p1':'p2', d=>mpGridMove(i,d)));
+      });
+    }
+    // Artwork des Themas auch auf die frisch gebauten Kreuze
+    if(mp && mp.shared && mp.shared.theme) applyControlTheme(mp.shared.theme);
+    schedulePadLayout(layoutVisiblePads);
+  }
   function spgRender(){
     const {shared,board}=spgState; const f=board.figs[0];
     let s2;
@@ -1908,12 +1959,13 @@
   function refreshMpTouchButtons(){
     if(!mp) return;
     if(mp.mode==='grid' && mp.variant!=='gerangel'){
-      document.querySelectorAll('#mpg-twocol .dpad[data-pad]').forEach(pad=>{
-        const pi=parseInt(pad.dataset.pad,10); const done=mp.finished||(mp.players&&mp.players[pi]&&mp.players[pi].board.figs[0].done);
-        pad.querySelectorAll('button').forEach(b=>b.disabled=!!done);
+      [0,1].forEach(pi=>{
+        const slot=$('mpg-pad'+(pi+1)); const f=slot&&slot.querySelector('.pad-frame'); if(!f) return;
+        const done=mp.finished||(mp.players&&mp.players[pi]&&mp.players[pi].board.figs[0].done);
+        f.classList.toggle('done', !!done);
       });
     } else if(mp.mode==='grid'){
-      document.querySelectorAll('#mpg-shared-wrap .dpad[data-pad] button').forEach(b=>b.disabled=!!mp.finished);
+      document.querySelectorAll('#mpg-dual .pad-frame').forEach(f=>f.classList.toggle('done', !!mp.finished));
     } else if(mp.mode==='circle'){
       document.querySelectorAll('#mp-circle .mp-steps[data-p]').forEach(row=>{
         const pi=parseInt(row.dataset.p,10); const done=mp.finished||(mp.players&&mp.players[pi].cs.done);
@@ -1952,16 +2004,20 @@
       mp={ mode:'grid', variant:'gerangel', shared, board, ov, finished:false, winner:null };
       renderGridBoard(board); startDogTimer(board);
       $('mpg-title').innerHTML=`${shared.theme.title} &middot; Gerangel &middot; <small>Sammle die meisten Punkte &ndash; M&uuml;nze 1, Schl&uuml;ssel 3</small>`;
+      mountMpPads(true);
       mpgRenderScores();
     } else {
       $('mpg-shared-wrap').classList.add('hidden'); $('mpg-twocol').classList.remove('hidden');
-      const cell=fitCell(17, shared.cols, shared.rows*2);
+      // beide Bretter stehen nebeneinander → je halbe Breite, Höhe lässt Platz fürs Steuerkreuz
+      const halfW=Math.floor(availBoardWidth()/2)-6;
+      const cell=fitCell(17, shared.cols, shared.rows, Math.round((window.innerHeight||800)*0.36), halfW);
       const b1=createGridBoard($('mpg-host1'), shared, cell, [{startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p1'}]);
       const b2=createGridBoard($('mpg-host2'), shared, cell, [{startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p2'}]);
       b1.onChange=mpUpdateHeads; b2.onChange=mpUpdateHeads;
       mp={ mode:'grid', variant:'spurensuche', shared, ov, finished:false, winner:null, players:[{board:b1},{board:b2}] };
       renderGridBoard(b1); renderGridBoard(b2); startDogTimer(b1); startDogTimer(b2);
       $('mpg-title').innerHTML=`${shared.theme.title} &middot; Spurensuche &middot; <small>${winCond==='fastest'?'Schnellster ins Ziel':'Wenigste Züge'} &ndash; identische Regel für beide</small>`;
+      mountMpPads(false);
       mpUpdateHeads();
     }
   }
@@ -2394,7 +2450,7 @@
       onl.board=createGridBoard($('onl-gsolo-host'), shared, cell, [{startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:myCls}]);
       onl.board.onChange=()=>{ onlSoloRenderHead(); onlPublishSolo(); };
       renderGridBoard(onl.board); startDogTimer(onl.board);
-      requestAnimationFrame(layoutOnlSoloPad);
+      schedulePadLayout(layoutOnlSoloPad);
     } else {
       onl.cs=makeCircleState(onlSoloCircleConfig(cfg));
       setThemeBg(onl.cs.theme);
@@ -3214,13 +3270,7 @@
   $('mpcg-again').addEventListener('click',()=>{ if(mp&&mp.gs){ teardownActive(); hideAllScreens(); mpcgStart(mp.gs.diffKey, mp.ov); } });
   $('mpcg-back').addEventListener('click',backToMenu);
 
-  // MP Touch-Steuerung (Bildschirm-Buttons, funktioniert parallel zur Tastatur)
-  document.querySelectorAll('#mp-grid .dpad[data-pad]').forEach(pad=>{
-    const pi=parseInt(pad.dataset.pad,10);
-    pad.querySelectorAll('button[data-dir]').forEach(btn=>{
-      btn.addEventListener('click',()=>{ const d=btn.dataset.dir; mpGridMove(pi, d==='stay'?null:parseInt(d,10)); });
-    });
-  });
+  // MP Touch-Steuerung: die Feld-Steuerkreuze werden in mountMpPads gebaut und dort verdrahtet.
   document.querySelectorAll('#mp-circle .mp-steps[data-p]').forEach(row=>{
     const pi=parseInt(row.dataset.p,10);
     row.querySelectorAll('button[data-step]').forEach(btn=>{ btn.addEventListener('click',()=>mpCircleMove(pi, parseInt(btn.dataset.step,10))); });
