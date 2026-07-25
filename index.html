@@ -155,6 +155,13 @@
   .cell .bomb svg{width:100%; height:100%; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.6)) drop-shadow(0 0 3px rgba(251,146,60,0.85));}
   .cell .bomb svg .spark{transform-origin:18.6px 5px; animation:sparkFlicker 0.5s infinite alternate;}
   @keyframes sparkFlicker{from{opacity:0.7; transform:scale(0.85);} to{opacity:1; transform:scale(1.12);}}
+  /* Kleine Explosion bei Kollision mit Bombe/Rakete (Feld- und Racing-Modus) */
+  .boom{position:absolute; inset:-25%; z-index:20; pointer-events:none; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,244,180,0.98) 0%, rgba(253,186,116,0.95) 26%, rgba(249,115,22,0.85) 46%, rgba(239,68,68,0.55) 62%, rgba(239,68,68,0) 74%);
+    animation:boomCore 0.5s ease-out forwards;}
+  .boom::after{content:''; position:absolute; inset:14%; border-radius:50%; border:2px solid rgba(255,224,130,0.9); animation:boomRing 0.5s ease-out forwards;}
+  @keyframes boomCore{0%{transform:scale(0.25); opacity:0.3;} 22%{opacity:1;} 100%{transform:scale(1.7); opacity:0;}}
+  @keyframes boomRing{0%{transform:scale(0.3); opacity:0.9;} 100%{transform:scale(2.1); opacity:0;}}
   @keyframes pulse{from{opacity:0.6;} to{opacity:1;}}
   .board-bg{position:absolute; inset:0; border-radius:10px; background-size:cover; background-position:center;}
   .band-labels{position:absolute; inset:0; pointer-events:none;}
@@ -419,6 +426,11 @@
     #mpg-twocol .mp-head{font-size:0.68rem;}
     .dual-pads{gap:8px;}
     .intro{font-size:0.8rem; line-height:1.5;}
+    /* Modus-Karussell kompakt: kleinere Vorschau, Beschreibung aus – Vorschau + Titel genügen */
+    .mode-card{padding:8px; gap:6px;}
+    .mc-preview{height:82px;}
+    .mc-title{font-size:1rem;}
+    .mc-desc{display:none;}
     /* zwei Kacheln je Zeile; die Blurbs entfallen – Artwork + Titel tragen das Thema */
     .diff-grid{grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
     .diff-card{min-height:104px; padding:8px 10px;}
@@ -488,6 +500,9 @@
   </div>
   <div class="mode-dots" id="mode-dots"></div>
 
+  <div class="tab-caption" id="diff-caption">Schwierigkeit</div>
+  <div class="diff-grid" id="diff-grid"></div>
+
   <div id="player-block">
     <div class="tab-caption">Spieler</div>
     <div class="mode-tabs" id="player-tabs">
@@ -519,9 +534,6 @@
       <button class="mode-tab" data-win="fewest">Wenigste Z&uuml;ge</button>
     </div>
   </div>
-
-  <div class="tab-caption" id="diff-caption">Tatort w&auml;hlen</div>
-  <div class="diff-grid" id="diff-grid"></div>
   <div style="text-align:center; margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
     <button class="action" id="open-online" style="background:#0e7490; border-color:#22d3ee; padding:10px 16px;">&#128241; Online spielen &ndash; Gerangel auf 2 Handys</button>
     <button class="action" id="open-editor" style="background:#4c1d95; border-color:#a78bfa; padding:10px 16px;">&#128295; Editor-Modus &ndash; eigene Regeln erstellen</button>
@@ -899,6 +911,8 @@
     </div>
     <label class="small" style="margin:0 0 2px;">Animations-Tempo: <b class="speed-val">1&times;</b></label>
     <input type="range" class="speed-slider" min="0.25" max="3" step="0.25" value="1" style="width:100%;">
+    <label style="margin-top:14px;"><input type="checkbox" id="opt-sfx" checked> &#128266; Soundeffekte</label>
+    <label style="margin-top:8px;"><input type="checkbox" id="opt-music" checked> &#127925; Hintergrundmusik</label>
     <button class="action" id="open-guide" style="width:100%; margin-top:18px;">&#128218; Anleitung</button>
   </div>
 </div>
@@ -1056,14 +1070,25 @@
     + `<rect x="8" y="1.4" width="8" height="3" rx="1.5" fill="#fecaca"/>`
     + `</svg>`; }
 
-  // Rakete (Spitze nach unten – kommt auf das Auto zu)
+  // Rakete: dunkler Körper, roter Sprengkopf nach unten (Richtung Auto) – klar als gefährlich erkennbar.
   function rocketSvg(){ return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
-    + `<path d="M12 23 L7.5 14 L7.5 6 Q12 0.5 16.5 6 L16.5 14 Z" fill="#e5e7eb"/>`
-    + `<path d="M12 23 L7.5 14 L7.5 6 Q12 0.5 16.5 6 L16.5 14 Z" fill="none" stroke="#9ca3af" stroke-width="0.6"/>`
-    + `<path d="M7.5 13 L3.5 17 L7.5 10 Z" fill="#ef4444"/><path d="M16.5 13 L20.5 17 L16.5 10 Z" fill="#ef4444"/>`
-    + `<circle cx="12" cy="8" r="2.1" fill="#38bdf8"/>`
-    + `<path d="M9.5 23 Q12 27 14.5 23 Z" fill="#fb923c"/>`
+    + `<path d="M10 2.5 Q12 -1 14 2.5 Q12 5 10 2.5 Z" fill="#fb923c" opacity="0.9"/>`   /* Abgas oben (nachlaufend) */
+    + `<path d="M8.5 5 L4.5 3 L8.5 10 Z" fill="#1f2937"/><path d="M15.5 5 L19.5 3 L15.5 10 Z" fill="#1f2937"/>`  /* Finnen oben */
+    + `<rect x="8" y="3.5" width="8" height="10.5" rx="2.4" fill="#3a4453"/>`
+    + `<rect x="8" y="3.5" width="8" height="10.5" rx="2.4" fill="none" stroke="#141a22" stroke-width="0.7"/>`
+    + `<rect x="9" y="6" width="2.4" height="6" rx="1" fill="#4b5768" opacity="0.7"/>`  /* Glanzkante */
+    + `<rect x="8" y="12.2" width="8" height="1.8" fill="#facc15"/>`  /* Warnstreifen */
+    + `<path d="M8 13.6 L16 13.6 L12 23 Z" fill="#8f1414"/>`  /* Sprengkopf-Kegel nach unten */
+    + `<path d="M8 13.6 L16 13.6 L12 23 Z" fill="none" stroke="#3f0a0a" stroke-width="0.7"/>`
+    + `<path d="M10.4 18 L13.6 18 L12 23 Z" fill="#ef4444"/>`  /* glühende Spitze */
     + `</svg>`; }
+  // Kurze Explosion in einer Zelle (Feld-Bombe oder Racing-Bombe/Rakete); entfernt sich selbst.
+  function spawnExplosion(cell){
+    if(!cell) return;
+    const b=el('div','boom'); cell.appendChild(b);
+    setTimeout(()=>{ if(b.parentNode) b.parentNode.removeChild(b); }, 520);
+    sfx('crash');
+  }
 
   // Mini-Vorschau je Modus fürs Karussell
   function modePreviewSvg(mode){
@@ -1157,7 +1182,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.2";
+  const APP_VERSION = "2.3";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1474,12 +1499,12 @@
         if(b.hazardSet.has(nx+','+ny)){ collide={x:nx,y:ny}; break; } }
     }
     f.moves++;
-    if(collide){ if(s.hazardType==='bomb') removeHazard(b,collide.x,collide.y); resetFig(b,f); renderGridBoard(b); return {type:'collide'}; }
-    if(b.coins){ const ci=b.coins.findIndex(c=>c.x===f.x&&c.y===f.y); if(ci>=0){ b.coins.splice(ci,1); f.score++; if(gerangelDone(b)){ f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); return {type:'won'}; } renderGridBoard(b); return {type:'coin'}; } }
-    if(b.centerItem && !b.centerItem.taken && f.x===b.centerItem.x && f.y===b.centerItem.y){ b.centerItem.taken=true; f.score += (b.centerItem.type==='key'?3:1); if(gerangelDone(b)){ f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); return {type:'won'}; } renderGridBoard(b); return {type:b.centerItem.type}; }
+    if(collide){ if(s.hazardType==='bomb') removeHazard(b,collide.x,collide.y); resetFig(b,f); renderGridBoard(b); if(s.hazardType==='bomb') spawnExplosion(b.cells[collide.y*s.cols+collide.x]); return {type:'collide'}; }
+    if(b.coins){ const ci=b.coins.findIndex(c=>c.x===f.x&&c.y===f.y); if(ci>=0){ b.coins.splice(ci,1); f.score++; if(gerangelDone(b)){ f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); sfx('win'); return {type:'won'}; } renderGridBoard(b); sfx('coin'); return {type:'coin'}; } }
+    if(b.centerItem && !b.centerItem.taken && f.x===b.centerItem.x && f.y===b.centerItem.y){ b.centerItem.taken=true; f.score += (b.centerItem.type==='key'?3:1); if(gerangelDone(b)){ f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); sfx('win'); return {type:'won'}; } renderGridBoard(b); sfx('coin'); return {type:b.centerItem.type}; }
     if(s.layoutKind==='bands'){
       const g=s.checkpoints[f.checkpointIdx];
-      if(f.x===g.x&&f.y===g.y){ if(f.checkpointIdx<s.checkpoints.length-1){ f.reached.push({x:g.x,y:g.y}); f.checkpointIdx++; renderGridBoard(b); return {type:'checkpoint'}; } f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); return {type:'won'}; }
+      if(f.x===g.x&&f.y===g.y){ if(f.checkpointIdx<s.checkpoints.length-1){ f.reached.push({x:g.x,y:g.y}); f.checkpointIdx++; renderGridBoard(b); sfx('coin'); return {type:'checkpoint'}; } f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); sfx('win'); return {type:'won'}; }
     }
     renderGridBoard(b); return {type:null};
   }
@@ -1829,8 +1854,10 @@
   }
 
   // ===================== EINSTELLUNGEN / ANLEITUNG =====================
-  function openSettings(){ $('settings-modal').classList.remove('hidden'); }
+  function openSettings(){ $('opt-sfx').checked=sfxOn; $('opt-music').checked=musicOn; $('settings-modal').classList.remove('hidden'); }
   function closeSettings(){ $('settings-modal').classList.add('hidden'); }
+  $('opt-sfx').addEventListener('change', e=>setSfxOn(e.target.checked));
+  $('opt-music').addEventListener('change', e=>setMusicOn(e.target.checked));
   function openGuide(){ $('guide-modal').classList.remove('hidden'); }
   function closeGuide(){ $('guide-modal').classList.add('hidden'); }
   $('gear-btn').addEventListener('click', openSettings);
@@ -1860,6 +1887,95 @@
   }
   function startBg(){ document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`; }
   function backToMenu(){ teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); startBg(); }
+  // ===================== SOUND (Web Audio, komplett synthetisiert – keine externen Dateien) =====================
+  const AUDIO_KEY='regel-detektiv-audio';
+  let audioCtx=null, masterGain=null, musicGain=null, sfxOn=true, musicOn=true;
+  let musicTimer=null, musicData=null, musicLoopStart=0, musicIdx=0;
+  (function(){ try{ const p=JSON.parse(localStorage.getItem(AUDIO_KEY)||'{}'); if(p.sfx===false) sfxOn=false; if(p.music===false) musicOn=false; }catch(e){} })();
+  function saveAudioPrefs(){ try{ localStorage.setItem(AUDIO_KEY, JSON.stringify({sfx:sfxOn, music:musicOn})); }catch(e){} }
+  function audioInit(){
+    if(audioCtx) return audioCtx;
+    try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null; audioCtx=new AC(); }catch(e){ return null; }
+    masterGain=audioCtx.createGain(); masterGain.gain.value=0.3; masterGain.connect(audioCtx.destination);
+    musicGain=audioCtx.createGain(); musicGain.gain.value=0.55; musicGain.connect(masterGain);
+    return audioCtx;
+  }
+  function audioResume(){ const c=audioInit(); if(c && c.state==='suspended'){ try{ c.resume(); }catch(e){} } return c; }
+  function tone(freq, dur, type, when, vol, slideTo, dest){
+    if(!audioCtx) return; const t0=when||audioCtx.currentTime;
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type||'triangle'; o.frequency.setValueAtTime(freq, t0);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0+dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002,vol||0.3), t0+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    o.connect(g); g.connect(dest||masterGain); o.start(t0); o.stop(t0+dur+0.03);
+  }
+  function noiseBurst(dur, vol){
+    if(!audioCtx) return; const t0=audioCtx.currentTime;
+    const n=Math.max(1,Math.floor(audioCtx.sampleRate*dur)), buf=audioCtx.createBuffer(1,n,audioCtx.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    const src=audioCtx.createBufferSource(); src.buffer=buf;
+    const lp=audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(1400,t0); lp.frequency.exponentialRampToValueAtTime(120,t0+dur);
+    const g=audioCtx.createGain(); g.gain.setValueAtTime(vol||0.6,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    src.connect(lp); lp.connect(g); g.connect(masterGain); src.start(t0); src.stop(t0+dur+0.03);
+  }
+  function sfx(name){
+    if(!sfxOn || !audioResume()) return; const t=audioCtx.currentTime;
+    switch(name){
+      case 'coin': tone(1046,0.09,'square',t,0.22); tone(1568,0.13,'square',t+0.08,0.2); break;
+      case 'move': tone(300,0.05,'triangle',t,0.13,250); break;
+      case 'jump': tone(360,0.15,'triangle',t,0.22,780); break;
+      case 'pose': tone(560,0.09,'sine',t,0.18,760); break;
+      case 'click': tone(440,0.05,'square',t,0.12); break;
+      case 'win': [523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,0.17,'triangle',t+i*0.1,0.24)); break;
+      case 'crash': noiseBurst(0.42,0.7); tone(90,0.42,'sawtooth',t,0.38,40); break;
+    }
+  }
+  // Eigene, fröhliche Hintergrundmelodie (F-Dur, entspannt – im Geist von Wii Sports, aber originär).
+  const MUSIC_TEMPO=112;
+  const N={C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392.00,A4:440.00,Bb4:466.16,C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99,
+           F3:174.61,G3:196.00,A3:220.00,Bb3:233.08,C4b:261.63,D3:146.83};
+  const MUSIC_MELODY=[  // [Frequenz|0=Pause, Schläge]
+    [N.A4,0.5],[N.C5,0.5],[N.F5,1],[N.A4,0.5],[N.G4,0.5],[N.F4,1],
+    [N.A4,0.5],[N.D5,0.5],[N.A4,1],[N.F4,0.5],[N.E4,0.5],[N.D4,1],
+    [N.D5,0.5],[N.F5,0.5],[N.D5,1],[N.C5,0.5],[N.Bb4,0.5],[N.A4,1],
+    [N.C5,0.5],[N.E5,0.5],[N.G5,1],[N.E5,0.5],[N.C5,0.5],[N.C5,1]
+  ];
+  const MUSIC_BASS=[
+    [N.F3,2],[N.C4,2], [N.D3,2],[N.A3,2], [N.Bb3,2],[N.F3,2], [N.C4,2],[N.G3,2]
+  ];
+  function buildMusicEvents(){
+    const spb=60/MUSIC_TEMPO; const ev=[]; let tb=0;
+    MUSIC_MELODY.forEach(([f,b])=>{ if(f) ev.push({t:tb*spb, f, dur:b*spb*0.9, type:'triangle', vol:0.16}); tb+=b; });
+    const loopBeats=tb; tb=0;
+    MUSIC_BASS.forEach(([f,b])=>{ if(f) ev.push({t:tb*spb, f, dur:b*spb*0.95, type:'sine', vol:0.2}); tb+=b; });
+    ev.sort((a,b)=>a.t-b.t);
+    return { ev, loopLen:loopBeats*spb };
+  }
+  function musicTick(){
+    if(!musicOn || !audioCtx){ return; }
+    const ahead=0.3;
+    for(let guard=0; guard<200; guard++){
+      if(musicIdx>=musicData.ev.length){ musicIdx=0; musicLoopStart+=musicData.loopLen; }
+      const e=musicData.ev[musicIdx]; const when=musicLoopStart+e.t;
+      if(when > audioCtx.currentTime + ahead) break;
+      tone(e.f, e.dur, e.type, when, e.vol, null, musicGain);
+      musicIdx++;
+    }
+  }
+  function musicStart(){
+    if(!musicOn || !audioResume() || musicTimer) return;
+    if(!musicData) musicData=buildMusicEvents();
+    musicLoopStart=audioCtx.currentTime+0.12; musicIdx=0;
+    musicTimer=setInterval(musicTick, 60); musicTick();
+  }
+  function musicStop(){ if(musicTimer){ clearInterval(musicTimer); musicTimer=null; } }
+  function setSfxOn(v){ sfxOn=!!v; saveAudioPrefs(); if(sfxOn) sfx('click'); }
+  function setMusicOn(v){ musicOn=!!v; saveAudioPrefs(); if(musicOn) musicStart(); else musicStop(); }
+  function audioFirstGesture(){ audioResume(); if(musicOn) musicStart(); document.removeEventListener('pointerdown', audioFirstGesture); document.removeEventListener('keydown', audioFirstGesture); }
+  document.addEventListener('pointerdown', audioFirstGesture); document.addEventListener('keydown', audioFirstGesture);
+
   // Themen-Motiv für die Steuerung: Garten=Blume, Büro=Uhr, Nachtleben=Flasche, Friedhof=Totenkopf.
   function mixWhite(rgb, f){ const p=(rgb||'148,163,184').split(',').map(Number); const m=v=>Math.round(v+(255-v)*f); return `${m(p[0])},${m(p[1])},${m(p[2])}`; }
   // Die Schrittzahl steckt IM Motiv: Blumenmitte, Zifferblatt, Flaschenetikett, Totenkopf-Mund.
@@ -1910,7 +2026,7 @@
   const RACE_COLS=7, RACE_ROWS=13, RACE_ZONE_ROWS=12;   // Zonenhöhe ~3x Spurensuche-Band
   const RACE_SPEED={ leicht:{s:800,e:200}, mittel:{s:700,e:180}, schwer:{s:600,e:140}, experte:{s:500,e:100} };
   const RACE_BOMB={ leicht:0.10, mittel:0.15, schwer:0.20, experte:0.28 };
-  const RACE_DIST_POOL=['swapLR','double','repeatInvert','delay','swapActDir','swapAB','replaceC','replaceD'];
+  const RACE_DIST_POOL=['swapLR','double','repeatInvert','delay','swapActDir','swapAB','hopA','replaceD'];
   const RACE_DIST_LABEL={
     none:'Neutral – die Tasten tun genau das, was draufsteht.',
     swapLR:'Links und Rechts sind vertauscht.',
@@ -1919,8 +2035,8 @@
     delay:'Deine Richtungswahl wird um eine Eingabe verzögert ausgeführt.',
     swapActDir:'Aktions- und Richtungstasten sind vertauscht (← wirkt wie A, → wie B).',
     swapAB:'Die Aktionstasten A und B sind untereinander vertauscht.',
-    replaceC:'A ist ersetzt (C): es hüllt dich in die aktuelle Farbe – deren Regel bleibt 2 Zonen erhalten.',
-    replaceD:'B ist ersetzt (D): das Auto gerät ins Schlingern und ist 2–3 Intervalle unsteuerbar.'
+    hopA:'A ist ersetzt: statt zu springen macht das Auto einen Seitwärts-Hop – 2 Felder in die zuletzt gewählte Richtung.',
+    replaceD:'B ist ersetzt: das Auto gerät ins Schlingern und ist 2–3 Intervalle unsteuerbar.'
   };
   let race=null;
 
@@ -1974,7 +2090,7 @@
   }
   function raceResolveCarCell(){
     const row=race.grid[race.carRow]; const o=row.objs[race.carX];
-    if(o==='coin'){ row.objs[race.carX]=null; race.coins++; race.score+=5; }
+    if(o==='coin'){ row.objs[race.carX]=null; race.coins++; race.score+=5; sfx('coin'); }
     else if((o==='bomb'||o==='rocket') && race.airborne===0){ raceGameOver(); return false; }
     return true;
   }
@@ -1997,15 +2113,16 @@
   function raceActiveDist(){ return race.bubble>0 ? race.bubbleDist : race.zoneDistort[race.grid[race.carRow].zone]; }
   function raceResolveInput(btn, dist){
     let move=(btn==='L')?-1:(btn==='R')?1:null;
-    let act=(btn==='A')?'jump':(btn==='B')?'hop':null;
+    // Standard: A = Sprung, B = Farbregel vorläufig behalten (bubble).
+    let act=(btn==='A')?'jump':(btn==='B')?'bubble':null;
     switch(dist){
       case 'swapLR': if(move!==null) move=-move; break;
       case 'double': if(move!==null) move*=2; break;
-      case 'swapAB': if(act==='jump')act='hop'; else if(act==='hop')act='jump'; break;
+      case 'swapAB': if(act==='jump')act='bubble'; else if(act==='bubble')act='jump'; break;
       case 'swapActDir':
         if(btn==='L') return {act:'jump'}; if(btn==='A') return {move:-1};
-        if(btn==='R') return {act:'hop'}; if(btn==='B') return {move:1}; break;
-      case 'replaceC': if(btn==='A') return {act:'bubble'}; break;
+        if(btn==='R') return {act:'bubble'}; if(btn==='B') return {move:1}; break;
+      case 'hopA': if(btn==='A') return {act:'hop'}; break;
       case 'replaceD': if(btn==='B') return {act:'skid'}; break;
       case 'repeatInvert': if(move!==null){ if(btn===race.lastRawDirBtn) move=-move; race.lastRawDirBtn=btn; } break;
       case 'delay': if(move!==null){ const prev=race.delayBuf; race.delayBuf=move; if(prev===undefined) return null; move=prev; } break;
@@ -2024,12 +2141,12 @@
   function raceCheckImmediate(){
     const o=race.grid[race.carRow].objs[race.carX];
     if((o==='bomb'||o==='rocket') && race.airborne===0){ raceGameOver(); return false; }
-    if(o==='coin'){ race.grid[race.carRow].objs[race.carX]=null; race.coins++; race.score+=5; }
+    if(o==='coin'){ race.grid[race.carRow].objs[race.carX]=null; race.coins++; race.score+=5; sfx('coin'); }
     return true;
   }
-  function raceMove(dx){ if(race.skid>0) return; const step=dx>0?1:-1, n=Math.abs(dx); for(let k=0;k<n;k++) race.carX=clamp(race.carX+step,0,RACE_COLS-1); race.lastDir=step; if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); }
-  function raceJump(){ if(race.skid>0) return; if(race.jumpCd===0 && race.airborne===0){ race.airborne=2; raceRender(); } }
-  function raceHop(){ if(race.skid>0) return; if(race.bHopCd===0){ race.carX=clamp(race.carX+2*race.lastDir,0,RACE_COLS-1); race.bHopCd=2; if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); } }
+  function raceMove(dx){ if(race.skid>0) return; sfx('move'); const step=dx>0?1:-1, n=Math.abs(dx); for(let k=0;k<n;k++) race.carX=clamp(race.carX+step,0,RACE_COLS-1); race.lastDir=step; if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); }
+  function raceJump(){ if(race.skid>0) return; if(race.jumpCd===0 && race.airborne===0){ race.airborne=2; sfx('jump'); raceRender(); } }
+  function raceHop(){ if(race.skid>0) return; if(race.bHopCd===0){ race.carX=clamp(race.carX+2*race.lastDir,0,RACE_COLS-1); race.bHopCd=2; sfx('move'); if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); } }
   function raceBubble(){ race.bubble=2; race.bubbleDist=race.zoneDistort[race.grid[race.carRow].zone]; }
   function raceSkid(){ if(race.skid===0){ race.skid=2+randInt(2); race.skidDir=Math.random()<0.5?-1:1; raceRender(); } }
   function raceGameOver(){
@@ -2038,14 +2155,15 @@
     $('race-overlay-msg').innerHTML=`<b>Crash!</b><br>Du hast <b>${race.score}</b> Zeilen geschafft (${race.coins} M&uuml;nzen eingesammelt).`;
     const acts=$('race-overlay-actions'); acts.innerHTML='';
     const again=el('button','action primary'); again.textContent='Nochmal'; again.onclick=()=>raceStart(race.diffKey); acts.appendChild(again);
-    const bk=el('button','action'); bk.textContent='Zur&uuml;ck zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
+    const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
     raceRender();
+    spawnExplosion(race.cells[race.carRow*RACE_COLS+race.carX]);
   }
   function raceReveal(){
     let html='<b>Steuerung:</b><ul style="margin:4px 0 8px 18px;">'
       +'<li><b>&#9664; / &#9654;</b> bewegen das Auto ein Feld.</li>'
       +'<li><b>A</b> hebt das Auto 2 Felder ab und &uuml;berspringt Bomben &ndash; danach 3 Felder keine Spr&uuml;nge.</li>'
-      +'<li><b>B</b> springt 2 Felder in die zuletzt gew&auml;hlte Richtung.</li></ul>'
+      +'<li><b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei, auch wenn du die Zone wechselst.</li></ul>'
       +'<b>Die Farbzonen verzerren die Steuerung (verborgen &ndash; finde sie heraus!):</b><ul style="margin:4px 0 0 18px;">';
     ZONE_COLORS.forEach((zc,i)=>{ html+=`<li><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgb(${zc.tint});vertical-align:middle;margin-right:6px;"></span><b>${zc.name}</b>: ${RACE_DIST_LABEL[race.zoneDistort[i]]}</li>`; });
     html+='</ul>';
@@ -2179,7 +2297,7 @@
       const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
     } else ov.classList.add('hidden');
   }
-  function spgMove(dir){ if(!spgState||spgState.board.figs[0].done) return; gridBoardSubmit(spgState.board,0,dir); spgRender(); }
+  function spgMove(dir){ if(!spgState||spgState.board.figs[0].done) return; const r=gridBoardSubmit(spgState.board,0,dir); if(!r||r.type===null) sfx('move'); spgRender(); }
 
   // ===================== SP CIRCLE =====================
   function spcStart(diffKey, ov){
@@ -2189,7 +2307,7 @@
     renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1);
     spcRender();
   }
-  function spcCyclePose(){ if(!spcState||spcState.phase!=='playing') return; spcState.gandalfPose=(spcState.gandalfPose+1)%3; renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1); }
+  function spcCyclePose(){ if(!spcState||spcState.phase!=='playing') return; sfx('pose'); spcState.gandalfPose=(spcState.gandalfPose+1)%3; renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1); }
   function spcRender(){
     const cs=spcState; circleMarkerFlash(cs);
     $('spc-moves').textContent=cs.moves;
@@ -2209,9 +2327,11 @@
   }
   async function spcMove(choice){
     const cs=spcState; if(!cs||cs.phase!=='playing'||cs.animating) return;
+    sfx('move');
     document.querySelectorAll('#circle-steps button').forEach(b=>b.disabled=true);
     await circleStep(cs, choice, 'both');
     if(!cs.mounted) return;
+    if(cs.phase==='won') sfx('win');
     spcRender();
   }
 
@@ -2240,7 +2360,7 @@
       if(winCond==='fastest') line=`<div class="win-line">Spieler ${w} gewinnt!</div>Zuerst am Ziel in ${mpMoves(mp.winner)} Z&uuml;gen (Gegner: ${mpMoves(1-mp.winner)}${mpDone(1-mp.winner)?'':', noch unterwegs'}).`;
       else line=`<div class="win-line">Spieler ${w} gewinnt!</div>Weniger Z&uuml;ge: ${mpMoves(mp.winner)} gegen ${mpMoves(1-mp.winner)}.`;
     }
-    resEl.innerHTML=line; resEl.classList.remove('hidden');
+    resEl.innerHTML=line; resEl.classList.remove('hidden'); sfx('win');
     mpUpdateHeads();
   }
   function mpUpdateHeads(){
@@ -2285,7 +2405,7 @@
     mp.winner = s0>s1?0:s1>s0?1:'tie';
     const res=$('mpg-result');
     res.innerHTML = mp.winner==='tie' ? `<div class="win-line">Unentschieden!</div>Beide ${s0} Punkte.` : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>${s0} : ${s1} Punkte.`;
-    res.classList.remove('hidden');
+    res.classList.remove('hidden'); sfx('win');
   }
 
   function mpStartGrid(diffKey, ov){
@@ -2553,7 +2673,7 @@
   function mpcgShowResult(){
     const gs=mp.gs, w=mp.winner;
     $('mpcg-result').innerHTML=`<div class="win-line">Spieler ${w+1} gewinnt!</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove} Z&uuml;gen (Gegner: ${gs.players[1-w].moves} Z&uuml;ge).`;
-    $('mpcg-result').classList.remove('hidden');
+    $('mpcg-result').classList.remove('hidden'); sfx('win');
   }
   function mpcgShowReveal(){
     if(!mp||mp.mode!=='circleGer') return;
@@ -2673,7 +2793,7 @@
   }
   // Baut die Partie frisch auf – auch beim Rematch (alte Instanz wird abgeräumt).
   function onlEnterGame(cfg){
-    onl.mode=onlModeOf(cfg); onl.variant=onlVariantOf(cfg); onl.shared=onlSharedOf(cfg); onl.winCond=cfg.winCond||'fastest'; onl.ov=cfg.ov||{};
+    onl.mode=onlModeOf(cfg); onl.variant=onlVariantOf(cfg); onl.shared=onlSharedOf(cfg); onl.winCond=cfg.winCond||'fastest'; onl.ov=cfg.ov||{}; onl.resultSfx=false;
     if(onl.board){ stopDogTimer(onl.board); onl.board=null; }
     if(onl.cs){ onl.cs.mounted=false; onl.cs=null; }
     if(onl.gs) onl.gs.mounted=false;
@@ -3200,6 +3320,7 @@
   }
   function onlShowResult(){
     const w=onl.winner; if(w==null) return;
+    if(!onl.resultSfx){ onl.resultSfx=true; sfx('win'); }   // nur einmal pro Match
     if(!onl.shared){
       const meMoves = onl.mode==='grid' ? (onl.board?onl.board.figs[0].moves:0) : (onl.cs?onl.cs.moves:0);
       const oppMoves = onl.oppSnap?onl.oppSnap.moves:0;
@@ -3275,7 +3396,7 @@
     const circGer = currentMode==='circle' && circleVariant==='gerangel';
     $('winmode-block').classList.toggle('hidden', racing || playerCount!==2 || gerangel || circGer);
     $('open-online').classList.toggle('hidden', racing);
-    const dc=$('diff-caption'); if(dc) dc.textContent = racing ? 'Strecke wählen' : 'Tatort wählen';
+    const dc=$('diff-caption'); if(dc) dc.textContent = racing ? 'Strecke' : 'Schwierigkeit';
   }
 
   // Modus-Karussell (wischbar; die zentrierte Kachel bestimmt den Modus)
@@ -3330,6 +3451,7 @@
     const btn=el('button','diff-card'); btn.style.backgroundImage=`url("${svgUrl(theme.svg)}")`;
     btn.innerHTML=`<span class="sub">${theme.sub}</span><b class="title">${theme.title}</b><span class="blurb">${theme.blurb}</span>`;
     btn.addEventListener('click',()=>{
+      sfx('click');
       if(currentMode==='racing'){ raceStart(key); return; }
       if(playerCount===1){ if(currentMode==='grid') spgStart(key, gridVariant); else spcStart(key); }
       else mpStart(key);
