@@ -82,6 +82,20 @@
   .intro b{color:var(--text);}
   .tab-caption{font-size:0.7rem; color:#8896ab; text-transform:uppercase; letter-spacing:0.12em; margin:16px 2px 6px;}
   .mode-tabs{display:flex; gap:4px; background:rgba(11,18,32,0.9); border:1px solid var(--cell-border); border-radius:999px; padding:4px;}
+  /* Moduswahl-Karussell */
+  .cap-hint{text-transform:none; letter-spacing:0; color:#64748b; font-size:0.62rem; font-weight:400;}
+  .mode-carousel{display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:2px 0 6px; scrollbar-width:none;}
+  .mode-carousel::-webkit-scrollbar{display:none;}
+  .mode-card{flex:0 0 100%; scroll-snap-align:center; box-sizing:border-box; background:rgba(30,41,59,0.7); border:1px solid var(--cell-border); border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:10px; transition:border-color .15s, box-shadow .15s, opacity .15s; opacity:0.7;}
+  .mode-card.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(var(--accent-rgb),0.35); opacity:1;}
+  .mc-preview{height:132px; border-radius:12px; overflow:hidden; background:#0b1220; display:flex; align-items:center; justify-content:center;}
+  .mc-preview svg{width:100%; height:100%; display:block;}
+  .mc-body{display:flex; flex-direction:column; gap:3px;}
+  .mc-title{font-size:1.12rem; font-family:'Palatino Linotype','Book Antiqua',Georgia,serif;}
+  .mc-desc{font-size:0.8rem; color:var(--muted); line-height:1.4;}
+  .mode-dots{display:flex; gap:7px; justify-content:center; margin-top:4px;}
+  .mode-dots .mdot{width:8px; height:8px; border-radius:50%; background:var(--cell-border); cursor:pointer; transition:all .2s;}
+  .mode-dots .mdot.active{background:var(--accent); width:22px; border-radius:4px;}
   .mode-tab{
     flex:1; background:transparent; border:none; color:var(--muted); padding:9px 10px;
     border-radius:999px; cursor:pointer; font-family:inherit; font-size:0.88rem; transition:all .15s;
@@ -438,16 +452,29 @@
   </div>
 
   <!-- Reihenfolge ist bewusst so: jede Wahl blendet nur Bloecke UNTER sich ein/aus. -->
-  <div class="tab-caption">Spielfeld</div>
-  <div class="mode-tabs" id="mode-tabs">
-    <button class="mode-tab active" data-mode="grid">Feld-Modus</button>
-    <button class="mode-tab" data-mode="circle">Kreis-Modus</button>
+  <div class="tab-caption">Modus <span class="cap-hint">&ndash; wischen zum Wechseln</span></div>
+  <div class="mode-carousel" id="mode-carousel">
+    <div class="mode-card" data-mode="grid">
+      <div class="mc-preview" data-prev="grid"></div>
+      <div class="mc-body"><b class="mc-title">Feld-Modus</b><span class="mc-desc">F&uuml;hre deine Figur durchs Raster &ndash; die verborgene Regel verf&auml;lscht deine Eingabe.</span></div>
+    </div>
+    <div class="mode-card" data-mode="circle">
+      <div class="mc-preview" data-prev="circle"></div>
+      <div class="mc-body"><b class="mc-title">Kreis-Modus</b><span class="mc-desc">Dreh dich &uuml;ber konzentrische Ringe bis ins Zentrum &ndash; jede Zahl steuert Figur und Ringe.</span></div>
+    </div>
+    <div class="mode-card" data-mode="racing">
+      <div class="mc-preview" data-prev="racing"></div>
+      <div class="mc-body"><b class="mc-title">Racing-Modus</b><span class="mc-desc">Lenke das Auto am unteren Rand &ndash; das Feld rast dir entgegen, weiche Bomben aus, sammle M&uuml;nzen.</span></div>
+    </div>
   </div>
+  <div class="mode-dots" id="mode-dots"></div>
 
-  <div class="tab-caption">Spieler</div>
-  <div class="mode-tabs" id="player-tabs">
-    <button class="mode-tab active" data-players="1">Einzelspieler</button>
-    <button class="mode-tab" data-players="2">Duell (2 Spieler)</button>
+  <div id="player-block">
+    <div class="tab-caption">Spieler</div>
+    <div class="mode-tabs" id="player-tabs">
+      <button class="mode-tab active" data-players="1">Einzelspieler</button>
+      <button class="mode-tab" data-players="2">Duell (2 Spieler)</button>
+    </div>
   </div>
 
   <div id="variant-block">
@@ -474,7 +501,7 @@
     </div>
   </div>
 
-  <div class="tab-caption">Tatort w&auml;hlen</div>
+  <div class="tab-caption" id="diff-caption">Tatort w&auml;hlen</div>
   <div class="diff-grid" id="diff-grid"></div>
   <div style="text-align:center; margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
     <button class="action" id="open-online" style="background:#0e7490; border-color:#22d3ee; padding:10px 16px;">&#128241; Online spielen &ndash; Gerangel auf 2 Handys</button>
@@ -973,6 +1000,58 @@
     + `<g class="spark"><circle cx="18.6" cy="5" r="2.5" fill="#fb923c"/><circle cx="18.6" cy="5" r="1.3" fill="#fef3c7"/>`
     + `<path d="M18.6 1.4 L19.2 4 L18.6 5 L18 4 Z" fill="#fde68a"/></g>`
     + `</svg>`; }
+
+  // Auto von oben gesehen (Front oben) – für Racing-Modus und Vorschau
+  function carSvg(){ return `<svg viewBox="0 0 24 34" xmlns="http://www.w3.org/2000/svg">`
+    + `<rect x="3.5" y="8.5" width="4" height="7" rx="1.5" fill="#0b1220"/><rect x="16.5" y="8.5" width="4" height="7" rx="1.5" fill="#0b1220"/>`
+    + `<rect x="3.5" y="20.5" width="4" height="7" rx="1.5" fill="#0b1220"/><rect x="16.5" y="20.5" width="4" height="7" rx="1.5" fill="#0b1220"/>`
+    + `<rect x="5" y="2.5" width="14" height="29" rx="5" fill="#e11d48"/>`
+    + `<rect x="5" y="2.5" width="14" height="29" rx="5" fill="none" stroke="#7f1d1d" stroke-width="0.8"/>`
+    + `<rect x="6.6" y="5" width="10.8" height="7" rx="3" fill="#7dd3fc"/>`
+    + `<rect x="6.6" y="20" width="10.8" height="6.5" rx="2.5" fill="#b3243f"/>`
+    + `<rect x="8" y="1.4" width="8" height="3" rx="1.5" fill="#fecaca"/>`
+    + `</svg>`; }
+
+  // Mini-Vorschau je Modus fürs Karussell
+  function modePreviewSvg(mode){
+    if(mode==='grid'){
+      const tints=['202,163,74','96,150,104','92,132,180','128,132,144'];
+      const cols=7, rows=5, cw=200/cols, ch=130/rows; let cells='';
+      const zoneRow=[0,0,1,1,2,3,3];
+      for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
+        const t=tints[(zoneRow[x]+ (y>2?1:0))%4];
+        cells+=`<rect x="${(x*cw+1.5).toFixed(1)}" y="${(y*ch+1.5).toFixed(1)}" width="${(cw-3).toFixed(1)}" height="${(ch-3).toFixed(1)}" rx="3" fill="rgb(${t})" opacity="0.85"/>`;
+      }
+      return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">${cells}`
+        + `<circle cx="${(2.5*cw).toFixed(0)}" cy="${(1.5*ch).toFixed(0)}" r="9" fill="#22d3ee" stroke="#0b1220" stroke-width="1.5"/>`
+        + `<circle cx="${(5.5*cw).toFixed(0)}" cy="${(3.5*ch).toFixed(0)}" r="8" fill="#facc15" stroke="#92400e" stroke-width="1.5"/>`
+        + `<g transform="translate(${(4.1*cw).toFixed(0)},${(0.75*ch).toFixed(0)}) scale(0.7)"><circle cx="10.8" cy="15" r="7.6" fill="#15151b"/><circle cx="18.6" cy="5" r="2.5" fill="#fb923c"/><rect x="8.7" y="5.6" width="4.2" height="3.2" rx="0.9" fill="#2a2a33"/></g>`
+        + `</svg>`;
+    }
+    if(mode==='circle'){
+      let g='';
+      const rs=[58,42,26];
+      rs.forEach((r,i)=>{ g+=`<circle cx="100" cy="65" r="${r}" fill="none" stroke="rgba(34,211,238,${0.3+i*0.15})" stroke-width="9"/>`; });
+      // Sternenfeld + Marker + Zentrum (in Pose-Gelb)
+      g+=`<circle cx="100" cy="7" r="6" fill="#22d3ee"/>`;                 // Marker aussen
+      g+=`<text x="158" y="70" font-size="15" fill="#facc15" text-anchor="middle">&#9733;</text>`;
+      g+=`<circle cx="100" cy="65" r="12" fill="rgb(250,204,21)"/><circle cx="100" cy="65" r="12" fill="none" stroke="#92400e" stroke-width="1.5"/>`;
+      return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
+    }
+    // racing
+    let lanes='';
+    for(let i=1;i<5;i++){ lanes+=`<line x1="${i*40}" y1="0" x2="${i*40}" y2="130" stroke="rgba(148,163,184,0.18)" stroke-width="1"/>`; }
+    let dash='';
+    for(let i=1;i<5;i++){ for(let y=6;y<130;y+=22){ dash+=`<rect x="${i*40-1.2}" y="${y}" width="2.4" height="11" rx="1" fill="rgba(203,213,225,0.25)"/>`; } }
+    return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">`
+      + `<rect width="200" height="130" fill="#0e1424"/>${lanes}${dash}`
+      + `<g transform="translate(64,18) scale(0.6)"><circle cx="10.8" cy="15" r="7.6" fill="#15151b"/><circle cx="18.6" cy="5" r="2.5" fill="#fb923c"/></g>`
+      + `<circle cx="140" cy="42" r="8" fill="#facc15" stroke="#92400e" stroke-width="1.5"/>`
+      + `<g transform="translate(108,10) scale(0.5)"><path d="M12 0 L20 10 L16 10 L16 34 L8 34 L8 10 L4 10 Z" fill="#f87171"/></g>`
+      + `<g transform="translate(88,86) scale(1.05)">${carSvg().replace(/^<svg[^>]*>|<\/svg>$/g,'')}</g>`
+      + `<rect x="86" y="70" width="4" height="10" rx="2" fill="rgba(148,163,184,0.5)"/><rect x="110" y="66" width="4" height="12" rx="2" fill="rgba(148,163,184,0.4)"/>`
+      + `</svg>`;
+  }
 
   const STEP_POOLS = {
     leicht: ['normal','reverse'],
@@ -1772,6 +1851,9 @@
     document.body.style.backgroundImage=`linear-gradient(rgba(15,23,42,0.88),rgba(15,23,42,0.88)), url("${svgUrl(theme.svg)}")`;
     applyControlTheme(theme);
   }
+
+  // ===================== RACING (Platzhalter – wird in Phase 3 ersetzt) =====================
+  function raceStart(diffKey){ console.warn('raceStart stub', diffKey); }
 
   // ===================== SP GRID =====================
   // begrenzt die Zellgröße, damit das Brett auf schmale (mobile) Bildschirme passt
@@ -2973,20 +3055,35 @@
 
   // ===================== START SCREEN WIRING =====================
   function updateMenuVisibility(){
+    const racing = currentMode==='racing';
+    if(racing) playerCount=1;
+    $('player-block').classList.toggle('hidden', racing);
     $('variant-block').classList.toggle('hidden', currentMode!=='grid');
     $('circle-variant-block').classList.toggle('hidden', !(currentMode==='circle' && playerCount===2));
     const gerangel = currentMode==='grid' && gridVariant==='gerangel';
     const circGer = currentMode==='circle' && circleVariant==='gerangel';
-    $('winmode-block').classList.toggle('hidden', playerCount!==2 || gerangel || circGer);
+    $('winmode-block').classList.toggle('hidden', racing || playerCount!==2 || gerangel || circGer);
+    $('open-online').classList.toggle('hidden', racing);
+    const dc=$('diff-caption'); if(dc) dc.textContent = racing ? 'Strecke wählen' : 'Tatort wählen';
   }
 
-  document.querySelectorAll('#mode-tabs .mode-tab').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      currentMode=btn.dataset.mode;
-      document.querySelectorAll('#mode-tabs .mode-tab').forEach(b=>b.classList.toggle('active',b===btn));
-      updateMenuVisibility();
-    });
-  });
+  // Modus-Karussell (wischbar; die zentrierte Kachel bestimmt den Modus)
+  (function(){
+    const car=$('mode-carousel'); if(!car) return;
+    const cards=Array.from(car.querySelectorAll('.mode-card'));
+    const dotsHost=$('mode-dots');
+    cards.forEach(c=>{ const p=c.querySelector('.mc-preview'); if(p) p.innerHTML=modePreviewSvg(c.dataset.mode); });
+    cards.forEach((c,i)=>{ const d=el('div','mdot'); d.addEventListener('click',()=>scrollToCard(i)); dotsHost.appendChild(d);
+      c.addEventListener('click',()=>{ if(cards.indexOf(c)!==currentIndex()) scrollToCard(cards.indexOf(c)); }); });
+    const dots=Array.from(dotsHost.children);
+    function currentIndex(){ const center=car.scrollLeft+car.clientWidth/2; let best=0,bd=Infinity; cards.forEach((c,i)=>{ const cc=c.offsetLeft+c.offsetWidth/2; const d=Math.abs(cc-center); if(d<bd){bd=d;best=i;} }); return best; }
+    function scrollToCard(i){ car.scrollTo({left: cards[i].offsetLeft-(car.clientWidth-cards[i].offsetWidth)/2, behavior:'smooth'}); }
+    function setActive(i){ currentMode=cards[i].dataset.mode; cards.forEach((c,j)=>c.classList.toggle('active',j===i)); dots.forEach((d,j)=>d.classList.toggle('active',j===i)); updateMenuVisibility(); }
+    let t=null; car.addEventListener('scroll',()=>{ clearTimeout(t); t=setTimeout(()=>setActive(currentIndex()), 80); });
+    const startIdx=Math.max(0, cards.findIndex(c=>c.dataset.mode===currentMode));
+    setActive(startIdx);
+    window.addEventListener('resize',()=>{ const i=cards.findIndex(c=>c.classList.contains('active')); if(i>=0) car.scrollLeft=cards[i].offsetLeft-(car.clientWidth-cards[i].offsetWidth)/2; });
+  })();
   document.querySelectorAll('#variant-tabs .mode-tab').forEach(btn=>{
     btn.addEventListener('click',()=>{
       gridVariant=btn.dataset.variant; localStorage.setItem('regel-detektiv-variant',gridVariant);
@@ -3022,6 +3119,7 @@
     const btn=el('button','diff-card'); btn.style.backgroundImage=`url("${svgUrl(theme.svg)}")`;
     btn.innerHTML=`<span class="sub">${theme.sub}</span><b class="title">${theme.title}</b><span class="blurb">${theme.blurb}</span>`;
     btn.addEventListener('click',()=>{
+      if(currentMode==='racing'){ raceStart(key); return; }
       if(playerCount===1){ if(currentMode==='grid') spgStart(key, gridVariant); else spcStart(key); }
       else mpStart(key);
     });
