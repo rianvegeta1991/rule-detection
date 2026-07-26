@@ -924,7 +924,9 @@
     <input type="range" id="opt-sfx" min="0" max="100" step="5" value="100" style="width:100%;">
     <label class="small" style="margin:12px 0 2px;">&#127925; Hintergrundmusik: <b id="music-val">55%</b></label>
     <input type="range" id="opt-music" min="0" max="100" step="5" value="55" style="width:100%;">
-    <button class="action" id="open-guide" style="width:100%; margin-top:18px;">&#128218; Anleitung</button>
+    <button class="action" id="sound-test" style="width:100%; margin-top:14px;">&#128264; Ton testen</button>
+    <div id="sound-status" class="small" style="margin-top:6px; color:var(--muted); line-height:1.5;"></div>
+    <button class="action" id="open-guide" style="width:100%; margin-top:14px;">&#128218; Anleitung</button>
   </div>
 </div>
 
@@ -1193,7 +1195,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.5";
+  const APP_VERSION = "2.6";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1869,6 +1871,7 @@
     $('opt-sfx').value=Math.round(sfxVol*100); $('sfx-val').textContent=Math.round(sfxVol*100)+'%';
     $('opt-music').value=Math.round(musicVol*100); $('music-val').textContent=Math.round(musicVol*100)+'%';
     $('settings-modal').classList.remove('hidden');
+    if(typeof soundStatus==='function') soundStatus();
   }
   function closeSettings(){ $('settings-modal').classList.add('hidden'); }
   $('opt-sfx').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('sfx-val').textContent=v+'%'; setSfxVol(v/100); });
@@ -1917,7 +1920,7 @@
   function audioInit(){
     if(audioCtx) return audioCtx;
     try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null; audioCtx=new AC(); }catch(e){ return null; }
-    masterGain=audioCtx.createGain(); masterGain.gain.value=0.3; masterGain.connect(audioCtx.destination);
+    masterGain=audioCtx.createGain(); masterGain.gain.value=0.45; masterGain.connect(audioCtx.destination);
     musicGain=audioCtx.createGain(); musicGain.gain.value=musicVol; musicGain.connect(masterGain);
     sfxGain=audioCtx.createGain(); sfxGain.gain.value=sfxVol; sfxGain.connect(masterGain);
     audioCtx.onstatechange=updateSoundFab;
@@ -2010,6 +2013,27 @@
   AUDIO_GESTURES.forEach(ev=>document.addEventListener(ev, audioFirstGesture, {passive:true}));
   $('sound-fab').addEventListener('click', unlockAudio);
   updateSoundFab();
+  // Diagnose: klarer Testton + Anzeige des AudioContext-Zustands (hilft, Software- von Hardware-Ursachen zu trennen)
+  function soundStatus(){
+    const el=$('sound-status'); if(!el) return;
+    if(!audioCtx){ el.textContent='AudioContext: noch nicht gestartet – tippe „Ton testen".'; return; }
+    const st=audioCtx.state;
+    let msg=`AudioContext: <b>${st}</b> &middot; SFX ${Math.round(sfxVol*100)}% &middot; Musik ${Math.round(musicVol*100)}%`;
+    if(st==='running') msg+='<br><span style="color:var(--good)">L&auml;uft. H&ouml;rst du trotzdem nichts? &rarr; iPhone-Stummschalter (seitlich) aus und Medien-Lautst&auml;rke hoch.</span>';
+    else msg+='<br><span style="color:var(--bad)">Noch gesperrt. Nochmal tippen; klappt es nicht, blockiert der Browser den Ton (z. B. Energiesparmodus / Reader-Modus).</span>';
+    el.innerHTML=msg;
+  }
+  function soundTest(){
+    unlockAudio(); audioResume();
+    if(audioCtx){ const t=audioCtx.currentTime;
+      // laut & klar, direkt über den Master-Bus (unabhängig vom SFX-Regler)
+      tone(660,0.18,'triangle',t,0.7,null,masterGain);
+      tone(880,0.20,'triangle',t+0.17,0.7,null,masterGain);
+      tone(1175,0.30,'triangle',t+0.35,0.65,null,masterGain);
+    }
+    setTimeout(soundStatus,140);
+  }
+  $('sound-test').addEventListener('click', soundTest);
 
   // Themen-Motiv für die Steuerung: Garten=Blume, Büro=Uhr, Nachtleben=Flasche, Friedhof=Totenkopf.
   function mixWhite(rgb, f){ const p=(rgb||'148,163,184').split(',').map(Number); const m=v=>Math.round(v+(255-v)*f); return `${m(p[0])},${m(p[1])},${m(p[2])}`; }
