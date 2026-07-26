@@ -1193,7 +1193,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.4";
+  const APP_VERSION = "2.5";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1873,8 +1873,8 @@
   function closeSettings(){ $('settings-modal').classList.add('hidden'); }
   $('opt-sfx').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('sfx-val').textContent=v+'%'; setSfxVol(v/100); });
   $('opt-music').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('music-val').textContent=v+'%'; setMusicVol(v/100); });
-  $('sound-fab').addEventListener('click', unlockAudio);
-  updateSoundFab();
+  // Hinweis: die Ton-Freigabe (#sound-fab) wird erst NACH der Audio-Variablen-Deklaration verkabelt
+  // (weiter unten im Sound-Abschnitt) – sonst laufen sfxVol/musicVol in die Temporal Dead Zone.
   function openGuide(){ $('guide-modal').classList.remove('hidden'); }
   function closeGuide(){ $('guide-modal').classList.add('hidden'); }
   $('gear-btn').addEventListener('click', openSettings);
@@ -2008,6 +2008,8 @@
   const AUDIO_GESTURES=['pointerdown','touchend','click','keydown'];
   function audioFirstGesture(){ unlockAudio(); AUDIO_GESTURES.forEach(ev=>document.removeEventListener(ev, audioFirstGesture)); }
   AUDIO_GESTURES.forEach(ev=>document.addEventListener(ev, audioFirstGesture, {passive:true}));
+  $('sound-fab').addEventListener('click', unlockAudio);
+  updateSoundFab();
 
   // Themen-Motiv für die Steuerung: Garten=Blume, Büro=Uhr, Nachtleben=Flasche, Friedhof=Totenkopf.
   function mixWhite(rgb, f){ const p=(rgb||'148,163,184').split(',').map(Number); const m=v=>Math.round(v+(255-v)*f); return `${m(p[0])},${m(p[1])},${m(p[2])}`; }
