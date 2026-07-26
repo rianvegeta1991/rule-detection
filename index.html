@@ -50,6 +50,14 @@
     font-size:1.15rem; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center;
   }
   #gear-btn:hover{color:var(--gold); border-color:var(--gold); transform:rotate(40deg);}
+  /* Ton-Freigabe (mobile Autoplay-Sperre): sichtbar, bis der Ton entsperrt ist */
+  #sound-fab{position:fixed; top:16px; left:16px; z-index:51; display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:999px;
+    background:var(--accent); border:none; color:#0b1220; font-family:inherit; font-weight:700; font-size:0.9rem; cursor:pointer;
+    box-shadow:0 4px 14px rgba(var(--accent-rgb),0.5); animation:sfPulse 1.4s infinite;}
+  #sound-fab .sf-ic{font-size:1.05rem; line-height:1;}
+  #sound-fab:active{transform:scale(0.95);}
+  @keyframes sfPulse{0%,100%{box-shadow:0 4px 14px rgba(var(--accent-rgb),0.5);} 50%{box-shadow:0 4px 22px rgba(var(--accent-rgb),0.95);}}
+  @media (max-width:680px){ #sound-fab{top:calc(8px + env(safe-area-inset-top)); left:8px; padding:7px 12px; font-size:0.82rem;} }
   .modal-card{background:var(--panel); border:1px solid var(--cell-border); border-radius:var(--radius); padding:0 22px 20px; max-width:480px; width:92%; box-shadow:0 20px 60px rgba(0,0,0,0.5); max-height:calc(100dvh - 32px); overflow-y:auto; overscroll-behavior:contain;}
   /* Kopfzeile bleibt beim Scrollen bündig oben (× immer erreichbar). */
   .modal-head{display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:1; background:var(--panel); margin:0 -22px 12px; padding:16px 22px 10px;}
@@ -462,6 +470,7 @@
 <body>
 
 <button id="gear-btn" aria-label="Einstellungen">&#9881;</button>
+<button id="sound-fab" class="hidden" aria-label="Ton aktivieren"><span class="sf-ic">&#128266;</span><span class="sf-tx">Ton an</span></button>
 
 <div id="start-screen">
   <div class="hero">
@@ -911,8 +920,10 @@
     </div>
     <label class="small" style="margin:0 0 2px;">Animations-Tempo: <b class="speed-val">1&times;</b></label>
     <input type="range" class="speed-slider" min="0.25" max="3" step="0.25" value="1" style="width:100%;">
-    <label style="margin-top:14px;"><input type="checkbox" id="opt-sfx" checked> &#128266; Soundeffekte</label>
-    <label style="margin-top:8px;"><input type="checkbox" id="opt-music" checked> &#127925; Hintergrundmusik</label>
+    <label class="small" style="margin:14px 0 2px;">&#128266; Soundeffekte: <b id="sfx-val">100%</b></label>
+    <input type="range" id="opt-sfx" min="0" max="100" step="5" value="100" style="width:100%;">
+    <label class="small" style="margin:12px 0 2px;">&#127925; Hintergrundmusik: <b id="music-val">55%</b></label>
+    <input type="range" id="opt-music" min="0" max="100" step="5" value="55" style="width:100%;">
     <button class="action" id="open-guide" style="width:100%; margin-top:18px;">&#128218; Anleitung</button>
   </div>
 </div>
@@ -1182,7 +1193,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.3";
+  const APP_VERSION = "2.4";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1854,10 +1865,16 @@
   }
 
   // ===================== EINSTELLUNGEN / ANLEITUNG =====================
-  function openSettings(){ $('opt-sfx').checked=sfxOn; $('opt-music').checked=musicOn; $('settings-modal').classList.remove('hidden'); }
+  function openSettings(){
+    $('opt-sfx').value=Math.round(sfxVol*100); $('sfx-val').textContent=Math.round(sfxVol*100)+'%';
+    $('opt-music').value=Math.round(musicVol*100); $('music-val').textContent=Math.round(musicVol*100)+'%';
+    $('settings-modal').classList.remove('hidden');
+  }
   function closeSettings(){ $('settings-modal').classList.add('hidden'); }
-  $('opt-sfx').addEventListener('change', e=>setSfxOn(e.target.checked));
-  $('opt-music').addEventListener('change', e=>setMusicOn(e.target.checked));
+  $('opt-sfx').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('sfx-val').textContent=v+'%'; setSfxVol(v/100); });
+  $('opt-music').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('music-val').textContent=v+'%'; setMusicVol(v/100); });
+  $('sound-fab').addEventListener('click', unlockAudio);
+  updateSoundFab();
   function openGuide(){ $('guide-modal').classList.remove('hidden'); }
   function closeGuide(){ $('guide-modal').classList.add('hidden'); }
   $('gear-btn').addEventListener('click', openSettings);
@@ -1889,15 +1906,21 @@
   function backToMenu(){ teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); startBg(); }
   // ===================== SOUND (Web Audio, komplett synthetisiert – keine externen Dateien) =====================
   const AUDIO_KEY='regel-detektiv-audio';
-  let audioCtx=null, masterGain=null, musicGain=null, sfxOn=true, musicOn=true;
+  let audioCtx=null, masterGain=null, musicGain=null, sfxGain=null, sfxOn=true, musicOn=true;
+  let sfxVol=1.0, musicVol=0.55;                 // 0..1, unabhängig skalierbar (wie das Animationstempo)
   let musicTimer=null, musicData=null, musicLoopStart=0, musicIdx=0;
-  (function(){ try{ const p=JSON.parse(localStorage.getItem(AUDIO_KEY)||'{}'); if(p.sfx===false) sfxOn=false; if(p.music===false) musicOn=false; }catch(e){} })();
-  function saveAudioPrefs(){ try{ localStorage.setItem(AUDIO_KEY, JSON.stringify({sfx:sfxOn, music:musicOn})); }catch(e){} }
+  (function(){ try{ const p=JSON.parse(localStorage.getItem(AUDIO_KEY)||'{}');
+    if(typeof p.sfxVol==='number') sfxVol=Math.max(0,Math.min(1,p.sfxVol)); else if(p.sfx===false) sfxVol=0;      // Migration alter Bool-Werte
+    if(typeof p.musicVol==='number') musicVol=Math.max(0,Math.min(1,p.musicVol)); else if(p.music===false) musicVol=0;
+  }catch(e){} sfxOn=sfxVol>0; musicOn=musicVol>0; })();
+  function saveAudioPrefs(){ try{ localStorage.setItem(AUDIO_KEY, JSON.stringify({sfxVol, musicVol})); }catch(e){} }
   function audioInit(){
     if(audioCtx) return audioCtx;
     try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return null; audioCtx=new AC(); }catch(e){ return null; }
     masterGain=audioCtx.createGain(); masterGain.gain.value=0.3; masterGain.connect(audioCtx.destination);
-    musicGain=audioCtx.createGain(); musicGain.gain.value=0.55; musicGain.connect(masterGain);
+    musicGain=audioCtx.createGain(); musicGain.gain.value=musicVol; musicGain.connect(masterGain);
+    sfxGain=audioCtx.createGain(); sfxGain.gain.value=sfxVol; sfxGain.connect(masterGain);
+    audioCtx.onstatechange=updateSoundFab;
     return audioCtx;
   }
   function audioResume(){ const c=audioInit(); if(c && c.state==='suspended'){ try{ c.resume(); }catch(e){} } return c; }
@@ -1909,7 +1932,7 @@
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(Math.max(0.0002,vol||0.3), t0+0.012);
     g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
-    o.connect(g); g.connect(dest||masterGain); o.start(t0); o.stop(t0+dur+0.03);
+    o.connect(g); g.connect(dest||sfxGain||masterGain); o.start(t0); o.stop(t0+dur+0.03);
   }
   function noiseBurst(dur, vol){
     if(!audioCtx) return; const t0=audioCtx.currentTime;
@@ -1918,7 +1941,7 @@
     const src=audioCtx.createBufferSource(); src.buffer=buf;
     const lp=audioCtx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(1400,t0); lp.frequency.exponentialRampToValueAtTime(120,t0+dur);
     const g=audioCtx.createGain(); g.gain.setValueAtTime(vol||0.6,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-    src.connect(lp); lp.connect(g); g.connect(masterGain); src.start(t0); src.stop(t0+dur+0.03);
+    src.connect(lp); lp.connect(g); g.connect(sfxGain||masterGain); src.start(t0); src.stop(t0+dur+0.03);
   }
   function sfx(name){
     if(!sfxOn || !audioResume()) return; const t=audioCtx.currentTime;
@@ -1971,10 +1994,20 @@
     musicTimer=setInterval(musicTick, 60); musicTick();
   }
   function musicStop(){ if(musicTimer){ clearInterval(musicTimer); musicTimer=null; } }
-  function setSfxOn(v){ sfxOn=!!v; saveAudioPrefs(); if(sfxOn) sfx('click'); }
-  function setMusicOn(v){ musicOn=!!v; saveAudioPrefs(); if(musicOn) musicStart(); else musicStop(); }
-  function audioFirstGesture(){ audioResume(); if(musicOn) musicStart(); document.removeEventListener('pointerdown', audioFirstGesture); document.removeEventListener('keydown', audioFirstGesture); }
-  document.addEventListener('pointerdown', audioFirstGesture); document.addEventListener('keydown', audioFirstGesture);
+  function setSfxVol(v){ sfxVol=Math.max(0,Math.min(1,v)); sfxOn=sfxVol>0; if(sfxGain) sfxGain.gain.value=sfxVol; saveAudioPrefs(); if(sfxOn){ audioResume(); sfx('click'); } updateSoundFab(); }
+  function setMusicVol(v){ musicVol=Math.max(0,Math.min(1,v)); musicOn=musicVol>0; if(musicGain) musicGain.gain.value=musicVol; saveAudioPrefs(); if(musicOn){ audioResume(); musicStart(); } else musicStop(); updateSoundFab(); }
+  // Ton-Freigabe (mobile Autoplay-Sperre): Kontext im Nutzer-Gesture entsperren
+  function updateSoundFab(){ const fab=$('sound-fab'); if(!fab) return; const wantSound=(sfxVol>0||musicVol>0); const running=!!audioCtx && audioCtx.state==='running'; fab.classList.toggle('hidden', !(wantSound && !running)); }
+  function unlockAudio(){
+    const c=audioInit(); if(!c){ updateSoundFab(); return; }
+    if(c.state==='suspended'){ try{ c.resume(); }catch(e){} }
+    try{ const b=c.createBuffer(1,1,22050), s=c.createBufferSource(); s.buffer=b; s.connect(c.destination); s.start(0); }catch(e){}   // iOS-Stups
+    if(musicOn) musicStart();
+    updateSoundFab(); setTimeout(updateSoundFab, 80);
+  }
+  const AUDIO_GESTURES=['pointerdown','touchend','click','keydown'];
+  function audioFirstGesture(){ unlockAudio(); AUDIO_GESTURES.forEach(ev=>document.removeEventListener(ev, audioFirstGesture)); }
+  AUDIO_GESTURES.forEach(ev=>document.addEventListener(ev, audioFirstGesture, {passive:true}));
 
   // Themen-Motiv für die Steuerung: Garten=Blume, Büro=Uhr, Nachtleben=Flasche, Friedhof=Totenkopf.
   function mixWhite(rgb, f){ const p=(rgb||'148,163,184').split(',').map(Number); const m=v=>Math.round(v+(255-v)*f); return `${m(p[0])},${m(p[1])},${m(p[2])}`; }
