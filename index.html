@@ -163,6 +163,15 @@
   .race-cell .car.air{transform:scale(1.32); z-index:5;}
   .race-cell .car.air svg{filter:drop-shadow(0 7px 5px rgba(0,0,0,0.7));}
   .race-cell .car.skid svg{filter:drop-shadow(0 0 6px var(--bad));}
+  /* Punktestand im Racing-Duell */
+  .race-duel{width:100%; max-width:440px; margin:0 auto 6px; display:flex; gap:8px;}
+  .race-duel .rd{flex:1 1 0; background:rgba(11,18,32,0.62); border:1px solid var(--cell-border); border-radius:10px; padding:5px 8px; text-align:center; line-height:1.25;}
+  .race-duel .rd span{font-size:0.68rem; color:var(--muted);}
+  .race-duel .rd b{display:block; font-size:1.05rem;}
+  .race-duel .rd.me{border-color:var(--p1);} .race-duel .rd.me b{color:var(--p1);}
+  .race-duel .rd.opp{border-color:var(--p2);} .race-duel .rd.opp b{color:var(--p2);}
+  .race-duel .rd.out{opacity:0.55;}
+  .race-duel .rd.lead{box-shadow:0 0 0 2px rgba(var(--accent-rgb),0.45);}
   .race-controls{display:flex; gap:8px; width:100%; max-width:440px; margin:6px auto 0;}
   .race-btn{flex:1 1 0; min-height:62px; border-radius:14px; border:1px solid #4b5563; background:linear-gradient(#3a3f47,#22262c); color:var(--text); font-size:1.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
   .race-btn:active:not(:disabled){transform:translateY(1px); box-shadow:inset 0 3px 8px rgba(0,0,0,0.7);}
@@ -816,6 +825,7 @@
       <div class="btn-row" style="margin-bottom:6px;">
         <select id="onl-mode" class="ed-sel" style="flex:1;">
           <option value="grid">Feld-Modus</option>
+          <option value="racing">Racing-Modus</option>
           <option value="circle">Kreis-Modus</option>
         </select>
         <select id="onl-gvariant" class="ed-sel" style="flex:1;"></select>
@@ -990,6 +1000,7 @@
       <button class="action mini" id="race-back">Zur&uuml;ck</button>
     </div>
   </div>
+  <div id="race-duel" class="race-duel hidden"></div>
   <div class="board-wrap" style="position:relative;">
     <div id="race-host"></div>
     <div id="race-overlay" class="panel hidden" style="position:absolute; z-index:6; left:50%; top:50%; transform:translate(-50%,-50%); width:min(92%,360px); text-align:center;">
@@ -1236,7 +1247,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.6";
+  const APP_VERSION = "2.7";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1947,7 +1958,7 @@
     }
   }
   function startBg(){ document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`; }
-  function backToMenu(){ teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); startBg(); }
+  function backToMenu(){ raceDuel=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); startBg(); }
   // ===================== SOUND (Web Audio, komplett synthetisiert – keine externen Dateien) =====================
   const AUDIO_KEY='regel-detektiv-audio';
   let audioCtx=null, masterGain=null, musicGain=null, sfxGain=null, sfxOn=true, musicOn=true;
@@ -2141,10 +2152,16 @@
     replaceD:'B ist ersetzt: das Auto gerät ins Schlingern und ist 2–3 Intervalle unsteuerbar.'
   };
   let race=null;
+  // Duell-Kontext: lokal (nacheinander auf einem Geraet) oder online (beide gleichzeitig)
+  let raceDuel=null;
 
   // Erste Zone ist immer neutral, die uebrigen bekommen je eine verborgene Verzerrung
   function raceAssignDistorts(n){ const pool=shuffle(RACE_DIST_POOL.slice()); const out=['none']; for(let i=1;i<n;i++) out.push(pool[i-1]); return out; }
-  function raceNewZone(prev){ const n=race.zoneCount||4; if(n<2) return 0; let z; do{ z=randInt(n); }while(z===prev); return z; }
+  // Weltgenerator-Zufall: im Online-Duell aus einem Seed, damit beide Geraete dieselbe Strecke bekommen.
+  // Nur Streckenaufbau nutzt ihn (Spieleraktionen wie Schlingern bleiben beim globalen Zufall).
+  function raceRnd(){ return race.rng ? race.rng() : Math.random(); }
+  function raceRandInt(n){ return Math.floor(raceRnd()*n); }
+  function raceNewZone(prev){ const n=race.zoneCount||4; if(n<2) return 0; let z; do{ z=raceRandInt(n); }while(z===prev); return z; }
   function raceElapsed(){ return (performance.now()-race.startTime)/1000; }
   function raceInterval(){ const sp=RACE_SPEED[race.diffKey]||RACE_SPEED.mittel; const t=Math.min(1, raceElapsed()/120); return Math.round(sp.s+(sp.e-sp.s)*t); }
   function raceBombProb(){ const base=RACE_BOMB[race.diffKey]||0.15; const extra=Math.max(0,(raceElapsed()-120)/120)*0.18; return Math.min(0.5, base+extra); }
@@ -2154,11 +2171,11 @@
     const objs=new Array(RACE_COLS).fill(null);
     if(!initial){
       const rockets = (race.diffKey==='schwer'||race.diffKey==='experte');
-      if(Math.random()<raceBombProb()){
-        const x=randInt(RACE_COLS); objs[x]=(rockets && Math.random()<0.4)?'rocket':'bomb';
-        if(race.diffKey==='experte' && Math.random()<0.3){ const x2=randInt(RACE_COLS); if(!objs[x2]) objs[x2]='bomb'; }
+      if(raceRnd()<raceBombProb()){
+        const x=raceRandInt(RACE_COLS); objs[x]=(rockets && raceRnd()<0.4)?'rocket':'bomb';
+        if(race.diffKey==='experte' && raceRnd()<0.3){ const x2=raceRandInt(RACE_COLS); if(!objs[x2]) objs[x2]='bomb'; }
       }
-      if(Math.random()<0.13){ for(let t=0;t<6;t++){ const cx=randInt(RACE_COLS); if(!objs[cx]){ objs[cx]='coin'; break; } } }
+      if(raceRnd()<0.13){ for(let t=0;t<6;t++){ const cx=raceRandInt(RACE_COLS); if(!objs[cx]){ objs[cx]='coin'; break; } } }
     }
     return { zone: race.curZone, objs };
   }
@@ -2211,7 +2228,7 @@
       race.carEl.style.top=(RACE_PAD+race.carRow*race.stepPx)+'px';
     }
   }
-  function raceRenderStats(){ $('race-stats').innerHTML=`Zeilen <b>${race.score}</b> &middot; M&uuml;nzen <b>${race.coins}</b> &middot; <b>${ZONE_COLORS[raceCarRowData().zone].name}</b>`; }
+  function raceRenderStats(){ $('race-stats').innerHTML=`Punkte <b>${race.score}</b> &middot; M&uuml;nzen <b>${race.coins}</b> &middot; <b>${ZONE_COLORS[raceCarRowData().zone].name}</b>`; raceRenderDuel(); }
   function raceClearTimers(){ if(race){ clearTimeout(race.timer); clearTimeout(race.halfTimer); } }
   function raceSchedule(){
     if(!race||!race.alive||!race.mounted) return;
@@ -2222,7 +2239,7 @@
   }
   function raceMoveRockets(){
     for(let y=0;y<race.grid.length;y++){ const row=race.grid[y];
-      for(let x=0;x<RACE_COLS;x++){ if(row.objs[x]==='rocket'){ const dir=Math.random()<0.5?-1:1; const nx=x+dir; if(nx>=0&&nx<RACE_COLS&&!row.objs[nx]){ row.objs[nx]='rocket'; row.objs[x]=null; } } }
+      for(let x=0;x<RACE_COLS;x++){ if(row.objs[x]==='rocket'){ const dir=raceRnd()<0.5?-1:1; const nx=x+dir; if(nx>=0&&nx<RACE_COLS&&!row.objs[nx]){ row.objs[nx]='rocket'; row.objs[x]=null; } } }
     }
   }
   // Kollision zaehlt nur beim vollen Einrasten auf ein Feld – nicht auf halbem Weg
@@ -2245,7 +2262,9 @@
     const zoneNow=raceCarRowData().zone;
     if(zoneNow!==race.lastCarZone){ if(race.bubble>0){ race.bubble--; if(race.bubble===0) race.bubbleDist=null; } race.lastCarZone=zoneNow; }
     if(!raceResolveCarCell()) return;
+    if(raceCheckDuelWin()) return;
     raceRender(); raceRenderStats(); raceSchedule();
+    if(raceDuel && raceDuel.kind==='online') raceOnlinePublish();
   }
   // ---- Steuerung ----
   function raceActiveDist(){ return race.bubble>0 ? race.bubbleDist : race.zoneDistort[raceCarRowData().zone]; }
@@ -2289,13 +2308,76 @@
   function raceSkid(){ if(race.skid===0){ race.skid=2+randInt(2); race.skidDir=Math.random()<0.5?-1:1; raceRender(); } }
   function raceGameOver(){
     race.alive=false; raceClearTimers();
+    raceRender();
+    spawnExplosion(race.cells[(race.carRow+1)*RACE_COLS+race.carX]);
+    if(raceDuel){ raceDuelCrashed(); return; }
     const ov=$('race-overlay'); ov.classList.remove('hidden');
     $('race-overlay-msg').innerHTML=`<b>Crash!</b><br>Du hast <b>${race.score}</b> Zeilen geschafft (${race.coins} M&uuml;nzen eingesammelt).`;
     const acts=$('race-overlay-actions'); acts.innerHTML='';
     const again=el('button','action primary'); again.textContent='Nochmal'; again.onclick=()=>raceStart(race.diffKey); acts.appendChild(again);
     const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
-    raceRender();
-    spawnExplosion(race.cells[(race.carRow+1)*RACE_COLS+race.carX]);
+  }
+
+  // ===================== RACING-DUELL =====================
+  // Punkte = zurueckgelegte Zeilen + 5 je Muenze (steckt bereits in race.score).
+  // Sieg: der Gegner ist ausgeschieden UND die eigene Punktzahl liegt darueber.
+  function raceOverlay(msg, buttons){
+    const ov=$('race-overlay'); ov.classList.remove('hidden');
+    $('race-overlay-msg').innerHTML=msg;
+    const acts=$('race-overlay-actions'); acts.innerHTML='';
+    buttons.forEach(b=>{ const btn=el('button','action'+(b.primary?' primary':'')); btn.innerHTML=b.label; btn.onclick=b.fn; acts.appendChild(btn); });
+  }
+  function raceRenderDuel(){
+    const bar=$('race-duel'); if(!bar) return;
+    if(!raceDuel){ bar.classList.add('hidden'); bar.innerHTML=''; return; }
+    bar.classList.remove('hidden');
+    const mine=race?race.score:0;
+    if(raceDuel.kind==='local'){
+      const p=raceDuel.current, other=raceDuel.scores[1-p];
+      const lead = other!=null && mine>other;
+      bar.innerHTML=`<div class="rd me${lead?' lead':''}"><span>Spieler ${p+1} f&auml;hrt</span><b>${mine}</b></div>`
+        +`<div class="rd opp${other==null?' out':''}"><span>Spieler ${2-p}${other==null?' wartet':' (fertig)'}</span><b>${other==null?'&ndash;':other}</b></div>`;
+    } else {
+      const op=raceDuel.oppScore||0;
+      bar.innerHTML=`<div class="rd me${mine>op?' lead':''}"><span>Du${race&&!race.alive?' &ndash; ausgeschieden':''}</span><b>${mine}</b></div>`
+        +`<div class="rd opp${raceDuel.oppAlive?'':' out'}"><span>Gegner${raceDuel.oppAlive?'':' &ndash; ausgeschieden'}</span><b>${op}</b></div>`;
+    }
+  }
+  // Lokales Duell: nacheinander auf einem Geraet
+  function raceStartLocalDuel(diffKey){
+    raceDuel={ kind:'local', diffKey, scores:[null,null], current:0 };
+    raceStart(diffKey);
+    raceOverlay(`<b>Spieler 1 f&auml;ngt an</b><br>Fahre so weit du kannst &ndash; Spieler 2 muss deine Punktzahl danach &uuml;bertreffen.`,
+      [{label:'Los!', primary:true, fn:()=>{ $('race-overlay').classList.add('hidden'); raceSchedule(); }}]);
+    raceClearTimers();                       // erst nach "Los!" starten
+  }
+  function raceDuelCrashed(){
+    if(raceDuel.kind==='online'){ raceOnlineCrashed(); return; }
+    const p=raceDuel.current;
+    raceDuel.scores[p]=race.score;
+    raceRenderDuel();
+    if(p===0){
+      raceOverlay(`<b>Spieler 1: ${race.score} Punkte</b><br>(${race.coins} M&uuml;nzen)<br><br>Jetzt ist <b>Spieler 2</b> dran &ndash; mehr als <b>${race.score}</b> Punkte, dann gewinnt er.`,
+        [{label:'Spieler 2 starten', primary:true, fn:()=>{ raceDuel.current=1; raceStart(raceDuel.diffKey); }},
+         {label:'Zur&uuml;ck', fn:backToMenu}]);
+    } else {
+      raceDuelFinish(raceDuel.scores[1]>raceDuel.scores[0] ? 1 : 0);
+    }
+  }
+  function raceDuelFinish(winner){
+    const s=raceDuel.scores;
+    raceOverlay(`<div class="win-line">Spieler ${winner+1} gewinnt!</div>Spieler 1: <b>${s[0]}</b> Punkte &middot; Spieler 2: <b>${s[1]==null?'&ndash;':s[1]}</b> Punkte.`,
+      [{label:'Nochmal', primary:true, fn:()=>raceStartLocalDuel(raceDuel.diffKey)},
+       {label:'Zur&uuml;ck zur Auswahl', fn:backToMenu}]);
+  }
+  // Spieler 2 gewinnt sofort, sobald er die Vorgabe uebertrifft
+  function raceCheckDuelWin(){
+    if(!raceDuel || raceDuel.kind!=='local' || raceDuel.current!==1) return false;
+    const target=raceDuel.scores[0];
+    if(target==null || race.score<=target) return false;
+    race.alive=false; raceClearTimers(); raceDuel.scores[1]=race.score;
+    sfx('win'); raceRenderDuel(); raceDuelFinish(1);
+    return true;
   }
   function raceReveal(){
     let html='<b>Steuerung:</b><ul style="margin:4px 0 8px 18px;">'
@@ -2307,15 +2389,23 @@
     html+='</ul>';
     openReveal(html);
   }
-  function raceStart(diffKey){
+  function raceStart(diffKey, opts){
+    opts=opts||{};
     teardownActive(); hideAllScreens(); $('racing').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); document.body.classList.add('playing');
     const theme=THEMES[diffKey]||THEMES.leicht; setThemeBg(theme);
     const zoneCount=RACE_ZONES[diffKey]||4;
     race={ diffKey, theme, grid:[], cells:[], carX:Math.floor(RACE_COLS/2), carRow:RACE_ROWS-2,
       airborne:0, jumpCd:0, bHopCd:0, lastDir:1, delayBuf:undefined, lastRawDirBtn:null,
-      skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:raceAssignDistorts(zoneCount),
-      rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:randInt(zoneCount),
+      skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:null,
+      rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
+      rng: (opts.seed!=null ? mulberry32(opts.seed>>>0) : null),
       tickCount:0, startTime:performance.now(), alive:true, mounted:true, timer:null, halfTimer:null };
+    // Verzerrungen und Startzone aus demselben Seed – im Online-Duell fahren beide dieselbe Strecke
+    if(opts.seed!=null){ const r=mulberry32((opts.seed>>>0)^0x9e3779b9); const pool=RACE_DIST_POOL.slice();
+      for(let i=pool.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); const t=pool[i]; pool[i]=pool[j]; pool[j]=t; }
+      race.zoneDistort=['none']; for(let i=1;i<zoneCount;i++) race.zoneDistort.push(pool[i-1]);
+      race.curZone=Math.floor(r()*zoneCount);
+    } else { race.zoneDistort=raceAssignDistorts(zoneCount); race.curZone=randInt(zoneCount); }
     // eine Zeile mehr als sichtbar: die oberste haengt verdeckt ueber dem Feld und rutscht in Halbschritten herein
     for(let y=0;y<RACE_ROWS+1;y++) race.grid.push(raceSpawnRow(true));
     race.lastCarZone=raceCarRowData().zone;
@@ -2889,6 +2979,9 @@
   // fertige specs/poseEffects (auch für Editor-Konfigurationen, da buildCircleConfig ov schon auflöst).
   function onlBuildConfig(){
     const base={ v:3, mode:onl.mode, variant:onl.variant, shared:onl.shared, diffKey:onl.diffKey, winCond:onl.winCond||'fastest' };
+    if(onl.mode==='racing'){
+      return clean(Object.assign(base, { seed:(Math.random()*4294967296)>>>0 }));
+    }
     if(onl.mode==='grid'){
       return clean(Object.assign(base, { seed:(Math.random()*4294967296)>>>0, ov:onl.ov||{} }));
     }
@@ -2912,7 +3005,7 @@
     } finally{ unseedRng(); }
   }
   // Modus aus der Config lesen (v3: cfg.mode; v2-Fallback: cfg.variant war 'grid'/'circle').
-  function onlModeOf(cfg){ if(cfg && (cfg.mode==='grid'||cfg.mode==='circle')) return cfg.mode; return (cfg && cfg.variant==='grid') ? 'grid' : 'circle'; }
+  function onlModeOf(cfg){ if(cfg && (cfg.mode==='grid'||cfg.mode==='circle'||cfg.mode==='racing')) return cfg.mode; return (cfg && cfg.variant==='grid') ? 'grid' : 'circle'; }
   // Variante (gerangel/spurensuche/duell) und ob ein geteiltes Brett gespielt wird.
   function onlVariantOf(cfg){ if(cfg && cfg.variant && cfg.variant!=='grid' && cfg.variant!=='circle') return cfg.variant; return 'gerangel'; }
   function onlSharedOf(cfg){ if(cfg && typeof cfg.shared==='boolean') return cfg.shared; return true; }
@@ -2941,6 +3034,7 @@
     onl.finished=false; onl.winner=null; onl.stateSeq=0;
     if(onl.miniListener){ try{ onl.miniListener.ref.off('value', onl.miniListener.cb); }catch(e){} onl.miniListener=null; }
     if(onl.resultListener){ try{ onl.resultListener.ref.off('value', onl.resultListener.cb); }catch(e){} onl.resultListener=null; }
+    if(onl.mode==='racing'){ onlEnterRacing(cfg); return; }     // Racing laeuft auf dem Racing-Screen
     onlShow('onl-game');
     $('onl-result').classList.add('hidden'); $('onl-rematch').classList.add('hidden'); $('onl-rematch-btn').disabled=false;
     closeReveal(); closeLog(); closeMini();
@@ -2973,6 +3067,67 @@
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
     onlRenderUi();
   }
+  // ---- Racing-Duell ueber zwei Geraete ----
+  // Beide fahren gleichzeitig ihre eigene Strecke (identisch aus cfg.seed) und veroeffentlichen
+  // nur ihren Punktestand. Der Host schiedst: gewonnen hat, wer den ausgeschiedenen Gegner ueberholt.
+  function onlEnterRacing(cfg){
+    onl.finished=false; onl.winner=null;
+    raceDuel={ kind:'online', diffKey:cfg.diffKey, oppScore:0, oppAlive:true };
+    raceStart(cfg.diffKey, { seed:cfg.seed });
+    onlAttachRacingListeners();
+    raceOnlinePublish();
+  }
+  function onlAttachRacingListeners(){
+    const oRef=onl.roomRef.child('state/'+onlOppRole());
+    const cb=oRef.on('value', s=>{
+      const snap=s.val(); if(!snap || (snap.m!=null && snap.m!==onl.matchSeq)) return;
+      raceDuel.oppScore=snap.score||0; raceDuel.oppAlive=!snap.dead;
+      raceRenderDuel();
+      if(onl.role==='host') raceOnlineReferee();
+    });
+    onl.listeners.push({ref:oRef, ev:'value', cb});
+    const rRef=onl.roomRef.child('result');
+    const cb2=rRef.on('value', s=>{ const r=s.val(); if(r && r.m===onl.matchSeq && !onl.finished){ onl.finished=true; onl.winner=onlWinnerFromWire(r.winner); raceOnlineShowResult(); } });
+    onl.listeners.push({ref:rRef, ev:'value', cb:cb2});
+  }
+  function raceOnlinePublish(){
+    if(!onl || !raceDuel || raceDuel.kind!=='online' || !race) return;
+    onl.roomRef.child('state/'+onl.role).set(clean({ m:onl.matchSeq, score:race.score, coins:race.coins, dead:!race.alive }));
+    if(onl.role==='host') raceOnlineReferee();
+  }
+  function raceOnlineCrashed(){
+    raceRenderDuel(); raceOnlinePublish();
+    if(!onl.finished){
+      raceOverlay(`<b>Crash!</b><br>Deine Punktzahl: <b>${race.score}</b>.<br>`
+        +(raceDuel.oppAlive?'Dein Gegner f&auml;hrt noch &ndash; er muss dich jetzt &uuml;bertreffen.':'Warte auf das Ergebnis &hellip;'),
+        [{label:'Raum verlassen', fn:onlLeave}]);
+    }
+  }
+  function raceOnlineReferee(){
+    if(!onl || onl.role!=='host' || onl.finished || !raceDuel || !race) return;
+    const me={ score:race.score, dead:!race.alive };
+    const opp={ score:raceDuel.oppScore||0, dead:!raceDuel.oppAlive };
+    let winner=null;
+    if(me.dead && opp.dead) winner = me.score>opp.score ? 0 : (opp.score>me.score ? 1 : 'tie');
+    else if(opp.dead && me.score>opp.score) winner=0;        // Gegner raus und ueberholt
+    else if(me.dead && opp.score>me.score) winner=1;
+    if(winner===null) return;
+    onl.finished=true; onl.winner=winner;
+    onl.roomRef.child('result').set(clean({ m:onl.matchSeq, winner:onlWinnerToWire(winner), finished:true }));
+    raceOnlineShowResult();
+  }
+  function raceOnlineShowResult(){
+    if(race){ race.alive=false; raceClearTimers(); }
+    const w=onl.winner, mine=race?race.score:0, op=(raceDuel&&raceDuel.oppScore)||0;
+    let line;
+    if(w==='tie') line='<div class="win-line">Unentschieden!</div>';
+    else if(w===onl.myIdx){ line='<div class="win-line">Du gewinnst!</div>'; if(!onl.resultSfx){ onl.resultSfx=true; sfx('win'); } }
+    else line='<div class="win-line">Gegner gewinnt!</div>';
+    raceOverlay(line+`Du: <b>${mine}</b> Punkte &middot; Gegner: <b>${op}</b> Punkte.`,
+      [{label:'Zur&uuml;ck zur Lobby', primary:true, fn:onlLeave}]);
+    raceRenderDuel();
+  }
+
   // Host: jede Aenderung am Brett (Zug, Hundetick, Ende einer Blink-Sperre) neu veroeffentlichen.
   function onlGridChanged(){
     if(!onl || onl.role!=='host' || !onl.board) return;
@@ -3146,12 +3301,14 @@
       mode=r.mode; variant=r.variant; ov=r.ov; diffKey='mittel';
       label='Editor: '+profName;
     } else {
-      mode=$('onl-mode').value==='circle'?'circle':'grid';
-      variant=$('onl-gvariant').value || (mode==='grid'?'gerangel':'gerangel');
+      const m=$('onl-mode').value;
+      mode = (m==='circle'||m==='racing') ? m : 'grid';
+      variant=$('onl-gvariant').value || (mode==='racing'?'duell':'gerangel');
       diffKey=$('onl-theme').value;
       label=(THEMES[diffKey]?THEMES[diffKey].title:'')+' · '+onlVariantLabel(mode,variant);
     }
-    const shared = variant==='gerangel';
+    // Racing faehrt jeder auf seiner eigenen Strecke (aus demselben Seed) – nie ein geteiltes Brett
+    const shared = mode!=='racing' && variant==='gerangel';
     const winCond = shared ? 'fastest' : ($('onl-wincond').value==='fewest'?'fewest':'fastest');
     return { mode, variant, shared, diffKey, ov, winCond, label };
   }
@@ -3528,14 +3685,13 @@
   // ===================== START SCREEN WIRING =====================
   function updateMenuVisibility(){
     const racing = currentMode==='racing';
-    if(racing) playerCount=1;
-    $('player-block').classList.toggle('hidden', racing);
+    $('player-block').classList.remove('hidden');            // Racing kann jetzt auch im Duell gespielt werden
     $('variant-block').classList.toggle('hidden', currentMode!=='grid');
     $('circle-variant-block').classList.toggle('hidden', !(currentMode==='circle' && playerCount===2));
     const gerangel = currentMode==='grid' && gridVariant==='gerangel';
     const circGer = currentMode==='circle' && circleVariant==='gerangel';
     $('winmode-block').classList.toggle('hidden', racing || playerCount!==2 || gerangel || circGer);
-    $('open-online').classList.toggle('hidden', racing);
+    $('open-online').classList.remove('hidden');
     const dc=$('diff-caption'); if(dc) dc.textContent = racing ? 'Strecke' : 'Schwierigkeit';
   }
 
@@ -3592,7 +3748,7 @@
     btn.innerHTML=`<span class="sub">${theme.sub}</span><b class="title">${theme.title}</b><span class="blurb">${theme.blurb}</span>`;
     btn.addEventListener('click',()=>{
       sfx('click');
-      if(currentMode==='racing'){ raceStart(key); return; }
+      if(currentMode==='racing'){ if(playerCount===2) raceStartLocalDuel(key); else { raceDuel=null; raceStart(key); } return; }
       if(playerCount===1){ if(currentMode==='grid') spgStart(key, gridVariant); else spcStart(key); }
       else mpStart(key);
     });
@@ -3751,7 +3907,7 @@
   // ---- Online-Modus verkabeln ----
   Object.keys(THEMES).forEach(k=>{ const o=el('option'); o.value=k; o.textContent=THEMES[k].title+' ('+THEMES[k].sub+')'; $('onl-theme').appendChild(o); });
   $('onl-theme').value='mittel';
-  const ONL_VARIANTS={ grid:[['gerangel','Gerangel'],['spurensuche','Spurensuche']], circle:[['gerangel','Gerangel'],['duell','Duell']] };
+  const ONL_VARIANTS={ grid:[['gerangel','Gerangel'],['spurensuche','Spurensuche']], circle:[['gerangel','Gerangel'],['duell','Duell']], racing:[['duell','Duell']] };
   function onlLobbyRefresh(){
     const prof=$('onl-profile').value;
     // Bei gewähltem Editor-Profil bestimmen dessen Regeln Modus/Variante/Theme – Selects sperren.
@@ -3830,8 +3986,13 @@
   // Racing controls
   document.querySelectorAll('#race-controls .race-btn[data-btn]').forEach(b=>{ b.addEventListener('click',()=>raceInput(b.dataset.btn)); });
   $('race-reveal').addEventListener('click',()=>{ if(race) raceReveal(); });
-  $('race-reset').addEventListener('click',()=>{ if(race) raceStart(race.diffKey); });
-  $('race-back').addEventListener('click',backToMenu);
+  $('race-reset').addEventListener('click',()=>{
+    if(!race) return;
+    if(raceDuel && raceDuel.kind==='local'){ raceStartLocalDuel(raceDuel.diffKey); return; }
+    if(raceDuel && raceDuel.kind==='online') return;        // online entscheidet der Raum, nicht ein einzelner Spieler
+    raceStart(race.diffKey);
+  });
+  $('race-back').addEventListener('click',()=>{ if(raceDuel && raceDuel.kind==='online'){ onlLeave(); return; } backToMenu(); });
 
   // SP circle controls
   document.querySelectorAll('#circle-steps button[data-step]').forEach(btn=>{ btn.addEventListener('click',()=>spcMove(parseInt(btn.dataset.step,10))); });
