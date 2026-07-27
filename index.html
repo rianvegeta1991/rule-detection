@@ -151,6 +151,20 @@
   .race-car.air{transform:scale(1.3);}
   .race-car.air svg{filter:drop-shadow(0 7px 5px rgba(0,0,0,0.7));}
   .race-car.skid svg{filter:drop-shadow(0 0 6px var(--bad));}
+  /* Gespeicherte Farbregel (B): das Auto leuchtet in der Farbe der Zone – wie die Posen-Aura im Kreis */
+  .race-car.bubbled::before{
+    content:''; position:absolute; inset:-32%; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, rgba(var(--bub,250,204,21),0.95) 0%, rgba(var(--bub,250,204,21),0.45) 55%, rgba(var(--bub,250,204,21),0) 78%);
+    animation:bubPulse 0.85s ease-in-out infinite alternate;
+  }
+  .race-car.bubbled svg{filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 5px rgba(var(--bub,250,204,21),0.95));}
+  @keyframes bubPulse{ from{opacity:0.6; transform:scale(0.9);} to{opacity:1; transform:scale(1.1);} }
+  /* kurzer Ring im Moment des Speicherns */
+  .race-car.bub-flash::after{
+    content:''; position:absolute; inset:-45%; border-radius:50%; pointer-events:none;
+    border:2.5px solid rgba(var(--bub,250,204,21),0.98); animation:bubRing 0.55s ease-out forwards;
+  }
+  @keyframes bubRing{ from{transform:scale(0.45); opacity:1;} to{transform:scale(1.4); opacity:0;} }
   .race-grid{position:relative; display:grid; gap:2px; padding:4px; border-radius:10px; border:1px solid rgba(var(--accent-rgb),0.5); box-shadow:0 0 22px rgba(var(--accent-rgb),0.2); background:#0b1220; margin:0 auto;}
   .race-cell{border-radius:3px; position:relative; background:#1e293b;}
   .race-cell .bomb,.race-cell .rocket,.race-cell .car{position:absolute; inset:6%; display:flex; align-items:center; justify-content:center;}
@@ -158,6 +172,18 @@
   .race-cell .bomb svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,0.6)) drop-shadow(0 0 3px rgba(251,146,60,0.85));}
   .race-cell .rocket svg{filter:drop-shadow(0 0 3px rgba(239,68,68,0.9));}
   .race-cell .coin{position:absolute; inset:24%; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fde68a, #d97706 72%); box-shadow:0 0 5px rgba(250,204,21,0.75);}
+  /* Muenzen: wandernder Glanzstreifen + sanft pulsierender Schein (Feld- und Racing-Modus) */
+  .cell .coin, .race-cell .coin{overflow:hidden; animation:coinGlow 1.5s ease-in-out infinite alternate;}
+  .cell .coin::after, .race-cell .coin::after{
+    content:''; position:absolute; top:-40%; bottom:-40%; left:-60%; width:55%;
+    background:linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 45%, rgba(255,255,255,0.95) 55%, rgba(255,255,255,0) 100%);
+    transform:skewX(-18deg); animation:coinShine 2.4s ease-in-out infinite;
+  }
+  @keyframes coinShine{ 0%{left:-60%;} 45%{left:110%;} 100%{left:110%;} }
+  @keyframes coinGlow{ from{box-shadow:0 0 4px rgba(250,204,21,0.5);} to{box-shadow:0 0 10px rgba(250,204,21,0.95);} }
+  /* leicht versetzt, damit nicht alle Muenzen im Gleichtakt blitzen */
+  .cell:nth-child(3n) .coin::after, .race-cell:nth-child(3n) .coin::after{animation-delay:0.8s;}
+  .cell:nth-child(3n+1) .coin::after, .race-cell:nth-child(3n+1) .coin::after{animation-delay:1.6s;}
   .race-cell .car{inset:4%; z-index:3; transition:transform .08s;}
   .race-cell .car svg{filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6));}
   .race-cell .car.air{transform:scale(1.32); z-index:5;}
@@ -180,8 +206,16 @@
   .race-btn .rb-label{font-size:1.35rem;}
   .cell .bomb{position:absolute; inset:8%; display:flex; align-items:center; justify-content:center;}
   .cell .bomb svg{width:100%; height:100%; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.6)) drop-shadow(0 0 3px rgba(251,146,60,0.85));}
-  .cell .bomb svg .spark{transform-origin:18.6px 5px; animation:sparkFlicker 0.5s infinite alternate;}
+  /* Funke und glimmende Zuendschnur – gilt in beiden Modi (Feld und Racing) */
+  .bomb svg .spark{transform-origin:18.6px 5px; animation:sparkFlicker 0.5s infinite alternate;}
+  .bomb svg .fuse{animation:fuseGlow 1.1s ease-in-out infinite alternate;}
+  .bomb svg .ember{animation:emberCrawl 1.6s ease-in-out infinite;}
   @keyframes sparkFlicker{from{opacity:0.7; transform:scale(0.85);} to{opacity:1; transform:scale(1.12);}}
+  @keyframes fuseGlow{
+    from{stroke:#7a4f1c;}
+    to{stroke:#f7b955; filter:drop-shadow(0 0 1.6px rgba(251,146,60,0.95));}
+  }
+  @keyframes emberCrawl{ 0%{opacity:0.25;} 45%{opacity:1;} 100%{opacity:0.25;} }
   /* Kleine Explosion bei Kollision mit Bombe/Rakete (Feld- und Racing-Modus) */
   .boom{position:absolute; inset:-25%; z-index:20; pointer-events:none; border-radius:50%;
     background:radial-gradient(circle, rgba(255,244,180,0.98) 0%, rgba(253,186,116,0.95) 26%, rgba(249,115,22,0.85) 46%, rgba(239,68,68,0.55) 62%, rgba(239,68,68,0) 74%);
@@ -1088,7 +1122,8 @@
     + `<ellipse cx="8" cy="12" rx="2.4" ry="1.7" fill="#40404c" opacity="0.85"/>`
     + `<rect x="8.7" y="5.6" width="4.2" height="3.2" rx="0.9" fill="#2a2a33"/>`
     + `<rect x="8.2" y="5" width="5.2" height="1.4" rx="0.7" fill="#3a3a44"/>`
-    + `<path d="M12.9 6.1 Q16.6 3.2 18.4 6.2" stroke="#c07a2c" stroke-width="1.5" fill="none" stroke-linecap="round"/>`
+    + `<path class="fuse" d="M12.9 6.1 Q16.6 3.2 18.4 6.2" stroke="#c07a2c" stroke-width="1.5" fill="none" stroke-linecap="round"/>`
+    + `<circle class="ember" cx="16.2" cy="4.1" r="0.9" fill="#fde68a"/>`
     + `<g class="spark"><circle cx="18.6" cy="5" r="2.5" fill="#fb923c"/><circle cx="18.6" cy="5" r="1.3" fill="#fef3c7"/>`
     + `<path d="M18.6 1.4 L19.2 4 L18.6 5 L18 4 Z" fill="#fde68a"/></g>`
     + `</svg>`; }
@@ -1247,7 +1282,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.7";
+  const APP_VERSION = "2.8";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2223,7 +2258,10 @@
       }
     }
     if(race.carEl){
-      race.carEl.className='race-car'+(race.airborne>0?' air':'')+(race.skid>0?' skid':'');
+      const flash=race.carEl.classList.contains('bub-flash');   // kurzen Ring nicht wegrendern
+      race.carEl.className='race-car'+(race.airborne>0?' air':'')+(race.skid>0?' skid':'')
+        +(race.bubble>0?' bubbled':'')+(flash?' bub-flash':'');
+      if(race.bubble>0 && race.bubbleZone!=null) race.carEl.style.setProperty('--bub', ZONE_COLORS[race.bubbleZone].tint);
       race.carEl.style.left=(RACE_PAD+race.carX*race.stepPx)+'px';
       race.carEl.style.top=(RACE_PAD+race.carRow*race.stepPx)+'px';
     }
@@ -2304,7 +2342,16 @@
   function raceMove(dx){ if(race.skid>0) return; sfx('move'); const step=dx>0?1:-1, n=Math.abs(dx); for(let k=0;k<n;k++) race.carX=clamp(race.carX+step,0,RACE_COLS-1); race.lastDir=step; if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); }
   function raceJump(){ if(race.skid>0) return; if(race.jumpCd===0 && race.airborne===0){ race.airborne=2; sfx('jump'); raceRender(); } }
   function raceHop(){ if(race.skid>0) return; if(race.bHopCd===0){ race.carX=clamp(race.carX+2*race.lastDir,0,RACE_COLS-1); race.bHopCd=2; sfx('move'); if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); } }
-  function raceBubble(){ race.bubble=2; race.bubbleDist=race.zoneDistort[raceCarRowData().zone]; }
+  function raceBubble(){
+    const z=raceCarRowData().zone;
+    race.bubble=2; race.bubbleDist=race.zoneDistort[z]; race.bubbleZone=z;
+    sfx('pose');
+    if(race.carEl){                                  // Ring-Blitz im Moment des Speicherns
+      race.carEl.classList.remove('bub-flash'); void race.carEl.offsetWidth; race.carEl.classList.add('bub-flash');
+      setTimeout(()=>{ if(race&&race.carEl) race.carEl.classList.remove('bub-flash'); }, 600);
+    }
+    raceRender();
+  }
   function raceSkid(){ if(race.skid===0){ race.skid=2+randInt(2); race.skidDir=Math.random()<0.5?-1:1; raceRender(); } }
   function raceGameOver(){
     race.alive=false; raceClearTimers();
