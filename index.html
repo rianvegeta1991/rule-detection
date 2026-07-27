@@ -143,6 +143,14 @@
   .cell .goal{position:absolute; inset:16%; border-radius:50%; background:radial-gradient(circle, var(--gold), #92400e); box-shadow:0 0 10px var(--gold); animation:pulse 1s infinite alternate;}
   .cell .goal.reached{opacity:0.32; background:radial-gradient(circle, #94a3b8, #334155); box-shadow:none; animation:none;}
   /* Racing-Modus */
+  /* Sichtfenster: die Welt (race-grid) scrollt darin in Halbschritten, das Auto liegt als eigene Ebene darueber */
+  .race-view{position:relative; overflow:hidden; border-radius:10px; border:1px solid rgba(var(--accent-rgb),0.5); box-shadow:0 0 22px rgba(var(--accent-rgb),0.2); background:#0b1220; margin:0 auto;}
+  .race-view .race-grid{position:absolute; left:0; top:0; border:none; box-shadow:none; border-radius:0; background:transparent; margin:0; will-change:transform;}
+  .race-car{position:absolute; z-index:5; display:flex; align-items:center; justify-content:center; transition:left .08s, transform .08s;}
+  .race-car svg{width:88%; height:88%; display:block; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6));}
+  .race-car.air{transform:scale(1.3);}
+  .race-car.air svg{filter:drop-shadow(0 7px 5px rgba(0,0,0,0.7));}
+  .race-car.skid svg{filter:drop-shadow(0 0 6px var(--bad));}
   .race-grid{position:relative; display:grid; gap:2px; padding:4px; border-radius:10px; border:1px solid rgba(var(--accent-rgb),0.5); box-shadow:0 0 22px rgba(var(--accent-rgb),0.2); background:#0b1220; margin:0 auto;}
   .race-cell{border-radius:3px; position:relative; background:#1e293b;}
   .race-cell .bomb,.race-cell .rocket,.race-cell .car{position:absolute; inset:6%; display:flex; align-items:center; justify-content:center;}
@@ -1929,7 +1937,7 @@
 
   function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
   function teardownActive(){
-    if(race){ race.mounted=false; race.alive=false; clearTimeout(race.timer); }
+    if(race){ race.mounted=false; race.alive=false; raceClearTimers(); }
     if(spcState) spcState.mounted=false;
     if(spgState && spgState.board) stopDogTimer(spgState.board);
     if(mp){
@@ -2117,6 +2125,8 @@
   // ===================== RACING =====================
   const RACE_COLS=7, RACE_ROWS=13, RACE_ZONE_ROWS=12;   // Zonenhöhe ~3x Spurensuche-Band
   const RACE_SPEED={ leicht:{s:800,e:200}, mittel:{s:700,e:180}, schwer:{s:600,e:140}, experte:{s:500,e:100} };
+  // Wie viele verschiedene Farbzonen (= Regeln) eine Strecke benutzt
+  const RACE_ZONES={ leicht:2, mittel:3, schwer:4, experte:4 };
   const RACE_BOMB={ leicht:0.10, mittel:0.15, schwer:0.20, experte:0.28 };
   const RACE_DIST_POOL=['swapLR','double','repeatInvert','delay','swapActDir','swapAB','hopA','replaceD'];
   const RACE_DIST_LABEL={
@@ -2132,8 +2142,9 @@
   };
   let race=null;
 
-  function raceAssignDistorts(){ const pool=shuffle(RACE_DIST_POOL.slice()); return ['none', pool[0], pool[1], pool[2]]; }
-  function raceNewZone(prev){ let z; do{ z=randInt(4); }while(z===prev); return z; }
+  // Erste Zone ist immer neutral, die uebrigen bekommen je eine verborgene Verzerrung
+  function raceAssignDistorts(n){ const pool=shuffle(RACE_DIST_POOL.slice()); const out=['none']; for(let i=1;i<n;i++) out.push(pool[i-1]); return out; }
+  function raceNewZone(prev){ const n=race.zoneCount||4; if(n<2) return 0; let z; do{ z=randInt(n); }while(z===prev); return z; }
   function raceElapsed(){ return (performance.now()-race.startTime)/1000; }
   function raceInterval(){ const sp=RACE_SPEED[race.diffKey]||RACE_SPEED.mittel; const t=Math.min(1, raceElapsed()/120); return Math.round(sp.s+(sp.e-sp.s)*t); }
   function raceBombProb(){ const base=RACE_BOMB[race.diffKey]||0.15; const extra=Math.max(0,(raceElapsed()-120)/120)*0.18; return Math.min(0.5, base+extra); }
@@ -2152,16 +2163,40 @@
     return { zone: race.curZone, objs };
   }
   function raceCellSize(){ const availW=Math.min(window.innerWidth||400,440)-16; const availH=(window.innerHeight||700)-240; return Math.max(20, Math.min(48, Math.floor(Math.min(availW/RACE_COLS, availH/RACE_ROWS)))); }
+  const RACE_GAP=2, RACE_PAD=4;                  // muss zum CSS von .race-grid passen
+  // Datenzeilen: Index 0 haengt verdeckt ueber dem Feld, 1..RACE_ROWS sind die sichtbaren Zeilen
+  function raceCarRowData(){ return race.grid[race.carRow+1]; }
   function buildRaceBoard(){
-    const host=$('race-host'); host.innerHTML=''; const cs=raceCellSize();
-    const grid=el('div','race-grid'); grid.style.gridTemplateColumns=`repeat(${RACE_COLS}, ${cs}px)`; grid.style.gridTemplateRows=`repeat(${RACE_ROWS}, ${cs}px)`;
+    const host=$('race-host'); host.innerHTML='';
+    const cs=raceCellSize(); race.cell=cs; race.stepPx=cs+RACE_GAP;
+    const totalRows=RACE_ROWS+1;
+    const view=el('div','race-view');
+    view.style.width=(RACE_COLS*cs+(RACE_COLS-1)*RACE_GAP+2*RACE_PAD)+'px';
+    view.style.height=(RACE_ROWS*cs+(RACE_ROWS-1)*RACE_GAP+2*RACE_PAD)+'px';
+    const grid=el('div','race-grid');
+    grid.style.gridTemplateColumns=`repeat(${RACE_COLS}, ${cs}px)`;
+    grid.style.gridTemplateRows=`repeat(${totalRows}, ${cs}px)`;
     race.cells=[];
-    for(let i=0;i<RACE_COLS*RACE_ROWS;i++){ const c=el('div','race-cell'); grid.appendChild(c); race.cells.push(c); }
-    host.appendChild(grid);
+    for(let i=0;i<RACE_COLS*totalRows;i++){ const c=el('div','race-cell'); grid.appendChild(c); race.cells.push(c); }
+    view.appendChild(grid);
+    // Das Auto ist eine eigene Ebene ueber dem Feld: die Welt scrollt, das Auto bleibt stehen.
+    const car=el('div','race-car'); car.innerHTML=carSvg();
+    car.style.width=cs+'px'; car.style.height=cs+'px';
+    view.appendChild(car);
+    host.appendChild(view);
+    race.gridEl=grid; race.carEl=car;
+    raceApplyShift(0);
+  }
+  // frac 0 = Feld gerade eingerastet, 0.5 = die Welt ist ein halbes Feld weitergezogen
+  function raceApplyShift(frac){
+    if(!race||!race.gridEl) return;
+    race.shiftFrac=frac;
+    race.gridEl.style.transform=`translateY(${(-(1-frac)*race.stepPx).toFixed(2)}px)`;
   }
   function raceRender(){
     if(!race||!race.cells.length) return;
-    for(let y=0;y<RACE_ROWS;y++){ const row=race.grid[y];
+    const totalRows=RACE_ROWS+1;
+    for(let y=0;y<totalRows;y++){ const row=race.grid[y];
       for(let x=0;x<RACE_COLS;x++){ const cell=race.cells[y*RACE_COLS+x];
         cell.style.background=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`; cell.innerHTML='';
         const o=row.objs[x];
@@ -2170,18 +2205,29 @@
         else if(o==='coin'){ cell.appendChild(el('div','coin')); }
       }
     }
-    const cc=race.cells[race.carRow*RACE_COLS+race.carX];
-    if(cc){ const car=el('div','car'+(race.airborne>0?' air':'')+(race.skid>0?' skid':'')); car.innerHTML=carSvg(); cc.appendChild(car); }
+    if(race.carEl){
+      race.carEl.className='race-car'+(race.airborne>0?' air':'')+(race.skid>0?' skid':'');
+      race.carEl.style.left=(RACE_PAD+race.carX*race.stepPx)+'px';
+      race.carEl.style.top=(RACE_PAD+race.carRow*race.stepPx)+'px';
+    }
   }
-  function raceRenderStats(){ $('race-stats').innerHTML=`Zeilen <b>${race.score}</b> &middot; M&uuml;nzen <b>${race.coins}</b> &middot; <b>${ZONE_COLORS[race.grid[race.carRow].zone].name}</b>`; }
-  function raceSchedule(){ if(!race||!race.alive||!race.mounted) return; race.timer=setTimeout(raceTick, raceInterval()); }
+  function raceRenderStats(){ $('race-stats').innerHTML=`Zeilen <b>${race.score}</b> &middot; M&uuml;nzen <b>${race.coins}</b> &middot; <b>${ZONE_COLORS[raceCarRowData().zone].name}</b>`; }
+  function raceClearTimers(){ if(race){ clearTimeout(race.timer); clearTimeout(race.halfTimer); } }
+  function raceSchedule(){
+    if(!race||!race.alive||!race.mounted) return;
+    const iv=raceInterval();
+    raceApplyShift(0);                                  // frisch eingerastet
+    race.halfTimer=setTimeout(()=>{ if(race&&race.alive&&race.mounted) raceApplyShift(0.5); }, Math.max(40, Math.round(iv/2)));
+    race.timer=setTimeout(raceTick, iv);
+  }
   function raceMoveRockets(){
-    for(let y=0;y<RACE_ROWS;y++){ const row=race.grid[y];
+    for(let y=0;y<race.grid.length;y++){ const row=race.grid[y];
       for(let x=0;x<RACE_COLS;x++){ if(row.objs[x]==='rocket'){ const dir=Math.random()<0.5?-1:1; const nx=x+dir; if(nx>=0&&nx<RACE_COLS&&!row.objs[nx]){ row.objs[nx]='rocket'; row.objs[x]=null; } } }
     }
   }
+  // Kollision zaehlt nur beim vollen Einrasten auf ein Feld – nicht auf halbem Weg
   function raceResolveCarCell(){
-    const row=race.grid[race.carRow]; const o=row.objs[race.carX];
+    const row=raceCarRowData(); const o=row.objs[race.carX];
     if(o==='coin'){ row.objs[race.carX]=null; race.coins++; race.score+=5; sfx('coin'); }
     else if((o==='bomb'||o==='rocket') && race.airborne===0){ raceGameOver(); return false; }
     return true;
@@ -2196,13 +2242,13 @@
     if(race.airborne>0){ race.airborne--; if(race.airborne===0) race.jumpCd=3; }
     else if(race.jumpCd>0) race.jumpCd--;
     if(race.bHopCd>0) race.bHopCd--;
-    const zoneNow=race.grid[race.carRow].zone;
+    const zoneNow=raceCarRowData().zone;
     if(zoneNow!==race.lastCarZone){ if(race.bubble>0){ race.bubble--; if(race.bubble===0) race.bubbleDist=null; } race.lastCarZone=zoneNow; }
     if(!raceResolveCarCell()) return;
     raceRender(); raceRenderStats(); raceSchedule();
   }
   // ---- Steuerung ----
-  function raceActiveDist(){ return race.bubble>0 ? race.bubbleDist : race.zoneDistort[race.grid[race.carRow].zone]; }
+  function raceActiveDist(){ return race.bubble>0 ? race.bubbleDist : race.zoneDistort[raceCarRowData().zone]; }
   function raceResolveInput(btn, dist){
     let move=(btn==='L')?-1:(btn==='R')?1:null;
     // Standard: A = Sprung, B = Farbregel vorläufig behalten (bubble).
@@ -2231,25 +2277,25 @@
     else if(a.act==='skid') raceSkid();
   }
   function raceCheckImmediate(){
-    const o=race.grid[race.carRow].objs[race.carX];
+    const o=raceCarRowData().objs[race.carX];
     if((o==='bomb'||o==='rocket') && race.airborne===0){ raceGameOver(); return false; }
-    if(o==='coin'){ race.grid[race.carRow].objs[race.carX]=null; race.coins++; race.score+=5; sfx('coin'); }
+    if(o==='coin'){ raceCarRowData().objs[race.carX]=null; race.coins++; race.score+=5; sfx('coin'); }
     return true;
   }
   function raceMove(dx){ if(race.skid>0) return; sfx('move'); const step=dx>0?1:-1, n=Math.abs(dx); for(let k=0;k<n;k++) race.carX=clamp(race.carX+step,0,RACE_COLS-1); race.lastDir=step; if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); }
   function raceJump(){ if(race.skid>0) return; if(race.jumpCd===0 && race.airborne===0){ race.airborne=2; sfx('jump'); raceRender(); } }
   function raceHop(){ if(race.skid>0) return; if(race.bHopCd===0){ race.carX=clamp(race.carX+2*race.lastDir,0,RACE_COLS-1); race.bHopCd=2; sfx('move'); if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); } }
-  function raceBubble(){ race.bubble=2; race.bubbleDist=race.zoneDistort[race.grid[race.carRow].zone]; }
+  function raceBubble(){ race.bubble=2; race.bubbleDist=race.zoneDistort[raceCarRowData().zone]; }
   function raceSkid(){ if(race.skid===0){ race.skid=2+randInt(2); race.skidDir=Math.random()<0.5?-1:1; raceRender(); } }
   function raceGameOver(){
-    race.alive=false; clearTimeout(race.timer);
+    race.alive=false; raceClearTimers();
     const ov=$('race-overlay'); ov.classList.remove('hidden');
     $('race-overlay-msg').innerHTML=`<b>Crash!</b><br>Du hast <b>${race.score}</b> Zeilen geschafft (${race.coins} M&uuml;nzen eingesammelt).`;
     const acts=$('race-overlay-actions'); acts.innerHTML='';
     const again=el('button','action primary'); again.textContent='Nochmal'; again.onclick=()=>raceStart(race.diffKey); acts.appendChild(again);
     const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
     raceRender();
-    spawnExplosion(race.cells[race.carRow*RACE_COLS+race.carX]);
+    spawnExplosion(race.cells[(race.carRow+1)*RACE_COLS+race.carX]);
   }
   function raceReveal(){
     let html='<b>Steuerung:</b><ul style="margin:4px 0 8px 18px;">'
@@ -2257,20 +2303,22 @@
       +'<li><b>A</b> hebt das Auto 2 Felder ab und &uuml;berspringt Bomben &ndash; danach 3 Felder keine Spr&uuml;nge.</li>'
       +'<li><b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei, auch wenn du die Zone wechselst.</li></ul>'
       +'<b>Die Farbzonen verzerren die Steuerung (verborgen &ndash; finde sie heraus!):</b><ul style="margin:4px 0 0 18px;">';
-    ZONE_COLORS.forEach((zc,i)=>{ html+=`<li><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgb(${zc.tint});vertical-align:middle;margin-right:6px;"></span><b>${zc.name}</b>: ${RACE_DIST_LABEL[race.zoneDistort[i]]}</li>`; });
+    ZONE_COLORS.slice(0, race.zoneCount).forEach((zc,i)=>{ html+=`<li><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgb(${zc.tint});vertical-align:middle;margin-right:6px;"></span><b>${zc.name}</b>: ${RACE_DIST_LABEL[race.zoneDistort[i]]}</li>`; });
     html+='</ul>';
     openReveal(html);
   }
   function raceStart(diffKey){
     teardownActive(); hideAllScreens(); $('racing').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); document.body.classList.add('playing');
     const theme=THEMES[diffKey]||THEMES.leicht; setThemeBg(theme);
+    const zoneCount=RACE_ZONES[diffKey]||4;
     race={ diffKey, theme, grid:[], cells:[], carX:Math.floor(RACE_COLS/2), carRow:RACE_ROWS-2,
       airborne:0, jumpCd:0, bHopCd:0, lastDir:1, delayBuf:undefined, lastRawDirBtn:null,
-      skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneDistort:raceAssignDistorts(),
-      rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:randInt(4),
-      tickCount:0, startTime:performance.now(), alive:true, mounted:true, timer:null };
-    for(let y=0;y<RACE_ROWS;y++) race.grid.push(raceSpawnRow(true));
-    race.lastCarZone=race.grid[race.carRow].zone;
+      skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:raceAssignDistorts(zoneCount),
+      rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:randInt(zoneCount),
+      tickCount:0, startTime:performance.now(), alive:true, mounted:true, timer:null, halfTimer:null };
+    // eine Zeile mehr als sichtbar: die oberste haengt verdeckt ueber dem Feld und rutscht in Halbschritten herein
+    for(let y=0;y<RACE_ROWS+1;y++) race.grid.push(raceSpawnRow(true));
+    race.lastCarZone=raceCarRowData().zone;
     buildRaceBoard(); raceRender(); raceRenderStats();
     $('race-overlay').classList.add('hidden');
     raceSchedule();
