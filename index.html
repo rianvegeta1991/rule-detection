@@ -96,8 +96,10 @@
   .mode-carousel::-webkit-scrollbar{display:none;}
   .mode-card{flex:0 0 100%; scroll-snap-align:center; box-sizing:border-box; background:rgba(30,41,59,0.7); border:1px solid var(--cell-border); border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:10px; transition:border-color .15s, box-shadow .15s, opacity .15s; opacity:0.7;}
   .mode-card.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(var(--accent-rgb),0.35); opacity:1;}
-  .mc-preview{height:132px; border-radius:12px; overflow:hidden; background:#0b1220; display:flex; align-items:center; justify-content:center;}
-  .mc-preview svg{width:100%; height:100%; display:block;}
+  .mc-preview{height:150px; border-radius:12px; overflow:hidden; background:#0b1220; display:flex; align-items:center; justify-content:center; position:relative;}
+  /* echtes Spielbild: wird 1:1 mit den Render-Funktionen gebaut und dann passend skaliert */
+  .mc-inner{position:absolute; left:50%; top:50%; pointer-events:none; transform-origin:center center;}
+  .mc-inner .race-grid{box-shadow:none;}
   .mc-body{display:flex; flex-direction:column; gap:3px;}
   .mc-title{font-size:1.12rem; font-family:'Palatino Linotype','Book Antiqua',Georgia,serif;}
   .mc-desc{font-size:0.8rem; color:var(--muted); line-height:1.4;}
@@ -436,7 +438,7 @@
     .intro{font-size:0.8rem; line-height:1.5;}
     /* Modus-Karussell kompakt: kleinere Vorschau, Beschreibung aus – Vorschau + Titel genügen */
     .mode-card{padding:8px; gap:6px;}
-    .mc-preview{height:82px;}
+    .mc-preview{height:140px;}
     .mc-title{font-size:1rem;}
     .mc-desc{display:none;}
     /* zwei Kacheln je Zeile; die Blurbs entfallen – Artwork + Titel tragen das Thema */
@@ -498,13 +500,13 @@
       <div class="mc-preview" data-prev="grid"></div>
       <div class="mc-body"><b class="mc-title">Feld-Modus</b><span class="mc-desc">F&uuml;hre deine Figur durchs Raster &ndash; die verborgene Regel verf&auml;lscht deine Eingabe.</span></div>
     </div>
-    <div class="mode-card" data-mode="circle">
-      <div class="mc-preview" data-prev="circle"></div>
-      <div class="mc-body"><b class="mc-title">Kreis-Modus</b><span class="mc-desc">Dreh dich &uuml;ber konzentrische Ringe bis ins Zentrum &ndash; jede Zahl steuert Figur und Ringe.</span></div>
-    </div>
     <div class="mode-card" data-mode="racing">
       <div class="mc-preview" data-prev="racing"></div>
       <div class="mc-body"><b class="mc-title">Racing-Modus</b><span class="mc-desc">Lenke das Auto am unteren Rand &ndash; das Feld rast dir entgegen, weiche Bomben aus, sammle M&uuml;nzen.</span></div>
+    </div>
+    <div class="mode-card" data-mode="circle">
+      <div class="mc-preview" data-prev="circle"></div>
+      <div class="mc-body"><b class="mc-title">Kreis-Modus</b><span class="mc-desc">Dreh dich &uuml;ber konzentrische Ringe bis ins Zentrum &ndash; jede Zahl steuert Figur und Ringe.</span></div>
     </div>
   </div>
   <div class="mode-dots" id="mode-dots"></div>
@@ -1103,45 +1105,76 @@
     sfx('crash');
   }
 
-  // Mini-Vorschau je Modus fürs Karussell
-  function modePreviewSvg(mode){
-    if(mode==='grid'){
-      const tints=['202,163,74','96,150,104','92,132,180','128,132,144'];
-      const cols=7, rows=5, cw=200/cols, ch=130/rows; let cells='';
-      const zoneRow=[0,0,1,1,2,3,3];
-      for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
-        const t=tints[(zoneRow[x]+ (y>2?1:0))%4];
-        cells+=`<rect x="${(x*cw+1.5).toFixed(1)}" y="${(y*ch+1.5).toFixed(1)}" width="${(cw-3).toFixed(1)}" height="${(ch-3).toFixed(1)}" rx="3" fill="rgb(${t})" opacity="0.85"/>`;
+  // ===== Mini-Vorschau je Modus: echtes Spielbild mit den echten Render-Funktionen =====
+  // Statt gemalter Symbole wird ein echtes Brett/ein echter Kreis/eine echte Fahrbahn gebaut
+  // (fester Seed => immer dasselbe, ansprechende Bild) und danach in die Kachel skaliert.
+  const PREVIEW_SEED=20260716;
+  function previewFit(host, inner, mode){
+    if(!host||!inner) return;
+    const bw=host.clientWidth, bh=host.clientHeight;
+    const nw=inner.offsetWidth, nh=inner.offsetHeight;
+    if(!bw||!bh||!nw||!nh) return;
+    if(mode==='circle'){                       // Kreis ganz zeigen
+      const k=Math.min(bw/nw, bh/nh)*0.98;
+      inner.style.top='50%'; inner.style.bottom='auto'; inner.style.transformOrigin='center center';
+      inner.style.transform=`translate(-50%,-50%) scale(${k.toFixed(3)})`;
+    } else if(mode==='racing'){                 // Fahrbahn in voller Breite, unten verankert (Auto im Bild)
+      const k=bw/nw;
+      inner.style.top='auto'; inner.style.bottom='0'; inner.style.transformOrigin='bottom center';
+      inner.style.transform=`translate(-50%,0) scale(${k.toFixed(3)})`;
+    } else {                                    // Raster fuellt die Kachel wie ein Screenshot-Ausschnitt
+      const k=Math.max(bw/nw, bh/nh);
+      inner.style.top='50%'; inner.style.bottom='auto'; inner.style.transformOrigin='center center';
+      inner.style.transform=`translate(-50%,-50%) scale(${k.toFixed(3)})`;
+    }
+  }
+  function buildModePreview(host, mode){
+    if(!host) return;
+    host.innerHTML='';
+    const inner=el('div','mc-inner');
+    host.appendChild(inner);
+    try{
+      if(mode==='grid'){
+        seedRng(PREVIEW_SEED);
+        let shared=null;
+        try{ shared=buildGridShared('mittel','gerangel',false,{}); } finally{ unseedRng(); }
+        const b=createGridBoard(inner, shared, 22, [{startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:''}]);
+        renderGridBoard(b);
+      } else if(mode==='circle'){
+        seedRng(PREVIEW_SEED+7);
+        let cfg=null;
+        try{ cfg=buildCircleConfig('mittel',{}); } finally{ unseedRng(); }
+        const cs=makeCircleState(cfg);
+        // eigener Container: die Klasse circle-host darf .mc-inner (position:absolute) nicht ueberschreiben
+        const holder=el('div','circle-host'); inner.appendChild(holder);
+        circleBuildRings(cs, holder, 0.72);
+        // in der Vorschau darf das SVG seine natuerliche Groesse behalten – sonst misst previewFit falsch
+        const svg=holder.querySelector('svg'); if(svg) svg.style.maxWidth='none';
+        renderDetectiveCenter(holder, 0, '', null, 0.72);
+      } else {
+        // Racing: dieselben Klassen und Bausteine wie im laufenden Spiel
+        const cols=RACE_COLS, rows=5, cell=26;
+        const grid=el('div','race-grid');
+        grid.style.gridTemplateColumns=`repeat(${cols}, ${cell}px)`;
+        grid.style.gridTemplateRows=`repeat(${rows}, ${cell}px)`;
+        const objs={ '0,5':'coin', '1,1':'rocket', '2,4':'bomb', '3,2':'coin', '3,6':'bomb' };
+        for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
+          const c=el('div','race-cell');
+          const z = y<3 ? 1 : 0;                       // zwei Farbzonen mit sichtbarer Grenze
+          c.style.background=`rgba(${ZONE_COLORS[z].tint},0.82)`;
+          const t=objs[y+','+x];
+          if(t==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); c.appendChild(d); }
+          else if(t==='rocket'){ const d=el('div','rocket'); d.innerHTML=rocketSvg(); c.appendChild(d); }
+          else if(t==='coin'){ c.appendChild(el('div','coin')); }
+          if(y===rows-2 && x===3){ const car=el('div','car'); car.innerHTML=carSvg(); c.appendChild(car); }
+          grid.appendChild(c);
+        }
+        inner.appendChild(grid);
       }
-      return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">${cells}`
-        + `<circle cx="${(2.5*cw).toFixed(0)}" cy="${(1.5*ch).toFixed(0)}" r="9" fill="#22d3ee" stroke="#0b1220" stroke-width="1.5"/>`
-        + `<circle cx="${(5.5*cw).toFixed(0)}" cy="${(3.5*ch).toFixed(0)}" r="8" fill="#facc15" stroke="#92400e" stroke-width="1.5"/>`
-        + `<g transform="translate(${(4.1*cw).toFixed(0)},${(0.75*ch).toFixed(0)}) scale(0.7)"><circle cx="10.8" cy="15" r="7.6" fill="#15151b"/><circle cx="18.6" cy="5" r="2.5" fill="#fb923c"/><rect x="8.7" y="5.6" width="4.2" height="3.2" rx="0.9" fill="#2a2a33"/></g>`
-        + `</svg>`;
-    }
-    if(mode==='circle'){
-      let g='';
-      const rs=[58,42,26];
-      rs.forEach((r,i)=>{ g+=`<circle cx="100" cy="65" r="${r}" fill="none" stroke="rgba(34,211,238,${0.3+i*0.15})" stroke-width="9"/>`; });
-      // Sternenfeld + Marker + Zentrum (in Pose-Gelb)
-      g+=`<circle cx="100" cy="7" r="6" fill="#22d3ee"/>`;                 // Marker aussen
-      g+=`<text x="158" y="70" font-size="15" fill="#facc15" text-anchor="middle">&#9733;</text>`;
-      g+=`<circle cx="100" cy="65" r="12" fill="rgb(250,204,21)"/><circle cx="100" cy="65" r="12" fill="none" stroke="#92400e" stroke-width="1.5"/>`;
-      return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
-    }
-    // racing
-    let lanes='';
-    for(let i=1;i<5;i++){ lanes+=`<line x1="${i*40}" y1="0" x2="${i*40}" y2="130" stroke="rgba(148,163,184,0.18)" stroke-width="1"/>`; }
-    let dash='';
-    for(let i=1;i<5;i++){ for(let y=6;y<130;y+=22){ dash+=`<rect x="${i*40-1.2}" y="${y}" width="2.4" height="11" rx="1" fill="rgba(203,213,225,0.25)"/>`; } }
-    return `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">`
-      + `<rect width="200" height="130" fill="#0e1424"/>${lanes}${dash}`
-      + `<g transform="translate(64,18) scale(0.6)"><circle cx="10.8" cy="15" r="7.6" fill="#15151b"/><circle cx="18.6" cy="5" r="2.5" fill="#fb923c"/></g>`
-      + `<circle cx="140" cy="42" r="8" fill="#facc15" stroke="#92400e" stroke-width="1.5"/>`
-      + `<g transform="translate(108,10) scale(0.5)"><path d="M12 0 L20 10 L16 10 L16 34 L8 34 L8 10 L4 10 Z" fill="#f87171"/></g>`
-      + `<g transform="translate(88,86) scale(1.05)">${carSvg().replace(/^<svg[^>]*>|<\/svg>$/g,'')}</g>`
-      + `<rect x="86" y="70" width="4" height="10" rx="2" fill="rgba(148,163,184,0.5)"/><rect x="110" y="66" width="4" height="12" rx="2" fill="rgba(148,163,184,0.4)"/>`
-      + `</svg>`;
+    }catch(e){ console.warn('Vorschau fehlgeschlagen:', mode, e); }
+    requestAnimationFrame(()=>previewFit(host, inner, mode));
+    setTimeout(()=>previewFit(host, inner, mode), 150);
+    window.addEventListener('resize', ()=>previewFit(host, inner, mode));
   }
 
   const STEP_POOLS = {
@@ -3463,7 +3496,7 @@
     const car=$('mode-carousel'); if(!car) return;
     const cards=Array.from(car.querySelectorAll('.mode-card'));
     const dotsHost=$('mode-dots');
-    cards.forEach(c=>{ const p=c.querySelector('.mc-preview'); if(p) p.innerHTML=modePreviewSvg(c.dataset.mode); });
+    cards.forEach(c=>{ buildModePreview(c.querySelector('.mc-preview'), c.dataset.mode); });
     cards.forEach((c,i)=>{ const d=el('div','mdot'); d.addEventListener('click',()=>scrollToCard(i)); dotsHost.appendChild(d);
       c.addEventListener('click',()=>{ if(cards.indexOf(c)!==currentIndex()) scrollToCard(cards.indexOf(c)); }); });
     const dots=Array.from(dotsHost.children);
