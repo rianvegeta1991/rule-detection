@@ -141,15 +141,16 @@
   .cell{background:rgba(15,23,42,0.58); border-radius:4px; position:relative;}
   .cell .dot{position:absolute; inset:14%; border-radius:50%; background:var(--accent); box-shadow:0 0 6px rgba(var(--accent-rgb),0.8); transition:box-shadow .15s;}
   /* Sherlock als Spielfigur: blickt in die zuletzt gelaufene Richtung, kurze Laufanimation je Feld */
-  .cell .fig{position:absolute; inset:4%; color:var(--accent); filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),0.8));}
+  /* Figur fuellt das Feld nahezu aus */
+  .cell .fig{position:absolute; inset:-6%; color:var(--accent); filter:drop-shadow(0 1px 2px rgba(0,0,0,0.55));}
   .cell .fig svg{width:100%; height:100%; display:block; overflow:visible;}
   .fig .fig-leg{transform-box:fill-box; transform-origin:top center;}
-  .fig.walking svg{animation:figBob var(--walk,150ms) ease-in-out var(--walkN,1);}
-  .fig.walking .fig-leg.l{animation:figLegA var(--walk,150ms) ease-in-out var(--walkN,1);}
-  .fig.walking .fig-leg.r{animation:figLegB var(--walk,150ms) ease-in-out var(--walkN,1);}
-  @keyframes figLegA{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(20deg);}}
-  @keyframes figLegB{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-20deg);}}
-  @keyframes figBob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-5%);}}
+  .fig.walking svg{animation:figBob var(--walk,250ms) ease-in-out var(--walkN,1);}
+  .fig.walking .fig-leg.l{animation:figLegA var(--walk,250ms) ease-in-out var(--walkN,1);}
+  .fig.walking .fig-leg.r{animation:figLegB var(--walk,250ms) ease-in-out var(--walkN,1);}
+  @keyframes figLegA{0%,100%{transform:rotate(0deg);} 30%{transform:rotate(34deg);} 70%{transform:rotate(-14deg);}}
+  @keyframes figLegB{0%,100%{transform:rotate(0deg);} 30%{transform:rotate(-34deg);} 70%{transform:rotate(14deg);}}
+  @keyframes figBob{0%,100%{transform:translateY(0) rotate(0deg);} 30%{transform:translateY(-8%) rotate(-3deg);} 70%{transform:translateY(-3%) rotate(3deg);}}
   .cell .goal{position:absolute; inset:16%; border-radius:50%; background:radial-gradient(circle, var(--gold), #92400e); box-shadow:0 0 10px var(--gold); animation:pulse 1s infinite alternate;}
   .cell .goal.reached{opacity:0.32; background:radial-gradient(circle, #94a3b8, #334155); box-shadow:none; animation:none;}
   /* Racing-Modus */
@@ -1136,35 +1137,59 @@
   const DOG_COLOR = '#000';
   function dogSvg(){ const c=DOG_COLOR; return `<svg viewBox="0 0 24 20" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10.5" cy="11" rx="7" ry="3.6" fill="${c}"/><circle cx="17.5" cy="8.5" r="3.4" fill="${c}"/><path d="M15.5 6 L14.2 2.6 L17.4 5.2 Z" fill="${c}"/><rect x="19.6" y="8.3" width="3.2" height="2.4" rx="1.1" fill="${c}"/><rect x="5.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="8.4" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="12.6" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="15.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><path d="M3.6 9.5 Q0.8 7.2 2.4 11.5" stroke="${c}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`; }
   // Sherlock als Spielfigur im Feld-Modus. dir: 0=oben, 1=rechts, 2=unten, 3=links.
-  // Die Mantelfarbe kommt per currentColor vom Container (Spielerfarbe bzw. Akzent).
+  // Mantel und Muetze sind braun; der Schal traegt die Spielerfarbe (currentColor),
+  // damit sich im Duell beide Figuren weiterhin unterscheiden lassen.
   function sherlockSvg(dir){
-    const skin='#f0d0ab', hat='#6b5a44', hatDark='#4e4132', dark='#3b3228';
-    const legs=`<g><rect class="fig-leg l" x="8.4" y="16.2" width="3" height="6.2" rx="1.3" fill="${dark}"/>`
-      +`<rect class="fig-leg r" x="12.6" y="16.2" width="3" height="6.2" rx="1.3" fill="${dark}"/></g>`;
-    const coat=`<path d="M7.4 10.4 Q12 8.6 16.6 10.4 L17.6 17.4 Q12 18.8 6.4 17.4 Z" fill="currentColor"/>`
-      +`<path d="M11.4 9.6 L12.6 9.6 L12.6 17.9 L11.4 17.9 Z" fill="${dark}" opacity="0.35"/>`;
-    const head=`<circle cx="12" cy="7" r="3.5" fill="${skin}"/>`;
-    const cap=`<path d="M8.3 4.9 Q12 1.5 15.7 4.9 Z" fill="${hat}"/>`
-      +`<rect x="5.5" y="4.6" width="13" height="1.9" rx="0.95" fill="${hatDark}"/>`;
-    if(dir===1 || dir===3){                       // Seitenansicht (rechts; links wird gespiegelt)
+    const skin='#f0d0ab', coat='#7a5230', coatDark='#5c3c21', hat='#6b4726', hatDark='#4a3018',
+          dark='#33261a', rim='#d8a53c', glass='#cfe9f4';
+    const legs=`<g><rect class="fig-leg l" x="8" y="17" width="3.3" height="6.6" rx="1.4" fill="${dark}"/>`
+      +`<rect class="fig-leg r" x="12.7" y="17" width="3.3" height="6.6" rx="1.4" fill="${dark}"/></g>`;
+    // Lupe (Griff + Glas) – Groesse/Position je Ansicht
+    const lens=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${glass}" opacity="0.6"/>`
+      +`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${rim}" stroke-width="1.1"/>`;
+    const head=`<circle cx="12" cy="6.4" r="4.1" fill="${skin}"/>`;
+    const cap=`<path d="M7.6 3.9 Q12 -0.6 16.4 3.9 Z" fill="${hat}"/>`
+      +`<rect x="4.3" y="3.5" width="15.4" height="2.2" rx="1.1" fill="${hatDark}"/>`
+      +`<path d="M7.6 3.9 Q12 1.4 16.4 3.9" fill="none" stroke="${hatDark}" stroke-width="0.5" opacity="0.7"/>`;
+    const scarf=`<rect x="8.4" y="9.6" width="7.2" height="1.9" rx="0.95" fill="currentColor"/>`;
+
+    if(dir===1 || dir===3){                        // Profil (rechts; links wird gespiegelt)
       const inner=legs
-        +`<path d="M8 10.4 Q12 8.6 15.8 10.6 L16.6 17.4 Q12 18.8 7.2 17.4 Z" fill="currentColor"/>`
-        +`<path d="M15.4 11.4 L19.4 13.4" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>`
-        +`<circle cx="20.4" cy="14" r="2.1" fill="#bfe3f0" opacity="0.55"/>`
-        +`<circle cx="20.4" cy="14" r="2.1" fill="none" stroke="#c79a3a" stroke-width="0.9"/>`
+        +`<path d="M7.6 11 Q12 9 16.2 11.2 L17.2 18.4 Q12 20 6.8 18.4 Z" fill="${coat}"/>`
+        +`<path d="M11.6 10.4 L12.8 10.4 L12.8 19.2 L11.6 19.2 Z" fill="${coatDark}" opacity="0.5"/>`
+        + scarf
+        +`<path d="M15.8 12.4 L19.6 15" stroke="${coat}" stroke-width="2.3" stroke-linecap="round"/>`
+        + lens(21.1,16.2,2.4)
         + head
-        +`<circle cx="14.2" cy="7.2" r="0.62" fill="#1a1a22"/>`      // ein Auge im Profil
-        +`<path d="M14.9 8.2 Q16.1 8.5 15.6 9.2" stroke="${dark}" stroke-width="0.7" fill="none"/>`
+        +`<circle cx="14.4" cy="6.6" r="0.68" fill="#1a1a22"/>`
+        +`<path d="M15.2 7.8 Q16.6 8.2 15.9 9" stroke="${dark}" stroke-width="0.7" fill="none"/>`
         + cap;
       return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
         + (dir===3 ? `<g transform="translate(24,0) scale(-1,1)">${inner}</g>` : inner) + `</svg>`;
     }
-    const face = dir===2                            // nach unten: Gesicht, nach oben: Hinterkopf
-      ? `<circle cx="10.7" cy="7.2" r="0.62" fill="#1a1a22"/><circle cx="13.3" cy="7.2" r="0.62" fill="#1a1a22"/>`
-        +`<path d="M10.9 9 Q12 9.8 13.1 9" stroke="${dark}" stroke-width="0.65" fill="none" stroke-linecap="round"/>`
-      : `<path d="M9.6 7.4 Q12 9 14.4 7.4" stroke="${hatDark}" stroke-width="0.8" fill="none" opacity="0.7"/>`;
+
+    const coatFront=`<path d="M6.9 11 Q12 9 17.1 11 L18.2 18.6 Q12 20.2 5.8 18.6 Z" fill="${coat}"/>`
+      +`<path d="M11.4 10.2 L12.6 10.2 L12.6 19.4 L11.4 19.4 Z" fill="${coatDark}" opacity="0.5"/>`;
+    if(dir===0){
+      // Rueckenansicht: die Lupe liegt hinter dem Mantel und ragt nur leicht hervor
+      return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
+        + legs
+        + lens(19.6,15.4,2.3)
+        + coatFront
+        +`<path d="M16.6 12 L18.4 13.6" stroke="${coat}" stroke-width="2.1" stroke-linecap="round"/>`
+        + scarf + head
+        +`<path d="M9.4 6.8 Q12 8.6 14.6 6.8" stroke="${hatDark}" stroke-width="0.85" fill="none" opacity="0.7"/>`
+        + cap + `</svg>`;
+    }
+    // Vorderansicht: Lupe gut sichtbar neben dem Koerper
     return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
-      + legs + coat + head + face + cap + `</svg>`;
+      + legs + coatFront + scarf
+      +`<path d="M16.8 12.2 L19.4 14.4" stroke="${coat}" stroke-width="2.2" stroke-linecap="round"/>`
+      + lens(20.8,15.8,2.4)
+      + head
+      +`<circle cx="10.5" cy="6.6" r="0.68" fill="#1a1a22"/><circle cx="13.5" cy="6.6" r="0.68" fill="#1a1a22"/>`
+      +`<path d="M10.6 8.6 Q12 9.6 13.4 8.6" stroke="${dark}" stroke-width="0.7" fill="none" stroke-linecap="round"/>`
+      + cap + `</svg>`;
   }
 
   // Klassische Bombe: runder schwarzer Körper, Zündschnur, Funke
@@ -1633,7 +1658,7 @@
       // Laufanimation: ~0,15 s je Feld, ueber das Animationstempo mitskaliert
       if(f.walkSteps>0 && now<f.walkUntil){
         fig.classList.add('walking');
-        fig.style.setProperty('--walk', Math.max(40, Math.round(dur(150)))+'ms');
+        fig.style.setProperty('--walk', Math.max(40, Math.round(dur(250)))+'ms');
         fig.style.setProperty('--walkN', String(f.walkSteps));
       }
       fig.innerHTML=sherlockSvg(f.facing==null?2:f.facing);
@@ -1664,7 +1689,7 @@
         if(b.hazardSet.has(nx+','+ny)){ collide={x:nx,y:ny}; break; } }
     }
     f.walkSteps=walked;
-    f.walkUntil=walked>0 ? Date.now()+Math.max(40,dur(150))*walked+60 : 0;
+    f.walkUntil=walked>0 ? Date.now()+Math.max(40,dur(250))*walked+60 : 0;
     f.moves++;
     if(collide){ if(s.hazardType==='bomb') removeHazard(b,collide.x,collide.y); resetFig(b,f); renderGridBoard(b); if(s.hazardType==='bomb') spawnExplosion(b.cells[collide.y*s.cols+collide.x]); return {type:'collide'}; }
     if(b.coins){ const ci=b.coins.findIndex(c=>c.x===f.x&&c.y===f.y); if(ci>=0){ b.coins.splice(ci,1); f.score++; if(gerangelDone(b)){ f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); sfx('win'); return {type:'won'}; } renderGridBoard(b); sfx('coin'); return {type:'coin'}; } }
