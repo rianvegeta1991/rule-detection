@@ -271,11 +271,27 @@
   .field-label{fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle; pointer-events:none; font-family:inherit;}
   /* Kreiszentrum glüht in der Pose-Farbe (Standard Gold), damit es sich mit der Detektiv-Aura deckt */
   .svg-goal{fill:rgb(var(--pose,250,204,21)); filter:drop-shadow(0 0 9px rgba(var(--pose,250,204,21),0.95)); animation:pulse 1s infinite alternate;}
-  .ring-marker{fill:var(--accent); stroke:transparent; stroke-width:4; filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),0.9));}
-  .ring-marker.flash-good{stroke:var(--good);}
-  .ring-marker.flash-bad{stroke:var(--bad);}
-  .ring-marker.m-p1{fill:var(--p1); filter:drop-shadow(0 0 4px var(--p1));}
-  .ring-marker.m-p2{fill:var(--p2); filter:drop-shadow(0 0 4px var(--p2));}
+  circle.ring-marker{fill:var(--accent); stroke:transparent; stroke-width:4; filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),0.9));}
+  circle.ring-marker.flash-good{stroke:var(--good);}
+  circle.ring-marker.flash-bad{stroke:var(--bad);}
+  circle.ring-marker.m-p1{fill:var(--p1); filter:drop-shadow(0 0 4px var(--p1));}
+  circle.ring-marker.m-p2{fill:var(--p2); filter:drop-shadow(0 0 4px var(--p2));}
+  /* Katze als Spielfigur im Kreis – standardmaessig hellblau */
+  .cat-marker{color:#7dd3fc; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6));}
+  .cat-marker.m-p1{color:var(--p1);} .cat-marker.m-p2{color:var(--p2);}
+  .cat-marker.flash-good{filter:drop-shadow(0 0 5px var(--good));}
+  .cat-marker.flash-bad{filter:drop-shadow(0 0 5px var(--bad));}
+  .cat-marker .cat-tail{transform-box:fill-box; transform-origin:left center;}
+  .cat-marker.moving .cat-body{animation:catBob 300ms ease-in-out infinite;}
+  .cat-marker.moving .cat-tail{animation:catTail 300ms ease-in-out infinite;}
+  @keyframes catBob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-1.3px);}}
+  @keyframes catTail{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-18deg);}}
+  /* kurze Einblendungen: Schrittzahl ueber der Katze, Rotation je Ring */
+  .step-label, .rot-label{fill:#f8fafc; font-family:inherit; font-weight:800; text-anchor:middle;
+    dominant-baseline:middle; paint-order:stroke; stroke:#0b1220; stroke-width:3px; stroke-linejoin:round;
+    opacity:0; transition:opacity .12s;}
+  .step-label.show, .rot-label.show{opacity:1;}
+  .rot-label{fill:#fde68a;}
   .ring-field.current-p1{stroke:var(--p1); stroke-width:2.5;}
   .ring-field.current-p2{stroke:var(--p2); stroke-width:2.5;}
   /* Kreis-Gerangel */
@@ -1910,18 +1926,58 @@
       svg.appendChild(group); cs.fieldPaths.push(arr); cs.ringGroups.push(group); cs.ringLabels.push(labs);
     });
     const goal=elNS('circle'); goal.setAttribute('cx',cx); goal.setAttribute('cy',cy); goal.setAttribute('r',Math.max(6,rIn[0]-8*s)); goal.setAttribute('class','svg-goal'); svg.appendChild(goal);
-    const marker=elNS('circle'); marker.setAttribute('r',10*s); marker.setAttribute('class','ring-marker'); svg.appendChild(marker);
+    // Rotationsanzeigen je Ring (ausserhalb der drehenden Gruppen, damit sie lesbar bleiben)
+    cs.rotLabels=[];
+    cs.rings.forEach((ring,ri)=>{
+      const t=elNS('text'); t.setAttribute('class','rot-label');
+      t.setAttribute('x',cx); t.setAttribute('y',cy-mid[ri]); t.setAttribute('font-size',(11*s).toFixed(1));
+      svg.appendChild(t); cs.rotLabels.push(t);
+    });
+    const marker=makeCatMarker(s); svg.appendChild(marker);
     cs.svg=svg; cs.marker=marker;
     host.innerHTML=''; host.appendChild(svg);
     applyRingTransforms(cs); positionMarker(cs);
   }
   function applyRingTransforms(cs){ cs.ringGroups.forEach((g,i)=>{ const off=ringOffsetNow(cs.rings[i]); g.setAttribute('transform',`rotate(${off} ${cs.geo.cx} ${cs.geo.cy})`); if(cs.ringLabels && cs.ringLabels[i]) cs.ringLabels[i].forEach(l=>{ if(l.el) l.el.setAttribute('transform',`rotate(${-off} ${l.px} ${l.py})`); }); }); }
+  // Spielfigur im Kreis: eine Katze, die zum Detektiv ins Zentrum will.
+  // Sie sitzt in einer Gruppe, die per translate positioniert wird (statt cx/cy wie frueher).
+  function makeCatMarker(s, cls){
+    const g=elNS('g'); g.setAttribute('class','ring-marker cat-marker'+(cls?' '+cls:''));
+    const k=(s||1)*1.05;
+    g.innerHTML=`<g transform="scale(${k.toFixed(3)})">`
+      +`<g class="cat-body">`
+        +`<path class="cat-tail" d="M6.2 3.4 Q11.6 2 9.4 -3.2" stroke="currentColor" stroke-width="2.1" fill="none" stroke-linecap="round"/>`
+        +`<ellipse cx="0" cy="3.6" rx="6.6" ry="5" fill="currentColor"/>`
+        +`<circle cx="0" cy="-4.2" r="4.9" fill="currentColor"/>`
+        +`<path d="M-4.6 -7 L-3.2 -11.6 L-0.7 -8.2 Z" fill="currentColor"/>`
+        +`<path d="M4.6 -7 L3.2 -11.6 L0.7 -8.2 Z" fill="currentColor"/>`
+        +`<path d="M-3.6 -7.9 L-2.9 -10.2 L-1.7 -8.6 Z" fill="#f9a8d4"/>`
+        +`<path d="M3.6 -7.9 L2.9 -10.2 L1.7 -8.6 Z" fill="#f9a8d4"/>`
+        +`<circle cx="-1.9" cy="-4.6" r="0.95" fill="#0b1220"/><circle cx="1.9" cy="-4.6" r="0.95" fill="#0b1220"/>`
+        +`<path d="M-0.1 -2.6 L0.1 -2.6" stroke="#0b1220" stroke-width="1.1" stroke-linecap="round"/>`
+        +`<path d="M-6.4 -3.4 L-3.6 -3.8 M-6.4 -2 L-3.6 -2.8" stroke="#0b1220" stroke-width="0.42" opacity="0.65"/>`
+        +`<path d="M6.4 -3.4 L3.6 -3.8 M6.4 -2 L3.6 -2.8" stroke="#0b1220" stroke-width="0.42" opacity="0.65"/>`
+      +`</g></g>`
+      +`<text class="step-label" x="0" y="${(-15*k).toFixed(1)}" font-size="${(11*(s||1)).toFixed(1)}"></text>`;
+    return g;
+  }
+  // Kurze Einblendungen waehrend der Animationen: Schrittzahl an der Katze, Drehung je Ring
+  function markerMoving(m, on){ if(m && m.classList) m.classList.toggle('moving', !!on); }
+  function showStepLabel(m, delta){ if(!m) return; const t=m.querySelector('.step-label'); if(!t) return; t.textContent=fmtDelta(delta); t.classList.add('show'); }
+  function hideStepLabel(m){ if(!m) return; const t=m.querySelector('.step-label'); if(t) setTimeout(()=>t.classList.remove('show'), Math.max(180, dur(320))); }
+  function showRotLabels(cs, rots){ (cs.rotLabels||[]).forEach((t,i)=>{ const d=rots[i]||0; if(!d){ t.classList.remove('show'); return; } t.textContent=fmtDelta(d); t.classList.add('show'); }); }
+  function hideRotLabels(cs){ setTimeout(()=>{ (cs.rotLabels||[]).forEach(t=>t.classList.remove('show')); }, Math.max(180, dur(320))); }
+  function setMarkerPos(m, x, y){
+    if(!m) return;
+    if(m.tagName==='circle'){ m.setAttribute('cx',x); m.setAttribute('cy',y); }
+    else m.setAttribute('transform',`translate(${x} ${y})`);
+  }
   function positionMarker(cs){
     if(!cs.marker) return;
     let angle,radius;
     if(cs.markerOverride){ angle=cs.markerOverride.angle; radius=cs.markerOverride.radius; }
     else { const ring=cs.rings[cs.ringIdx]; angle=(cs.index+0.5)*(360/ring.fieldCount)+ringOffsetNow(ring); radius=ringMidR(cs,cs.ringIdx); }
-    const pos=polarToXY(cs.geo.cx,cs.geo.cy,radius,angle); cs.marker.setAttribute('cx',pos.x); cs.marker.setAttribute('cy',pos.y);
+    const pos=polarToXY(cs.geo.cx,cs.geo.cy,radius,angle); setMarkerPos(cs.marker,pos.x,pos.y);
   }
   function updateHighlight(cs){
     cs.fieldPaths.forEach(arr=>arr.forEach(p=>p.classList.remove('current')));
@@ -1963,7 +2019,11 @@
 
     const sa=360/ring.fieldCount, startAngle=(cs.index+0.5)*sa+ring.offset;
     if(figActual!==0){
+      showStepLabel(cs.marker, figActual);                    // Schrittzahl ueber der Katze
+      markerMoving(cs.marker, true);
       await tween(dur(Math.max(300,Math.abs(figActual)*160)), p=>{ if(!cs.mounted) return; cs.markerOverride={angle:startAngle+figActual*sa*p, radius:ringMidR(cs,cs.ringIdx)}; positionMarker(cs); });
+      markerMoving(cs.marker, false);
+      hideStepLabel(cs.marker);
     }
     if(!cs.mounted) return false;
     cs.markerOverride=null;
@@ -1972,7 +2032,9 @@
 
     const startOffsets=cs.rings.map(r=>r.offset);
     if(rotActuals.some(d=>d!==0)){
+      showRotLabels(cs, rotActuals);                          // Drehung je Ring
       await tween(dur(700), p=>{ if(!cs.mounted) return; cs.rings.forEach((r,i)=>{ r.offsetVisual=startOffsets[i]+rotActuals[i]*(360/r.fieldCount)*p; }); applyRingTransforms(cs); positionMarker(cs); });
+      hideRotLabels(cs);
       if(!cs.mounted) return false;
       cs.rings.forEach((r,i)=>{ r.offset=((startOffsets[i]+rotActuals[i]*(360/r.fieldCount))%360+360)%360; r.offsetVisual=null; });
       applyRingTransforms(cs); positionMarker(cs);
@@ -2880,7 +2942,7 @@
     let angle,radius;
     if(pl.markerOverride){ angle=pl.markerOverride.angle; radius=pl.markerOverride.radius; }
     else { const ring=gs.rings[pl.ringIdx]; angle=(pl.index+0.5)*(360/ring.fieldCount)+ringOffsetNow(ring); radius=ringMidR(gs,pl.ringIdx); }
-    const pos=polarToXY(gs.geo.cx,gs.geo.cy,radius,angle); pl.marker.setAttribute('cx',pos.x); pl.marker.setAttribute('cy',pos.y);
+    const pos=polarToXY(gs.geo.cx,gs.geo.cy,radius,angle); setMarkerPos(pl.marker,pos.x,pos.y);
   }
   function updateHighlightG(gs){
     gs.fieldPaths.forEach(arr=>arr.forEach(p=>p.classList.remove('current-p1','current-p2')));
@@ -2900,7 +2962,7 @@
     circleBuildRings(gs, host, scale);
     const s=gs.geo.scale;
     gs.marker.classList.add('m-p1'); gs.players[0].marker=gs.marker;
-    const m2=elNS('circle'); m2.setAttribute('r',10*s); m2.setAttribute('class','ring-marker m-p2'); gs.svg.appendChild(m2);
+    const m2=makeCatMarker(s,'m-p2'); gs.svg.appendChild(m2);
     gs.players[1].marker=m2;
     positionMarkerG(gs, gs.players[0]); positionMarkerG(gs, gs.players[1]);
     updateHighlightG(gs);
@@ -2923,7 +2985,9 @@
     pl.moves++;
     const sa=360/ring.fieldCount, startAngle=(pl.index+0.5)*sa+ring.offset;
     if(figActual!==0){
+      showStepLabel(pl.marker, figActual); markerMoving(pl.marker, true);
       await tween(dur(Math.max(300,Math.abs(figActual)*160)), p=>{ if(!gs.mounted) return; pl.markerOverride={angle:startAngle+figActual*sa*p, radius:ringMidR(gs,pl.ringIdx)}; positionMarkerG(gs,pl); });
+      markerMoving(pl.marker, false); hideStepLabel(pl.marker);
     }
     if(!gs.mounted) return false;
     pl.markerOverride=null;
@@ -2931,7 +2995,9 @@
     positionMarkerG(gs,pl);
     const startOffsets=gs.rings.map(r=>r.offset);
     if(rotActuals.some(d=>d!==0)){
+      showRotLabels(gs, rotActuals);
       await tween(dur(700), p=>{ if(!gs.mounted) return; gs.rings.forEach((r,i)=>{ r.offsetVisual=startOffsets[i]+rotActuals[i]*(360/r.fieldCount)*p; }); applyRingTransforms(gs); positionMarkerG(gs,pl); positionMarkerG(gs,opp); });
+      hideRotLabels(gs);
       if(!gs.mounted) return false;
       gs.rings.forEach((r,i)=>{ r.offset=((startOffsets[i]+rotActuals[i]*(360/r.fieldCount))%360+360)%360; r.offsetVisual=null; });
       applyRingTransforms(gs); positionMarkerG(gs,pl); positionMarkerG(gs,opp);
