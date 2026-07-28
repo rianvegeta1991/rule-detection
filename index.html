@@ -140,6 +140,16 @@
   .board-grid{position:absolute; inset:0; display:grid; gap:3px; padding:6px; border-radius:10px; border:1px solid rgba(var(--accent-rgb),0.55); box-shadow:0 0 26px rgba(var(--accent-rgb),0.22);}
   .cell{background:rgba(15,23,42,0.58); border-radius:4px; position:relative;}
   .cell .dot{position:absolute; inset:14%; border-radius:50%; background:var(--accent); box-shadow:0 0 6px rgba(var(--accent-rgb),0.8); transition:box-shadow .15s;}
+  /* Sherlock als Spielfigur: blickt in die zuletzt gelaufene Richtung, kurze Laufanimation je Feld */
+  .cell .fig{position:absolute; inset:4%; color:var(--accent); filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),0.8));}
+  .cell .fig svg{width:100%; height:100%; display:block; overflow:visible;}
+  .fig .fig-leg{transform-box:fill-box; transform-origin:top center;}
+  .fig.walking svg{animation:figBob var(--walk,150ms) ease-in-out var(--walkN,1);}
+  .fig.walking .fig-leg.l{animation:figLegA var(--walk,150ms) ease-in-out var(--walkN,1);}
+  .fig.walking .fig-leg.r{animation:figLegB var(--walk,150ms) ease-in-out var(--walkN,1);}
+  @keyframes figLegA{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(20deg);}}
+  @keyframes figLegB{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-20deg);}}
+  @keyframes figBob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-5%);}}
   .cell .goal{position:absolute; inset:16%; border-radius:50%; background:radial-gradient(circle, var(--gold), #92400e); box-shadow:0 0 10px var(--gold); animation:pulse 1s infinite alternate;}
   .cell .goal.reached{opacity:0.32; background:radial-gradient(circle, #94a3b8, #334155); box-shadow:none; animation:none;}
   /* Racing-Modus */
@@ -150,7 +160,12 @@
   .race-car svg{width:88%; height:88%; display:block; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6));}
   .race-car.air{transform:scale(1.3);}
   .race-car.air svg{filter:drop-shadow(0 7px 5px rgba(0,0,0,0.7));}
-  .race-car.skid svg{filter:drop-shadow(0 0 6px var(--bad));}
+  /* Schlingern: das Auto dreht sich um die eigene Achse – Kontrollverlust ist sofort sichtbar */
+  .race-car.skid svg{filter:drop-shadow(0 0 6px var(--bad)); animation:carSpin 0.62s linear infinite; transform-origin:50% 50%;}
+  @keyframes carSpin{from{transform:rotate(0deg);} to{transform:rotate(360deg);}}
+  /* Raketen-Antrieb (Friedhof): flackernde Flamme am Heck */
+  .race-cell .rocket .thrust{animation:thrustFlicker 0.22s ease-in-out infinite alternate; transform-box:fill-box; transform-origin:top center;}
+  @keyframes thrustFlicker{from{opacity:0.55; transform:scaleY(0.7);} to{opacity:1; transform:scaleY(1.25);}}
   /* Gespeicherte Farbregel (B): das Auto leuchtet in der Farbe der Zone – wie die Posen-Aura im Kreis */
   .race-car.bubbled::before{
     content:''; position:absolute; inset:-32%; border-radius:50%; pointer-events:none;
@@ -232,6 +247,11 @@
   .dot.p1{background:var(--p1); box-shadow:0 0 6px var(--p1);}
   .dot.p2{background:var(--p2); box-shadow:0 0 6px var(--p2);}
   .dot.blink{animation:blink 0.35s steps(2,end) infinite;}
+  .fig.p1{color:var(--p1); filter:drop-shadow(0 0 4px var(--p1));}
+  .fig.p2{color:var(--p2); filter:drop-shadow(0 0 4px var(--p2));}
+  .fig.blink{animation:blink 0.35s steps(2,end) infinite;}
+  .flash-good .fig{filter:drop-shadow(0 0 5px var(--good));}
+  .flash-bad .fig{filter:drop-shadow(0 0 5px var(--bad));}
   @keyframes blink{50%{opacity:0.12;}}
   .cell.wall{background:#2b3444 !important; box-shadow:inset 0 0 0 2px #0b1220, inset 0 0 6px rgba(0,0,0,0.6);}
   .cell .coin{position:absolute; inset:24%; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fde68a, #d97706 72%); box-shadow:0 0 5px rgba(250,204,21,0.75);}
@@ -1115,6 +1135,38 @@
   const GERANGEL_SIZE = { leicht:13, mittel:15, schwer:15, experte:17 };
   const DOG_COLOR = '#000';
   function dogSvg(){ const c=DOG_COLOR; return `<svg viewBox="0 0 24 20" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10.5" cy="11" rx="7" ry="3.6" fill="${c}"/><circle cx="17.5" cy="8.5" r="3.4" fill="${c}"/><path d="M15.5 6 L14.2 2.6 L17.4 5.2 Z" fill="${c}"/><rect x="19.6" y="8.3" width="3.2" height="2.4" rx="1.1" fill="${c}"/><rect x="5.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="8.4" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="12.6" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="15.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><path d="M3.6 9.5 Q0.8 7.2 2.4 11.5" stroke="${c}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`; }
+  // Sherlock als Spielfigur im Feld-Modus. dir: 0=oben, 1=rechts, 2=unten, 3=links.
+  // Die Mantelfarbe kommt per currentColor vom Container (Spielerfarbe bzw. Akzent).
+  function sherlockSvg(dir){
+    const skin='#f0d0ab', hat='#6b5a44', hatDark='#4e4132', dark='#3b3228';
+    const legs=`<g><rect class="fig-leg l" x="8.4" y="16.2" width="3" height="6.2" rx="1.3" fill="${dark}"/>`
+      +`<rect class="fig-leg r" x="12.6" y="16.2" width="3" height="6.2" rx="1.3" fill="${dark}"/></g>`;
+    const coat=`<path d="M7.4 10.4 Q12 8.6 16.6 10.4 L17.6 17.4 Q12 18.8 6.4 17.4 Z" fill="currentColor"/>`
+      +`<path d="M11.4 9.6 L12.6 9.6 L12.6 17.9 L11.4 17.9 Z" fill="${dark}" opacity="0.35"/>`;
+    const head=`<circle cx="12" cy="7" r="3.5" fill="${skin}"/>`;
+    const cap=`<path d="M8.3 4.9 Q12 1.5 15.7 4.9 Z" fill="${hat}"/>`
+      +`<rect x="5.5" y="4.6" width="13" height="1.9" rx="0.95" fill="${hatDark}"/>`;
+    if(dir===1 || dir===3){                       // Seitenansicht (rechts; links wird gespiegelt)
+      const inner=legs
+        +`<path d="M8 10.4 Q12 8.6 15.8 10.6 L16.6 17.4 Q12 18.8 7.2 17.4 Z" fill="currentColor"/>`
+        +`<path d="M15.4 11.4 L19.4 13.4" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>`
+        +`<circle cx="20.4" cy="14" r="2.1" fill="#bfe3f0" opacity="0.55"/>`
+        +`<circle cx="20.4" cy="14" r="2.1" fill="none" stroke="#c79a3a" stroke-width="0.9"/>`
+        + head
+        +`<circle cx="14.2" cy="7.2" r="0.62" fill="#1a1a22"/>`      // ein Auge im Profil
+        +`<path d="M14.9 8.2 Q16.1 8.5 15.6 9.2" stroke="${dark}" stroke-width="0.7" fill="none"/>`
+        + cap;
+      return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
+        + (dir===3 ? `<g transform="translate(24,0) scale(-1,1)">${inner}</g>` : inner) + `</svg>`;
+    }
+    const face = dir===2                            // nach unten: Gesicht, nach oben: Hinterkopf
+      ? `<circle cx="10.7" cy="7.2" r="0.62" fill="#1a1a22"/><circle cx="13.3" cy="7.2" r="0.62" fill="#1a1a22"/>`
+        +`<path d="M10.9 9 Q12 9.8 13.1 9" stroke="${dark}" stroke-width="0.65" fill="none" stroke-linecap="round"/>`
+      : `<path d="M9.6 7.4 Q12 9 14.4 7.4" stroke="${hatDark}" stroke-width="0.8" fill="none" opacity="0.7"/>`;
+    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
+      + legs + coat + head + face + cap + `</svg>`;
+  }
+
   // Klassische Bombe: runder schwarzer Körper, Zündschnur, Funke
   function bombSvg(){ return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
     + `<circle cx="10.8" cy="15" r="7.6" fill="#15151b"/>`
@@ -1140,8 +1192,12 @@
     + `</svg>`; }
 
   // Rakete: dunkler Körper, roter Sprengkopf nach unten (Richtung Auto) – klar als gefährlich erkennbar.
-  function rocketSvg(){ return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
-    + `<path d="M10 2.5 Q12 -1 14 2.5 Q12 5 10 2.5 Z" fill="#fb923c" opacity="0.9"/>`   /* Abgas oben (nachlaufend) */
+  function rocketSvg(thrust){ return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">`
+    + (thrust
+        // Friedhof: echter Antrieb am Heck – laengere, flackernde Flamme
+        ? `<g class="thrust"><path d="M9.2 2.6 Q12 -4.2 14.8 2.6 Q12 5.4 9.2 2.6 Z" fill="#fb923c"/>`
+          +`<path d="M10.4 2.4 Q12 -2.2 13.6 2.4 Q12 4.2 10.4 2.4 Z" fill="#fde68a"/></g>`
+        : `<path d="M10 2.5 Q12 -1 14 2.5 Q12 5 10 2.5 Z" fill="#fb923c" opacity="0.9"/>`)   /* Abgas oben (nachlaufend) */
     + `<path d="M8.5 5 L4.5 3 L8.5 10 Z" fill="#1f2937"/><path d="M15.5 5 L19.5 3 L15.5 10 Z" fill="#1f2937"/>`  /* Finnen oben */
     + `<rect x="8" y="3.5" width="8" height="10.5" rx="2.4" fill="#3a4453"/>`
     + `<rect x="8" y="3.5" width="8" height="10.5" rx="2.4" fill="none" stroke="#141a22" stroke-width="0.7"/>`
@@ -1282,7 +1338,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.8";
+  const APP_VERSION = "2.9";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1554,7 +1610,7 @@
       grid.appendChild(c); cells.push(c);
     }
     host.innerHTML=''; host.appendChild(outer);
-    const figs=figDefs.map((d,i)=>({ x:d.startX,y:d.startY,startX:d.startX,startY:d.startY, moves:0,mem:{},blinkUntil:0,checkpointIdx:0,reached:[],score:0,done:false,doneAtMove:null,lastFlash:null,colorClass:d.colorClass||'',idx:i }));
+    const figs=figDefs.map((d,i)=>({ x:d.startX,y:d.startY,startX:d.startX,startY:d.startY, moves:0,mem:{},blinkUntil:0,checkpointIdx:0,reached:[],score:0,done:false,doneAtMove:null,lastFlash:null,colorClass:d.colorClass||'',idx:i, facing:2, walkSteps:0, walkUntil:0 }));
     return { cells, figs, shared, cellSize, onChange:null, dogTimer:null,
       hazards: shared.hazards.map(hh=>({x:hh.x,y:hh.y})), hazardSet:new Set(shared.hazards.map(hh=>hh.x+','+hh.y)),
       coins: shared.coins ? shared.coins.map(c=>({x:c.x,y:c.y})) : null,
@@ -1572,9 +1628,16 @@
       if(!f.done){ const g=s.checkpoints[f.checkpointIdx]; b.cells[g.y*s.cols+g.x].appendChild(el('div','goal')); }
     }
     b.figs.forEach(f=>{
-      const pi=f.y*s.cols+f.x; const dot=el('div','dot'+(f.colorClass?' '+f.colorClass:''));
-      if(now<f.blinkUntil) dot.classList.add('blink');
-      b.cells[pi].appendChild(dot);
+      const pi=f.y*s.cols+f.x; const fig=el('div','fig'+(f.colorClass?' '+f.colorClass:''));
+      if(now<f.blinkUntil) fig.classList.add('blink');
+      // Laufanimation: ~0,15 s je Feld, ueber das Animationstempo mitskaliert
+      if(f.walkSteps>0 && now<f.walkUntil){
+        fig.classList.add('walking');
+        fig.style.setProperty('--walk', Math.max(40, Math.round(dur(150)))+'ms');
+        fig.style.setProperty('--walkN', String(f.walkSteps));
+      }
+      fig.innerHTML=sherlockSvg(f.facing==null?2:f.facing);
+      b.cells[pi].appendChild(fig);
       if(f.lastFlash) b.cells[pi].classList.add(f.lastFlash==='good'?'flash-good':'flash-bad');
     });
   }
@@ -1590,14 +1653,18 @@
     if(actual!==null){ if(zone.effect==='invert') actual=(actual+2)%4; else if(zone.effect==='mirror') actual=applySecondary('mirrorLR',actual); else if(zone.effect!=='normal') actual=applySecondary(zone.effect,actual); }
     f.lastFlash=(reqDir===actual)?'good':'bad';
     let collide=null;
+    let walked=0;
     if(actual!==null){
+      f.facing=actual;                                  // Sherlock blickt in die zuletzt gelaufene Richtung
       const v=VECS[actual]; const n=s.stepPattern ? s.stepPattern[f.moves % s.stepPattern.length] : 1;
       for(let k=0;k<n;k++){ const nx=f.x+v[0], ny=f.y+v[1];
         if(nx<0||ny<0||nx>=s.cols||ny>=s.rows) break;
         if(s.wallSet && s.wallSet.has(nx+','+ny)) break;
-        f.x=nx; f.y=ny;
+        f.x=nx; f.y=ny; walked++;
         if(b.hazardSet.has(nx+','+ny)){ collide={x:nx,y:ny}; break; } }
     }
+    f.walkSteps=walked;
+    f.walkUntil=walked>0 ? Date.now()+Math.max(40,dur(150))*walked+60 : 0;
     f.moves++;
     if(collide){ if(s.hazardType==='bomb') removeHazard(b,collide.x,collide.y); resetFig(b,f); renderGridBoard(b); if(s.hazardType==='bomb') spawnExplosion(b.cells[collide.y*s.cols+collide.x]); return {type:'collide'}; }
     if(b.coins){ const ci=b.coins.findIndex(c=>c.x===f.x&&c.y===f.y); if(ci>=0){ b.coins.splice(ci,1); f.score++; if(gerangelDone(b)){ f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); sfx('win'); return {type:'won'}; } renderGridBoard(b); sfx('coin'); return {type:'coin'}; } }
@@ -2174,7 +2241,7 @@
   // Wie viele verschiedene Farbzonen (= Regeln) eine Strecke benutzt
   const RACE_ZONES={ leicht:2, mittel:3, schwer:4, experte:4 };
   const RACE_BOMB={ leicht:0.10, mittel:0.15, schwer:0.20, experte:0.28 };
-  const RACE_DIST_POOL=['swapLR','double','repeatInvert','delay','swapActDir','swapAB','hopA','replaceD'];
+  const RACE_DIST_POOL=['swapLR','double','repeatInvert','delay','swapActDir','swapAB','actionPool'];
   const RACE_DIST_LABEL={
     none:'Neutral – die Tasten tun genau das, was draufsteht.',
     swapLR:'Links und Rechts sind vertauscht.',
@@ -2183,8 +2250,7 @@
     delay:'Deine Richtungswahl wird um eine Eingabe verzögert ausgeführt.',
     swapActDir:'Aktions- und Richtungstasten sind vertauscht (← wirkt wie A, → wie B).',
     swapAB:'Die Aktionstasten A und B sind untereinander vertauscht.',
-    hopA:'A ist ersetzt: statt zu springen macht das Auto einen Seitwärts-Hop – 2 Felder in die zuletzt gewählte Richtung.',
-    replaceD:'B ist ersetzt: das Auto gerät ins Schlingern und ist 2–3 Intervalle unsteuerbar.'
+    actionPool:'Beide Aktionen sind ausgetauscht: A schiebt das Auto 2 Felder in die zuletzt gewählte Richtung, B lässt es schlingern – 3 Felder lang unsteuerbar.'
   };
   let race=null;
   // Duell-Kontext: lokal (nacheinander auf einem Geraet) oder online (beide gleichzeitig)
@@ -2253,7 +2319,10 @@
         cell.style.background=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`; cell.innerHTML='';
         const o=row.objs[x];
         if(o==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); cell.appendChild(d); }
-        else if(o==='rocket'){ const d=el('div','rocket'); d.innerHTML=rocketSvg(); cell.appendChild(d); }
+        else if(o==='rocket'){ const d=el('div','rocket'); d.innerHTML=rocketSvg(race.rocketThrust);
+          // Antrieb schiebt die Rakete zwischen zwei Datenzeilen sichtbar ein halbes Feld tiefer
+          if(race.rocketThrust && race.rocketDrift) d.style.transform=`translateY(${(race.rocketDrift*race.stepPx).toFixed(1)}px)`;
+          cell.appendChild(d); }
         else if(o==='coin'){ cell.appendChild(el('div','coin')); }
       }
     }
@@ -2275,9 +2344,31 @@
     race.halfTimer=setTimeout(()=>{ if(race&&race.alive&&race.mounted) raceApplyShift(0.5); }, Math.max(40, Math.round(iv/2)));
     race.timer=setTimeout(raceTick, iv);
   }
+  // Jede Rakete darf pro Durchlauf genau EIN Feld zur Seite – erst alle Positionen sammeln,
+  // sonst wandert dieselbe Rakete in der Schleife gleich zweimal weiter.
   function raceMoveRockets(){
-    for(let y=0;y<race.grid.length;y++){ const row=race.grid[y];
-      for(let x=0;x<RACE_COLS;x++){ if(row.objs[x]==='rocket'){ const dir=raceRnd()<0.5?-1:1; const nx=x+dir; if(nx>=0&&nx<RACE_COLS&&!row.objs[nx]){ row.objs[nx]='rocket'; row.objs[x]=null; } } }
+    for(let y=0;y<race.grid.length;y++){
+      const row=race.grid[y];
+      const spots=[]; for(let x=0;x<RACE_COLS;x++) if(row.objs[x]==='rocket') spots.push(x);
+      spots.forEach(x=>{
+        const dir=raceRnd()<0.5?-1:1, nx=x+dir;
+        if(nx>=0 && nx<RACE_COLS && !row.objs[nx]){ row.objs[nx]='rocket'; row.objs[x]=null; }
+      });
+    }
+  }
+  // Friedhof: die Raketen haben Antrieb und schieben sich alle zwei Intervalle ein halbes Feld nach unten.
+  // Bei jedem zweiten halben Schritt rutschen sie eine ganze Datenzeile tiefer.
+  function raceRocketThrust(){
+    race.rocketDrift=(race.rocketDrift||0)+0.5;
+    if(race.rocketDrift<1) return;
+    race.rocketDrift-=1;
+    for(let y=race.grid.length-1;y>=0;y--){
+      const row=race.grid[y], below=race.grid[y+1];
+      for(let x=0;x<RACE_COLS;x++){
+        if(row.objs[x]!=='rocket') continue;
+        row.objs[x]=null;
+        if(below && !below.objs[x]) below.objs[x]='rocket';    // unten aus dem Bild = weg
+      }
     }
   }
   // Kollision zaehlt nur beim vollen Einrasten auf ein Feld – nicht auf halbem Weg
@@ -2291,10 +2382,11 @@
     if(!race||!race.alive||!race.mounted) return;
     race.tickCount++;
     if(race.tickCount%3===0) raceMoveRockets();
+    if(race.rocketThrust && race.tickCount%2===0) raceRocketThrust();
     race.grid.pop(); race.grid.unshift(raceSpawnRow(false));
     race.score++; race.rowsPassed++;
     if(race.skid>0){ race.carX=clamp(race.carX+race.skidDir,0,RACE_COLS-1); race.skid--; }
-    if(race.airborne>0){ race.airborne--; if(race.airborne===0) race.jumpCd=3; }
+    if(race.airborne>0){ race.airborne--; if(race.airborne<=0){ race.airborne=0; race.jumpCd=3; } }
     else if(race.jumpCd>0) race.jumpCd--;
     if(race.bHopCd>0) race.bHopCd--;
     const zoneNow=raceCarRowData().zone;
@@ -2317,8 +2409,8 @@
       case 'swapActDir':
         if(btn==='L') return {act:'jump'}; if(btn==='A') return {move:-1};
         if(btn==='R') return {act:'bubble'}; if(btn==='B') return {move:1}; break;
-      case 'hopA': if(btn==='A') return {act:'hop'}; break;
-      case 'replaceD': if(btn==='B') return {act:'skid'}; break;
+      // Aktions-Pool: es werden immer BEIDE Aktionen getauscht
+      case 'actionPool': if(btn==='A') return {act:'hop'}; if(btn==='B') return {act:'skid'}; break;
       case 'repeatInvert': if(move!==null){ if(btn===race.lastRawDirBtn) move=-move; race.lastRawDirBtn=btn; } break;
       case 'delay': if(move!==null){ const prev=race.delayBuf; race.delayBuf=move; if(prev===undefined) return null; move=prev; } break;
     }
@@ -2340,7 +2432,8 @@
     return true;
   }
   function raceMove(dx){ if(race.skid>0) return; sfx('move'); const step=dx>0?1:-1, n=Math.abs(dx); for(let k=0;k<n;k++) race.carX=clamp(race.carX+step,0,RACE_COLS-1); race.lastDir=step; if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); }
-  function raceJump(){ if(race.skid>0) return; if(race.jumpCd===0 && race.airborne===0){ race.airborne=2; sfx('jump'); raceRender(); } }
+  // Sprung ueber 2,5 Felder: deckt zwei volle Landungen ab, damit auch zwei Bomben hintereinander gehen
+  function raceJump(){ if(race.skid>0) return; if(race.jumpCd===0 && race.airborne===0){ race.airborne=2.5; sfx('jump'); raceRender(); } }
   function raceHop(){ if(race.skid>0) return; if(race.bHopCd===0){ race.carX=clamp(race.carX+2*race.lastDir,0,RACE_COLS-1); race.bHopCd=2; sfx('move'); if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); } }
   function raceBubble(){
     const z=raceCarRowData().zone;
@@ -2352,7 +2445,8 @@
     }
     raceRender();
   }
-  function raceSkid(){ if(race.skid===0){ race.skid=2+randInt(2); race.skidDir=Math.random()<0.5?-1:1; raceRender(); } }
+  // Schlingern: 3 Felder lang unsteuerbar, das Auto dreht sich dabei sichtbar um die eigene Achse
+  function raceSkid(){ if(race.skid===0){ race.skid=3; race.skidDir=Math.random()<0.5?-1:1; sfx('move'); raceRender(); } }
   function raceGameOver(){
     race.alive=false; raceClearTimers();
     raceRender();
@@ -2429,7 +2523,7 @@
   function raceReveal(){
     let html='<b>Steuerung:</b><ul style="margin:4px 0 8px 18px;">'
       +'<li><b>&#9664; / &#9654;</b> bewegen das Auto ein Feld.</li>'
-      +'<li><b>A</b> hebt das Auto 2 Felder ab und &uuml;berspringt Bomben &ndash; danach 3 Felder keine Spr&uuml;nge.</li>'
+      +'<li><b>A</b> hebt das Auto 2,5 Felder ab &ndash; damit sind auch zwei Bomben hintereinander drin. Danach 3 Felder keine Spr&uuml;nge.</li>'
       +'<li><b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei, auch wenn du die Zone wechselst.</li></ul>'
       +'<b>Die Farbzonen verzerren die Steuerung (verborgen &ndash; finde sie heraus!):</b><ul style="margin:4px 0 0 18px;">';
     ZONE_COLORS.slice(0, race.zoneCount).forEach((zc,i)=>{ html+=`<li><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgb(${zc.tint});vertical-align:middle;margin-right:6px;"></span><b>${zc.name}</b>: ${RACE_DIST_LABEL[race.zoneDistort[i]]}</li>`; });
@@ -2446,6 +2540,7 @@
       skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:null,
       rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
       rng: (opts.seed!=null ? mulberry32(opts.seed>>>0) : null),
+      rocketThrust:(diffKey==='experte'), rocketDrift:0,     // Friedhof: Raketen haben Antrieb
       tickCount:0, startTime:performance.now(), alive:true, mounted:true, timer:null, halfTimer:null };
     // Verzerrungen und Startzone aus demselben Seed – im Online-Duell fahren beide dieselbe Strecke
     if(opts.seed!=null){ const r=mulberry32((opts.seed>>>0)^0x9e3779b9); const pool=RACE_DIST_POOL.slice();
