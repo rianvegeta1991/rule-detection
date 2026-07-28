@@ -658,7 +658,7 @@
   </div>
 
   <div class="panel">
-    <div class="ed-row"><label class="small">Spielfeld</label><select id="ed-mode" class="ed-sel"><option value="grid">Feld-Modus</option><option value="circle">Kreis-Modus</option></select></div>
+    <div class="ed-row"><label class="small">Spielfeld</label><select id="ed-mode" class="ed-sel"><option value="grid">Feld-Modus</option><option value="racing">Racing-Modus</option><option value="circle">Kreis-Modus</option></select></div>
     <div class="ed-row" id="ed-variant-row"><label class="small">Variante</label><select id="ed-variant" class="ed-sel"><option value="gerangel">Gerangel</option><option value="spurensuche">Spurensuche</option></select></div>
     <div class="ed-row"><label class="small">Spieler</label><select id="ed-players" class="ed-sel"><option value="1">Einzelspieler</option><option value="2">Duell (2 Spieler)</option></select></div>
     <div class="ed-row"><label class="small">Hintergrund / Farbschema</label><select id="ed-bg" class="ed-sel"><option value="garden">Garten (grün)</option><option value="office">Büro (hell)</option><option value="night">Nachtleben (rot)</option><option value="graveyard">Friedhof (düster)</option></select></div>
@@ -707,6 +707,20 @@
     <details class="ed-adv"><summary>Erweitert: Ring-Rotationen (pro Ring)</summary>
       <div class="hint" style="margin-left:0;">Drehung je Ring auf deine Eingabe. Standard: zuf&auml;llig.</div>
       <div id="ed-ring-rows" style="margin-top:8px;"></div>
+    </details>
+  </div>
+
+  <div class="panel hidden" id="ed-race-opts">
+    <div class="ed-row"><label class="small">Start-Tempo: <b id="ed-rspeed0-val"></b> s je Reihe</label><input type="range" id="ed-rspeed0" min="300" max="1200" step="50"></div>
+    <div class="ed-row"><label class="small">End-Tempo (nach 2 Min): <b id="ed-rspeed1-val"></b> s je Reihe</label><input type="range" id="ed-rspeed1" min="80" max="600" step="20"></div>
+    <div class="ed-row"><label class="small">Anzahl Farbzonen (Regeln): <b id="ed-rzones-val"></b></label><input type="range" id="ed-rzones" min="1" max="4" step="1"></div>
+    <div class="ed-row"><label class="small">Bomben-Dichte: <b id="ed-rbomb-val"></b> %</label><input type="range" id="ed-rbomb" min="0" max="50" step="2"></div>
+    <div class="ed-row"><label class="small">M&uuml;nz-H&auml;ufigkeit: <b id="ed-rcoin-val"></b> %</label><input type="range" id="ed-rcoin" min="0" max="40" step="2"></div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-rrockets"> Raketen (weichen seitlich aus)</label></div>
+    <div class="ed-row" id="ed-rthrust-row"><label><input type="checkbox" id="ed-rthrust"> Raketen mit Antrieb (kommen dir entgegen)</label></div>
+    <details class="ed-adv"><summary>Erweitert: Regel je Farbzone</summary>
+      <div class="hint" style="margin-left:0;">Welche Verzerrung die jeweilige Zone auf die Steuerung legt. Standard: zuf&auml;llig.</div>
+      <div id="ed-race-rows" style="margin-top:8px;"></div>
     </details>
   </div>
 
@@ -1379,7 +1393,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "2.9";
+  const APP_VERSION = "3.0";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2339,6 +2353,14 @@
     swapAB:'Die Aktionstasten A und B sind untereinander vertauscht.',
     actionPool:'Beide Aktionen sind ausgetauscht: A schiebt das Auto 2 Felder in die zuletzt gewählte Richtung, B lässt es schlingern – 3 Felder lang unsteuerbar.'
   };
+  // Hintergrund-Auswahl im Editor -> passende Strecke (Tempo/Optik)
+  const BG_TO_DIFF={ garden:'leicht', office:'mittel', night:'schwer', graveyard:'experte' };
+  // Kurzbezeichnungen fuer die Auswahl im Editor
+  const RACE_DIST_SHORT={
+    swapLR:'Links/Rechts vertauscht', double:'Doppelschritt', repeatInvert:'Wiederholung kehrt um',
+    delay:'Richtung verzögert', swapActDir:'Aktion/Richtung vertauscht', swapAB:'A und B vertauscht',
+    actionPool:'Aktions-Pool (A=Hop, B=Schlingern)'
+  };
   let race=null;
   // Duell-Kontext: lokal (nacheinander auf einem Geraet) oder online (beide gleichzeitig)
   let raceDuel=null;
@@ -2351,19 +2373,19 @@
   function raceRandInt(n){ return Math.floor(raceRnd()*n); }
   function raceNewZone(prev){ const n=race.zoneCount||4; if(n<2) return 0; let z; do{ z=raceRandInt(n); }while(z===prev); return z; }
   function raceElapsed(){ return (performance.now()-race.startTime)/1000; }
-  function raceInterval(){ const sp=RACE_SPEED[race.diffKey]||RACE_SPEED.mittel; const t=Math.min(1, raceElapsed()/120); return Math.round(sp.s+(sp.e-sp.s)*t); }
-  function raceBombProb(){ const base=RACE_BOMB[race.diffKey]||0.15; const extra=Math.max(0,(raceElapsed()-120)/120)*0.18; return Math.min(0.5, base+extra); }
+  function raceInterval(){ const sp=race.speed||RACE_SPEED[race.diffKey]||RACE_SPEED.mittel; const t=Math.min(1, raceElapsed()/120); return Math.round(sp.s+(sp.e-sp.s)*t); }
+  function raceBombProb(){ const base=(race.bombBase!=null?race.bombBase:(RACE_BOMB[race.diffKey]||0.15)); const extra=Math.max(0,(raceElapsed()-120)/120)*0.18; return Math.min(0.6, base+extra); }
   function raceSpawnRow(initial){
     race.zoneRowCounter=(race.zoneRowCounter||0)+1;
     if(race.zoneRowCounter>RACE_ZONE_ROWS){ race.curZone=raceNewZone(race.curZone); race.zoneRowCounter=1; }
     const objs=new Array(RACE_COLS).fill(null);
     if(!initial){
-      const rockets = (race.diffKey==='schwer'||race.diffKey==='experte');
+      const rockets = (race.rockets!=null) ? race.rockets : (race.diffKey==='schwer'||race.diffKey==='experte');
       if(raceRnd()<raceBombProb()){
         const x=raceRandInt(RACE_COLS); objs[x]=(rockets && raceRnd()<0.4)?'rocket':'bomb';
         if(race.diffKey==='experte' && raceRnd()<0.3){ const x2=raceRandInt(RACE_COLS); if(!objs[x2]) objs[x2]='bomb'; }
       }
-      if(raceRnd()<0.13){ for(let t=0;t<6;t++){ const cx=raceRandInt(RACE_COLS); if(!objs[cx]){ objs[cx]='coin'; break; } } }
+      if(raceRnd()<(race.coinProb!=null?race.coinProb:0.13)){ for(let t=0;t<6;t++){ const cx=raceRandInt(RACE_COLS); if(!objs[cx]){ objs[cx]='coin'; break; } } }
     }
     return { zone: race.curZone, objs };
   }
@@ -2572,9 +2594,9 @@
     }
   }
   // Lokales Duell: nacheinander auf einem Geraet
-  function raceStartLocalDuel(diffKey){
-    raceDuel={ kind:'local', diffKey, scores:[null,null], current:0 };
-    raceStart(diffKey);
+  function raceStartLocalDuel(diffKey, ov){
+    raceDuel={ kind:'local', diffKey, ov:ov||null, scores:[null,null], current:0 };
+    raceStart(diffKey, ov);
     raceOverlay(`<b>Spieler 1 f&auml;ngt an</b><br>Fahre so weit du kannst &ndash; Spieler 2 muss deine Punktzahl danach &uuml;bertreffen.`,
       [{label:'Los!', primary:true, fn:()=>{ $('race-overlay').classList.add('hidden'); raceSchedule(); }}]);
     raceClearTimers();                       // erst nach "Los!" starten
@@ -2586,7 +2608,7 @@
     raceRenderDuel();
     if(p===0){
       raceOverlay(`<b>Spieler 1: ${race.score} Punkte</b><br>(${race.coins} M&uuml;nzen)<br><br>Jetzt ist <b>Spieler 2</b> dran &ndash; mehr als <b>${race.score}</b> Punkte, dann gewinnt er.`,
-        [{label:'Spieler 2 starten', primary:true, fn:()=>{ raceDuel.current=1; raceStart(raceDuel.diffKey); }},
+        [{label:"Spieler 2 starten", primary:true, fn:()=>{ raceDuel.current=1; raceStart(raceDuel.diffKey, raceDuel.ov); }},
          {label:'Zur&uuml;ck', fn:backToMenu}]);
     } else {
       raceDuelFinish(raceDuel.scores[1]>raceDuel.scores[0] ? 1 : 0);
@@ -2595,7 +2617,7 @@
   function raceDuelFinish(winner){
     const s=raceDuel.scores;
     raceOverlay(`<div class="win-line">Spieler ${winner+1} gewinnt!</div>Spieler 1: <b>${s[0]}</b> Punkte &middot; Spieler 2: <b>${s[1]==null?'&ndash;':s[1]}</b> Punkte.`,
-      [{label:'Nochmal', primary:true, fn:()=>raceStartLocalDuel(raceDuel.diffKey)},
+      [{label:'Nochmal', primary:true, fn:()=>raceStartLocalDuel(raceDuel.diffKey, raceDuel.ov)},
        {label:'Zur&uuml;ck zur Auswahl', fn:backToMenu}]);
   }
   // Spieler 2 gewinnt sofort, sobald er die Vorgabe uebertrifft
@@ -2620,14 +2642,16 @@
   function raceStart(diffKey, opts){
     opts=opts||{};
     teardownActive(); hideAllScreens(); $('racing').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); document.body.classList.add('playing');
-    const theme=THEMES[diffKey]||THEMES.leicht; setThemeBg(theme);
-    const zoneCount=RACE_ZONES[diffKey]||4;
+    const theme=(opts.bg?themeFromBg(opts.bg):null)||THEMES[diffKey]||THEMES.leicht; setThemeBg(theme);
+    const zoneCount=clamp(opts.zoneCount||RACE_ZONES[diffKey]||4, 1, 4);
     race={ diffKey, theme, grid:[], cells:[], carX:Math.floor(RACE_COLS/2), carRow:RACE_ROWS-2,
       airborne:0, jumpCd:0, bHopCd:0, lastDir:1, delayBuf:undefined, lastRawDirBtn:null,
       skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:null,
       rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
       rng: (opts.seed!=null ? mulberry32(opts.seed>>>0) : null),
-      rocketThrust:(diffKey==='experte'), rocketDrift:0,     // Friedhof: Raketen haben Antrieb
+      rocketThrust:(opts.thrust!=null?opts.thrust:(diffKey==='experte')), rocketDrift:0,   // Friedhof: Raketen haben Antrieb
+      speed:opts.speed||null, bombBase:(opts.bombProb!=null?opts.bombProb:null),
+      coinProb:(opts.coinProb!=null?opts.coinProb:null), rockets:(opts.rockets!=null?opts.rockets:null),
       tickCount:0, startTime:performance.now(), alive:true, mounted:true, timer:null, halfTimer:null };
     // Verzerrungen und Startzone aus demselben Seed – im Online-Duell fahren beide dieselbe Strecke
     if(opts.seed!=null){ const r=mulberry32((opts.seed>>>0)^0x9e3779b9); const pool=RACE_DIST_POOL.slice();
@@ -2635,6 +2659,20 @@
       race.zoneDistort=['none']; for(let i=1;i<zoneCount;i++) race.zoneDistort.push(pool[i-1]);
       race.curZone=Math.floor(r()*zoneCount);
     } else { race.zoneDistort=raceAssignDistorts(zoneCount); race.curZone=randInt(zoneCount); }
+    // feste Zonenregeln aus dem Editor ('random' bleibt zufaellig – und doppelt sich nicht mit einer festen)
+    if(opts.distorts && opts.distorts.length){
+      const fixed=opts.distorts.map(v=>(v&&v!=='random')?v:null);
+      const used=new Set(fixed.filter(Boolean));
+      const rest=shuffle(RACE_DIST_POOL.filter(k=>!used.has(k)));
+      let pi=0;
+      race.zoneDistort=race.zoneDistort.map((d,i)=>{
+        if(fixed[i]) return fixed[i];
+        if(d==='none') return d;                       // neutrale Zone bleibt neutral
+        if(used.has(d)){ const alt=rest[pi++]; if(alt){ used.add(alt); return alt; } }
+        used.add(d); return d;
+      });
+    }
+    race.ov=opts;
     // eine Zeile mehr als sichtbar: die oberste haengt verdeckt ueber dem Feld und rutscht in Halbschritten herein
     for(let y=0;y<RACE_ROWS+1;y++) race.grid.push(raceSpawnRow(true));
     race.lastCarZone=raceCarRowData().zone;
@@ -4063,7 +4101,28 @@
       jumpmode:edV('ed-jumpmode'), jumplen:edN('ed-jumplen'),
       jumpPattern:Array.from($('ed-jump-rows').querySelectorAll('select')).map(s=>parseInt(s.value,10)),
       rings:edN('ed-rings'), figRule:edV('ed-fig'), pose2:edV('ed-pose2'), pose3:edV('ed-pose3'),
-      zoneEffects:edReadZones(), ringRules:edReadRings() };
+      zoneEffects:edReadZones(), ringRules:edReadRings(),
+      rSpeed0:edN('ed-rspeed0'), rSpeed1:edN('ed-rspeed1'), rZones:edN('ed-rzones'),
+      rBomb:edN('ed-rbomb'), rCoin:edN('ed-rcoin'),
+      rRockets:$('ed-rrockets').checked, rThrust:$('ed-rthrust').checked,
+      rDistorts:edReadRaceZones() };
+  }
+  // Verzerrung je Racing-Zone; null = alles zufaellig
+  function edReadRaceZones(){
+    const vals=Array.from($('ed-race-rows').querySelectorAll('select')).map(s=>s.value);
+    return vals.every(v=>v==='random') ? null : vals;
+  }
+  function edBuildRaceRows(){
+    const host=$('ed-race-rows'); const n=clamp(edN('ed-rzones')||2,1,4);
+    const prev=Array.from(host.querySelectorAll('select')).map(s=>s.value); host.innerHTML='';
+    const opts=[['random','Zufällig'],['none','Neutral (keine)']].concat(RACE_DIST_POOL.map(k=>[k, RACE_DIST_SHORT[k]||k]));
+    ZONE_COLORS.slice(0,n).forEach((zc,i)=>{
+      const row=el('div','ed-adv-item'); const sw=el('span','swatch'); sw.style.background=`rgb(${zc.tint})`;
+      const lbl=el('span','lbl'); lbl.textContent=zc.name;
+      const sel=el('select'); opts.forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=t; sel.appendChild(o); });
+      if(prev[i]) sel.value=prev[i];
+      row.appendChild(sw); row.appendChild(lbl); row.appendChild(sel); host.appendChild(row);
+    });
   }
   function edApply(sp){
     if(!sp) return; const set=(id,v)=>{ if(v!=null) $(id).value=v; };
@@ -4079,12 +4138,19 @@
     // erweiterte Regeln (immer sichtbar, Standard zufällig)
     edBuildZoneRows(); if(sp.zoneEffects){ const sels=$('ed-zone-rows').querySelectorAll('select'); sp.zoneEffects.forEach((v,i)=>{ if(sels[i]) sels[i].value=v; }); }
     edBuildRingRows(); if(sp.ringRules){ const items=$('ed-ring-rows').querySelectorAll('.ed-adv-item'); sp.ringRules.forEach((rr,i)=>{ if(items[i] && rr.rot!=null){ items[i].querySelector('.rot').value=rr.rot; } }); }
+    // Racing
+    set('ed-rspeed0', sp.rSpeed0!=null?sp.rSpeed0:800); set('ed-rspeed1', sp.rSpeed1!=null?sp.rSpeed1:200);
+    set('ed-rzones', sp.rZones!=null?sp.rZones:2); set('ed-rbomb', sp.rBomb!=null?sp.rBomb:12);
+    set('ed-rcoin', sp.rCoin!=null?sp.rCoin:13);
+    $('ed-rrockets').checked=!!sp.rRockets; $('ed-rthrust').checked=!!sp.rThrust;
+    edBuildRaceRows(); if(sp.rDistorts){ const sels=$('ed-race-rows').querySelectorAll('select'); sp.rDistorts.forEach((v,i)=>{ if(sels[i]) sels[i].value=v; }); }
     edRefresh();
   }
   function edRefresh(){
     const mode=edV('ed-mode'), variant=edV('ed-variant'), rule=edV('ed-rule'), haz=edV('ed-haz');
     $('ed-grid-opts').classList.toggle('hidden', mode!=='grid');
     $('ed-circle-opts').classList.toggle('hidden', mode!=='circle');
+    $('ed-race-opts').classList.toggle('hidden', mode!=='racing');
     $('ed-variant-row').classList.toggle('hidden', mode!=='grid');
     $('ed-sec-row').classList.toggle('hidden', !(mode==='grid' && ['constant','parityPos','parityTick'].includes(rule)));
     $('ed-gerangel-row').classList.toggle('hidden', variant!=='gerangel');
@@ -4096,8 +4162,15 @@
     $('ed-mile-val').textContent=edV('ed-mile'); $('ed-rings-val').textContent=edV('ed-rings');
     $('ed-jumplen-val').textContent=edV('ed-jumplen');
     $('ed-rule').title = RULE_TITLES[rule]||'';
+    // Racing-Anzeigen
+    $('ed-rspeed0-val').textContent=(edN('ed-rspeed0')/1000).toFixed(2);
+    $('ed-rspeed1-val').textContent=(edN('ed-rspeed1')/1000).toFixed(2);
+    $('ed-rzones-val').textContent=edV('ed-rzones');
+    $('ed-rbomb-val').textContent=edV('ed-rbomb');
+    $('ed-rcoin-val').textContent=edV('ed-rcoin');
+    $('ed-rthrust-row').classList.toggle('hidden', !$('ed-rrockets').checked);
     edBuildJumpRows();
-    if(mode==='grid') edBuildZoneRows(); else edBuildRingRows();
+    if(mode==='grid') edBuildZoneRows(); else if(mode==='racing') edBuildRaceRows(); else edBuildRingRows();
   }
   function edPopulateUsers(){
     const s=$('ed-user'); s.innerHTML=''; const names=Object.keys(edUsers);
@@ -4122,6 +4195,13 @@
       else { ov.rows=sp.size; ov.cols=clamp(Math.round(sp.size*0.55),6,11); ov.milestones=sp.mile; }
       return { mode:'grid', variant:sp.variant, ov };
     }
+    if(sp.mode==='racing'){
+      return { mode:'racing', variant:'duell', ov:{ bg:sp.bg,
+        speed:{ s:sp.rSpeed0||800, e:sp.rSpeed1||200 }, zoneCount:clamp(sp.rZones||2,1,4),
+        bombProb:(sp.rBomb!=null?sp.rBomb:12)/100, coinProb:(sp.rCoin!=null?sp.rCoin:13)/100,
+        rockets:!!sp.rRockets, thrust:!!(sp.rRockets && sp.rThrust),
+        distorts:(sp.rDistorts&&sp.rDistorts.length)?sp.rDistorts.slice():null } };
+    }
     ov.ringCount=sp.rings; ov.poseEffects=[poseFromVal(sp.pose2), poseFromVal(sp.pose3)];
     if(sp.figRule && sp.figRule!=='random') ov.figRule=sp.figRule;
     if(sp.ringRules && sp.ringRules.length) ov.ringRules=sp.ringRules;
@@ -4129,6 +4209,11 @@
   }
   function startFromSpec(sp){
     const r=ovFromSpec(sp); currentMode=r.mode;
+    if(r.mode==='racing'){
+      const diff=BG_TO_DIFF[sp.bg]||'mittel';
+      if(sp.players===2) raceStartLocalDuel(diff, r.ov); else { raceDuel=null; raceStart(diff, r.ov); }
+      return;
+    }
     if(r.mode==='grid'){ gridVariant=r.variant; if(sp.players===2) mpStart('mittel', r.ov); else spgStart('mittel', r.variant, r.ov); }
     else { if(sp.players===2) mpStart('mittel', r.ov, 'duell'); else spcStart('mittel', r.ov); }
   }
@@ -4201,6 +4286,10 @@
   // sinnvolle Startwerte
   $('ed-size').value=15; $('ed-hazn').value=4; $('ed-haztick').value=1500; $('ed-coins').value=6; $('ed-mile').value=3; $('ed-rings').value=3; $('ed-wall').checked=true;
   $('ed-jumpmode').value='random'; $('ed-jumplen').value=2;
+  $('ed-rspeed0').value=800; $('ed-rspeed1').value=200; $('ed-rzones').value=2;
+  $('ed-rbomb').value=12; $('ed-rcoin').value=13; $('ed-rrockets').checked=false; $('ed-rthrust').checked=false;
+  ['ed-rspeed0','ed-rspeed1','ed-rzones','ed-rbomb','ed-rcoin'].forEach(id=>$(id).addEventListener('input', edRefresh));
+  ['ed-rrockets','ed-rthrust'].forEach(id=>$(id).addEventListener('change', edRefresh));
 
   // SP grid controls
   // Alle Steuerkreuze auf gefüllte Pfeile setzen (statt dünner Linienpfeile) – passt zum Hardware-Look.
@@ -4221,9 +4310,9 @@
   $('race-reveal').addEventListener('click',()=>{ if(race) raceReveal(); });
   $('race-reset').addEventListener('click',()=>{
     if(!race) return;
-    if(raceDuel && raceDuel.kind==='local'){ raceStartLocalDuel(raceDuel.diffKey); return; }
+    if(raceDuel && raceDuel.kind==='local'){ raceStartLocalDuel(raceDuel.diffKey, raceDuel.ov); return; }
     if(raceDuel && raceDuel.kind==='online') return;        // online entscheidet der Raum, nicht ein einzelner Spieler
-    raceStart(race.diffKey);
+    raceStart(race.diffKey, race.ov);
   });
   $('race-back').addEventListener('click',()=>{ if(raceDuel && raceDuel.kind==='online'){ onlLeave(); return; } backToMenu(); });
 
