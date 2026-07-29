@@ -477,6 +477,11 @@
   .room-item .rt{font-size:0.76rem; color:var(--muted);}
   .room-item button{padding:8px 14px; min-height:44px;}
   #onl-rooms .empty{color:var(--muted); font-size:0.82rem; padding:8px 2px;}
+  /* Verbindungshinweis (unten mittig, nur bei Problemen sichtbar) */
+  #onl-conn{position:fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index:60; max-width:92vw;
+    background:rgba(127,29,29,0.95); border:1px solid var(--bad); color:#fee2e2; border-radius:999px;
+    padding:7px 14px; font-size:0.8rem; font-weight:600; box-shadow:0 6px 20px rgba(0,0,0,0.5); text-align:center;}
+  #onl-conn.ok{background:rgba(19,78,74,0.95); border-color:var(--good); color:#ccfbf1;}
   #onl-create, #onl-join, #onl-code, #onl-theme, #onl-mode, #onl-gvariant, #onl-wincond, #onl-profile{min-height:44px;}
   #onl-code{font-size:1.1rem;}
   #onl-msg.err{background:#7f1d1d; border-color:var(--bad); color:#fecaca;}
@@ -561,6 +566,7 @@
 
 <button id="gear-btn" aria-label="Einstellungen">&#9881;</button>
 <button id="sound-fab" class="hidden" aria-label="Ton aktivieren"><span class="sf-ic">&#128266;</span><span class="sf-tx">Ton an</span></button>
+<div id="onl-conn" class="hidden"></div>
 
 <div id="start-screen">
   <div class="hero">
@@ -1393,7 +1399,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "3.0";
+  const APP_VERSION = "3.1";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -3219,7 +3225,69 @@
     onlMsg('');
     onlShow('onl-lobby');
     if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst. Der Online-Modus braucht Internet – offline funktionieren aber alle anderen Modi.', true); return; }
-    onlWatchLobby();
+    onlWatchConnection(); onlWatchLobby(); onlCleanupStale();
+  }
+
+  // ===== Verbindung, Praesenz, Aufraeumen =====
+  // Wichtig: ein kurzer Netzaussetzer (Funkzellenwechsel, Bildschirm aus) darf NICHTS loeschen.
+  // Deshalb Praesenz-Flags + Heartbeat statt onDisconnect-Loeschung des Raums.
+  function onlShowConn(text, ok){
+    const e=$('onl-conn'); if(!e) return;
+    if(!text){ e.classList.add('hidden'); return; }
+    e.textContent=text; e.classList.toggle('ok', !!ok); e.classList.remove('hidden');
+    if(ok){ clearTimeout(onlConnHideT); onlConnHideT=setTimeout(()=>e.classList.add('hidden'), 2200); }
+  }
+  let onlConnHideT=null, onlConnRef=null, onlHeartbeat=null;
+  function onlWatchConnection(){
+    if(!fbDb || onlConnRef) return;
+    onlConnRef=fbDb.ref('.info/connected');
+    onlConnRef.on('value', s=>{
+      const on=!!s.val();
+      if(!on){ onlShowConn('Keine Verbindung – versuche erneut …'); return; }
+      onlShowConn(onl?'Verbindung wieder da':'', true);
+      if(onl){                                   // nach dem Wiederverbinden Praesenz und Stand erneuern
+        onlSetupPresence();
+        if(raceDuel && raceDuel.kind==='online') raceOnlinePublish(true);
+      }
+    });
+  }
+  function onlSetupPresence(){
+    if(!onl || !onl.roomRef) return;
+    try{
+      const p=onl.roomRef.child('players/'+onl.role+'/online');
+      p.set(true); p.onDisconnect().set(false);          // nur ein Flag, kein Loeschen
+      onl.roomRef.child('meta/ts').set(firebase.database.ServerValue.TIMESTAMP);
+    }catch(e){}
+  }
+  function onlStartHeartbeat(){
+    onlStopHeartbeat();
+    const beat=()=>{
+      if(!onl || !onl.roomRef) return;
+      const now=firebase.database.ServerValue.TIMESTAMP;
+      try{
+        onl.roomRef.child('meta/ts').set(now);
+        onl.roomRef.child('players/'+onl.role+'/online').set(true);
+        if(onl.role==='host' && !onl.started) fbDb.ref('lobby/'+onl.code+'/ts').set(now);
+      }catch(e){}
+    };
+    beat(); onlHeartbeat=setInterval(beat, 12000);
+  }
+  function onlStopHeartbeat(){ if(onlHeartbeat){ clearInterval(onlHeartbeat); onlHeartbeat=null; } }
+  // Liegengebliebene Raeume aufraeumen (best effort) – ersetzt das frühere Loeschen bei Verbindungsabbruch
+  async function onlCleanupStale(){
+    if(!fbDb) return;
+    try{
+      // Ein lebender Raum erneuert meta.ts alle 12 s. Was 5 Minuten stumm ist, hat keinen Spieler mehr.
+      const now=Date.now(), MAX=5*60*1000;
+      const lob=await fbDb.ref('lobby').once('value'); const lv=lob.val()||{};
+      Object.keys(lv).forEach(code=>{ if(now-(lv[code].ts||0)>MAX) fbDb.ref('lobby/'+code).remove(); });
+      const rms=await fbDb.ref('rooms').once('value'); const rv=rms.val()||{};
+      Object.keys(rv).forEach(code=>{
+        if(onl && onl.code===code) return;                    // den eigenen Raum nie anfassen
+        const m=rv[code].meta||{}; const ts=m.ts||m.created||0;
+        if(now-ts>MAX) fbDb.ref('rooms/'+code).remove();
+      });
+    }catch(e){}
   }
   function onlDetachLobby(){ if(onlLobbyRef){ try{ onlLobbyRef.ref.off('value', onlLobbyRef.cb); }catch(e){} onlLobbyRef=null; } }
   function onlWatchLobby(){
@@ -3230,7 +3298,7 @@
       const val=snap.val()||{}; const now=Date.now();
       const rooms=Object.keys(val)
         .map(code=>({ code, ts:val[code].ts||0, theme:val[code].theme||'', label:val[code].label||'', mode:onlModeOf(val[code]), variant:onlVariantOf(val[code]) }))
-        .filter(r=> now-r.ts < 30*60*1000)   // nur frische Raeume zeigen
+        .filter(r=> now-r.ts < 3*60*1000)    // Heartbeat: alle 12 s erneuert, 3 min Toleranz
         .sort((a,b)=>b.ts-a.ts);
       if(!rooms.length){ const d=el('div','empty'); d.textContent='Gerade keine offenen Räume – erstelle selbst einen.'; hostEl.appendChild(d); return; }
       rooms.forEach(r=>{
@@ -3355,19 +3423,41 @@
       raceDuel.oppScore=snap.score||0; raceDuel.oppAlive=!snap.dead;
       raceRenderDuel();
       if(onl.role==='host') raceOnlineReferee();
+      if(snap.dead) raceScheduleResultFallback();      // Gegner ist durch – Ergebnis notfalls selbst anzeigen
     });
     onl.listeners.push({ref:oRef, ev:'value', cb});
     const rRef=onl.roomRef.child('result');
     const cb2=rRef.on('value', s=>{ const r=s.val(); if(r && r.m===onl.matchSeq && !onl.finished){ onl.finished=true; onl.winner=onlWinnerFromWire(r.winner); raceOnlineShowResult(); } });
     onl.listeners.push({ref:rRef, ev:'value', cb:cb2});
   }
-  function raceOnlinePublish(){
-    if(!onl || !raceDuel || raceDuel.kind!=='online' || !race) return;
-    onl.roomRef.child('state/'+onl.role).set(clean({ m:onl.matchSeq, score:race.score, coins:race.coins, dead:!race.alive }));
+  // Nicht jeden Tick schreiben: auf schwacher Mobilverbindung staut sich die Warteschlange sonst auf
+  // und das Ergebnis kommt spaeter an. Wichtige Zustaende (Crash) gehen sofort raus.
+  function raceOnlinePublish(force){
+    if(!onl || onl.roomGone || !raceDuel || raceDuel.kind!=='online' || !race) return;
+    const dead=!race.alive, now=Date.now();
+    if(!force && !dead && race.publishAt && now<race.publishAt) return;
+    race.publishAt=now+350;
+    try{ onl.roomRef.child('state/'+onl.role).set(clean({ m:onl.matchSeq, score:race.score, coins:race.coins, dead })); }catch(e){}
     if(onl.role==='host') raceOnlineReferee();
   }
+  // Wenn beide durch sind, darf jedes Geraet das Ergebnis selbst anzeigen – gleiche Daten, gleiche Regel.
+  // Der Host schreibt es weiterhin in den Raum; diese Anzeige ueberbrueckt nur die Wartezeit.
+  function raceScheduleResultFallback(){
+    if(!race) return;
+    clearTimeout(race.resultFallbackT);
+    race.resultFallbackT=setTimeout(()=>{
+      if(!onl || onl.finished || !raceDuel || raceDuel.kind!=='online' || !race) return;
+      const meDead=!race.alive, oppDead=!raceDuel.oppAlive;
+      if(!meDead || !oppDead) return;
+      const mine=race.score, op=raceDuel.oppScore||0;
+      onl.winner = mine>op ? onl.myIdx : (op>mine ? 1-onl.myIdx : 'tie');
+      onl.finished=true;
+      if(onl.role==='host'){ try{ onl.roomRef.child('result').set(clean({ m:onl.matchSeq, winner:onlWinnerToWire(onl.winner), finished:true })); }catch(e){} }
+      raceOnlineShowResult();
+    }, 1600);
+  }
   function raceOnlineCrashed(){
-    raceRenderDuel(); raceOnlinePublish();
+    raceRenderDuel(); raceOnlinePublish(true); raceScheduleResultFallback();
     if(!onl.finished){
       raceOverlay(`<b>Crash!</b><br>Deine Punktzahl: <b>${race.score}</b>.<br>`
         +(raceDuel.oppAlive?'Dein Gegner f&auml;hrt noch &ndash; er muss dich jetzt &uuml;bertreffen.':'Warte auf das Ergebnis &hellip;'),
@@ -3586,44 +3676,83 @@
   function onlVariantLabel(mode, variant){
     return variant==='spurensuche'?'Spurensuche' : variant==='duell'?'Duell' : (mode==='grid'?'Feld-Gerangel':'Kreis-Gerangel');
   }
+  // Netzoperationen bekommen eine Frist – sonst haengt ein Tastendruck am Handy stumm fest
+  function onlTimed(promise, ms, label){
+    return Promise.race([ Promise.resolve(promise),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error(label||'Zeitüberschreitung')), ms||9000)) ]);
+  }
   async function onlCreate(){
     if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst.', true); return; }
-    onlMsg('');
+    const btn=$('onl-create'); if(btn.disabled) return;
+    btn.disabled=true; onlMsg('Raum wird erstellt …');
     const sel=onlReadLobbySelection();
-    let code=onlGenCode();
-    for(let i=0;i<5;i++){ const s=await fbDb.ref('rooms/'+code).once('value'); if(!s.exists()) break; code=onlGenCode(); }
-    const myId=onlGenId(), roomRef=fbDb.ref('rooms/'+code);
-    await roomRef.set({ meta:{ status:'waiting', diffKey:sel.diffKey, mode:sel.mode, variant:sel.variant, created: firebase.database.ServerValue.TIMESTAMP, hostId:myId }, players:{ host:{ id:myId } } });
-    await fbDb.ref('lobby/'+code).set({ ts: firebase.database.ServerValue.TIMESTAMP, theme:sel.diffKey, mode:sel.mode, variant:sel.variant, label:sel.label });
-    fbDb.ref('lobby/'+code).onDisconnect().remove();
-    roomRef.onDisconnect().remove();     // Raum verschwindet, wenn der Gastgeber weg ist
-    onl={ code, role:'host', myIdx:0, roomRef, myId, diffKey:sel.diffKey, mode:sel.mode, variant:sel.variant, shared:sel.shared, winCond:sel.winCond, ov:sel.ov, stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
-    onlDetachLobby();
-    $('onl-wait-code').textContent=code;
-    $('onl-wait-status').textContent='Warte auf Mitspieler …';
-    onlShow('onl-wait');
-    const gRef=roomRef.child('players/guest');
-    const cb=gRef.on('value', snap=>{
-      if(snap.exists()){ if(!onl.started) onlHostStart(); }
-      else if(onl.started) onlOpponentLeft(false);
-    });
-    onl.listeners.push({ref:gRef, ev:'value', cb});
+    let code=onlGenCode(), roomRef=null;
+    try{
+      for(let i=0;i<4;i++){ const s=await onlTimed(fbDb.ref('rooms/'+code).once('value'), 6000); if(!s.exists()) break; code=onlGenCode(); }
+      const myId=onlGenId(); roomRef=fbDb.ref('rooms/'+code);
+      await onlTimed(roomRef.set({ meta:{ status:'waiting', diffKey:sel.diffKey, mode:sel.mode, variant:sel.variant,
+        created: firebase.database.ServerValue.TIMESTAMP, ts: firebase.database.ServerValue.TIMESTAMP, hostId:myId },
+        players:{ host:{ id:myId, online:true } } }), 8000);
+      await onlTimed(fbDb.ref('lobby/'+code).set({ ts: firebase.database.ServerValue.TIMESTAMP, theme:sel.diffKey,
+        mode:sel.mode, variant:sel.variant, label:sel.label }), 8000);
+      onl={ code, role:'host', myIdx:0, roomRef, myId, diffKey:sel.diffKey, mode:sel.mode, variant:sel.variant, shared:sel.shared, winCond:sel.winCond, ov:sel.ov, stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
+      onlSetupPresence(); onlStartHeartbeat();      // Raum bleibt bei kurzen Aussetzern bestehen
+      onlDetachLobby(); onlMsg('');
+      $('onl-wait-code').textContent=code;
+      $('onl-wait-status').textContent='Warte auf Mitspieler …';
+      onlShow('onl-wait');
+      const gRef=roomRef.child('players/guest');
+      const cb=gRef.on('value', snap=>{
+        const v=snap.val();
+        if(v){ if(!onl.started) onlHostStart(); onlOppPresence(v); }
+        else if(onl.started) onlOpponentLeft(false);   // Knoten weg = bewusst verlassen
+      });
+      onl.listeners.push({ref:gRef, ev:'value', cb});
+    }catch(e){
+      console.warn('Raum erstellen fehlgeschlagen:', e);
+      try{ if(roomRef){ roomRef.remove(); fbDb.ref('lobby/'+code).remove(); } }catch(e2){}
+      onl=null; onlStopHeartbeat();
+      onlMsg('Der Raum konnte nicht erstellt werden – die Verbindung war zu langsam oder unterbrochen. Bitte nochmal versuchen.', true);
+      onlShow('onl-lobby');
+    }finally{ btn.disabled=false; }
+  }
+  // Gegner-Praesenz mit Kulanzzeit: erst nach laengerer Funkstille gilt er als weg
+  function onlOppPresence(v){
+    if(!onl) return;
+    const offline = v && v.online===false;
+    clearTimeout(onl.oppGraceTimer);
+    if(offline){
+      onlShowConn('Gegner ist offline – warte …');
+      onl.oppGraceTimer=setTimeout(()=>{ if(onl && !onl.finished) onlOpponentLeft(onl.role==='guest'); }, 30000);
+    } else onlShowConn('');
   }
 
   async function onlJoin(code){
     if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst.', true); return; }
     code=(code||'').toUpperCase().trim();
     if(code.length!==4){ onlMsg('Bitte einen 4-stelligen Raumcode eingeben.', true); return; }
+    const joinBtn=$('onl-join'); if(joinBtn.disabled) return;
+    joinBtn.disabled=true; onlMsg('Trete Raum '+code+' bei …');
     const roomRef=fbDb.ref('rooms/'+code);
-    const snap=await roomRef.once('value');
-    if(!snap.exists()){ onlMsg('Raum '+code+' wurde nicht gefunden.', true); return; }
+    let snap;
+    try{ snap=await onlTimed(roomRef.once('value'), 8000); }
+    catch(e){ joinBtn.disabled=false; onlMsg('Keine Antwort vom Online-Dienst – Verbindung prüfen und nochmal versuchen.', true); return; }
+    if(!snap.exists()){ joinBtn.disabled=false; onlMsg('Raum '+code+' wurde nicht gefunden.', true); return; }
     const v=snap.val();
-    if(!v.meta || v.meta.status!=='waiting' || (v.players&&v.players.guest)){ onlMsg('Raum '+code+' ist bereits belegt.', true); return; }
+    const guestBusy = v.players && v.players.guest && v.players.guest.online!==false;
+    if(!v.meta || (v.meta.status!=='waiting' && !v.config) || guestBusy){ joinBtn.disabled=false; onlMsg('Raum '+code+' ist bereits belegt.', true); return; }
     const myId=onlGenId();
-    await roomRef.child('players/guest').set({ id:myId });
-    await fbDb.ref('lobby/'+code).remove();
+    try{
+      await onlTimed(roomRef.child('players/guest').set({ id:myId, online:true }), 8000);
+      await onlTimed(fbDb.ref('lobby/'+code).remove(), 6000);
+    }catch(e){ joinBtn.disabled=false; onlMsg('Beitreten hat nicht geklappt – Verbindung prüfen und nochmal versuchen.', true); return; }
+    joinBtn.disabled=false;
     onl={ code, role:'guest', myIdx:1, roomRef, myId, diffKey:v.meta.diffKey, mode:onlModeOf(v.meta), variant:onlVariantOf(v.meta), shared:onlSharedOf(v.meta), stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
-    roomRef.child('players/guest').onDisconnect().remove();
+    onlSetupPresence(); onlStartHeartbeat();
+    // Gastgeber-Praesenz beobachten (Kulanzzeit statt sofortigem Abbruch)
+    const hpRef=roomRef.child('players/host');
+    const hpCb=hpRef.on('value', s=>{ const hv=s.val(); if(!hv){ onlOpponentLeft(true); return; } onlOppPresence(hv); });
+    onl.listeners.push({ref:hpRef, ev:'value', cb:hpCb});
     onlDetachLobby(); onlMsg('');
     $('onl-wait-code').textContent=code;
     $('onl-wait-status').textContent='Verbunden – warte auf Spielstart …';
@@ -3918,6 +4047,19 @@
   function onlOpponentLeft(hostLeft){
     if(!onl || onl.finished) return;
     onl.finished=true;
+    // Heartbeat aus: sonst schreibt das verbliebene Geraet den geschlossenen Raum wieder an
+    onlStopHeartbeat(); clearTimeout(onl.oppGraceTimer); onlShowConn('');
+    onl.roomGone=true;
+    // laufendes Racing beenden, damit keine weiteren Staende in den toten Raum wandern
+    if(raceDuel && raceDuel.kind==='online' && race){
+      race.alive=false; raceClearTimers(); clearTimeout(race.resultFallbackT);
+      raceRenderDuel();
+      raceOverlay(`<b>${hostLeft?'Der Gastgeber hat den Raum geschlossen.':'Dein Gegner hat den Raum verlassen.'}</b>`
+        +`<br>Dein Stand: <b>${race.score}</b> Punkte.`,
+        [{label:'Zur&uuml;ck zur Lobby', primary:true, fn:onlLeave}]);
+      return;                                   // Racing hat seinen eigenen Bildschirm
+    }
+    if(hostLeft){ try{ onl.roomRef.child('players/'+onl.role).remove(); onl.roomRef.child('meta').remove(); onl.roomRef.child('state/'+onl.role).remove(); }catch(e){} }
     if(onl.board) stopDogTimer(onl.board);
     if(onl.cs) onl.cs.mounted=false;
     $('onl-rematch').classList.add('hidden');   // ohne Mitspieler kein Rematch
@@ -3933,11 +4075,15 @@
     if(onl.gs) openReveal(circleExplain(onl.gs.rings, onl.gs.poseEffects, onl.gs.figRule));
   }
   function onlLeave(){
+    onlStopHeartbeat(); onlShowConn('');
     if(onl){
       (onl.listeners||[]).forEach(l=>{ try{ l.ref.off(l.ev, l.cb); }catch(e){} });
+      clearTimeout(onl.oppGraceTimer);
       try{
-        if(onl.role==='host'){ onl.roomRef.onDisconnect().cancel(); onl.roomRef.remove(); fbDb.ref('lobby/'+onl.code).remove(); }
-        else { onl.roomRef.child('players/guest').onDisconnect().cancel(); onl.roomRef.child('players/guest').remove(); onl.roomRef.child('rematch/guest').remove(); onl.roomRef.child('state/guest').remove(); }
+        // bewusstes Verlassen raeumt wirklich auf (im Gegensatz zu einem Netzaussetzer)
+        onl.roomRef.child('players/'+onl.role+'/online').onDisconnect().cancel();
+        if(onl.role==='host'){ onl.roomRef.remove(); fbDb.ref('lobby/'+onl.code).remove(); }
+        else { onl.roomRef.child('players/guest').remove(); onl.roomRef.child('rematch/guest').remove(); onl.roomRef.child('state/guest').remove(); }
       }catch(e){}
       if(onl.gs) onl.gs.mounted=false;
       if(onl.cs) onl.cs.mounted=false;
