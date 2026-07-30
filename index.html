@@ -114,6 +114,12 @@
   .mode-tab.active{background:linear-gradient(180deg,#164e63,#0e7490); color:#e0f2fe; box-shadow:0 1px 8px rgba(34,211,238,0.25);}
   .intro .p1{color:var(--p1); font-weight:700;} .intro .p2{color:var(--p2); font-weight:700;}
   .diff-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px;}
+  /* Schwierigkeit als wischbares Karussell – hoechstens so hoch wie eine einzelne Karte */
+  .diff-carousel{display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding:2px 0 6px; margin-top:6px; scrollbar-width:none;}
+  .diff-carousel::-webkit-scrollbar{display:none;}
+  .diff-carousel .diff-card{flex:0 0 100%; scroll-snap-align:center; box-sizing:border-box; height:136px; min-height:0; opacity:0.72;}
+  .diff-carousel .diff-card:hover{transform:none;}
+  .diff-carousel .diff-card.active{opacity:1; border-color:var(--gold); box-shadow:0 0 0 2px rgba(250,204,21,0.4);}
   .diff-card{
     position:relative; overflow:hidden; min-height:136px; display:flex; flex-direction:column;
     justify-content:flex-end; background-size:cover; background-position:center;
@@ -277,7 +283,7 @@
   circle.ring-marker.m-p1{fill:var(--p1); filter:drop-shadow(0 0 4px var(--p1));}
   circle.ring-marker.m-p2{fill:var(--p2); filter:drop-shadow(0 0 4px var(--p2));}
   /* Katze als Spielfigur im Kreis – standardmaessig hellblau */
-  .cat-marker{color:#7dd3fc; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.6));}
+  .cat-marker{color:#7dd3fc; filter:drop-shadow(0 0 5px rgba(255,255,255,0.95)) drop-shadow(0 0 9px rgba(255,255,255,0.55)) drop-shadow(0 1px 2px rgba(0,0,0,0.6));}
   .cat-marker.m-p1{color:var(--p1);} .cat-marker.m-p2{color:var(--p2);}
   .cat-marker.flash-good{filter:drop-shadow(0 0 5px var(--good));}
   .cat-marker.flash-bad{filter:drop-shadow(0 0 5px var(--bad));}
@@ -537,9 +543,12 @@
     /* zwei Kacheln je Zeile; die Blurbs entfallen – Artwork + Titel tragen das Thema */
     .diff-grid{grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
     .diff-card{min-height:104px; padding:8px 10px;}
+    .diff-carousel .diff-card{height:104px;}
     .diff-card b.title{font-size:0.98rem;}
     .diff-card span.sub{font-size:0.58rem;}
+    /* im Karussell ist Platz fuer den Kurztext – er hilft beim Auswaehlen */
     .diff-card span.blurb{display:none;}
+    .diff-carousel .diff-card span.blurb{display:block; font-size:0.72rem; line-height:1.3;}
     #start-screen .action{padding:8px 10px !important; font-size:0.78rem;}
     .dual-pads{gap:14px;}
     h1.serif{font-size:1.4rem;}
@@ -605,8 +614,9 @@
   </div>
   <div class="mode-dots" id="mode-dots"></div>
 
-  <div class="tab-caption" id="diff-caption">Schwierigkeit</div>
-  <div class="diff-grid" id="diff-grid"></div>
+  <div class="tab-caption" id="diff-caption">Schwierigkeit <span class="cap-hint">&ndash; wischen, dann antippen</span></div>
+  <div class="diff-carousel" id="diff-grid"></div>
+  <div class="mode-dots" id="diff-dots"></div>
 
   <div id="player-block">
     <div class="tab-caption">Spieler</div>
@@ -1399,7 +1409,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "3.1";
+  const APP_VERSION = "1.22";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1963,7 +1973,7 @@
   // Sie sitzt in einer Gruppe, die per translate positioniert wird (statt cx/cy wie frueher).
   function makeCatMarker(s, cls){
     const g=elNS('g'); g.setAttribute('class','ring-marker cat-marker'+(cls?' '+cls:''));
-    const k=(s||1)*1.05;
+    const k=(s||1)*1.45;                       // deutlich groesser als die Ringfelder-Zahlen
     g.innerHTML=`<g transform="scale(${k.toFixed(3)})">`
       +`<g class="cat-body">`
         +`<path class="cat-tail" d="M6.2 3.4 Q11.6 2 9.4 -3.2" stroke="currentColor" stroke-width="2.1" fill="none" stroke-linecap="round"/>`
@@ -2107,8 +2117,35 @@
   function renderLog(container, log){ container.innerHTML = log.length ? log.map(renderLogEntry).join('') : '<span style="color:var(--muted)">Noch keine Z&uuml;ge.</span>'; }
 
   // ===================== AUFLÖSUNGS-POPUP =====================
-  function openReveal(html){ $('reveal-body').innerHTML=html; $('reveal-modal').classList.remove('hidden'); }
-  function closeReveal(){ $('reveal-modal').classList.add('hidden'); }
+  // Auflösung pausiert das laufende Spiel – nur online nicht, da wuerde der Gegner weiterspielen.
+  let revealPausedAt=null;
+  function onlineLaeuft(){ return !!(onl && !onl.finished); }
+  function pauseForReveal(){
+    if(revealPausedAt!==null || onlineLaeuft()) return;
+    revealPausedAt=Date.now();
+    if(race && race.alive) raceClearTimers();                 // Racing: Uhr anhalten
+    if(spgState && spgState.board) stopDogTimer(spgState.board);
+    if(mp){
+      if(mp.board) stopDogTimer(mp.board);
+      if(mp.players) mp.players.forEach(p=>{ if(p.board) stopDogTimer(p.board); });
+    }
+  }
+  function resumeAfterReveal(){
+    if(revealPausedAt===null) return;
+    const pausedMs=Date.now()-revealPausedAt; revealPausedAt=null;
+    const sichtbar=id=>!$(id).classList.contains('hidden');
+    if(race && race.alive && race.mounted && sichtbar('racing')){
+      race.startTime += pausedMs;                             // Tempo-Rampe nicht vorspulen
+      raceSchedule();
+    }
+    if(spgState && spgState.board && sichtbar('sp-grid')) startDogTimer(spgState.board);
+    if(mp && sichtbar('mp-grid')){
+      if(mp.board) startDogTimer(mp.board);
+      if(mp.players) mp.players.forEach(p=>{ if(p.board) startDogTimer(p.board); });
+    }
+  }
+  function openReveal(html){ pauseForReveal(); $('reveal-body').innerHTML=html; $('reveal-modal').classList.remove('hidden'); }
+  function closeReveal(){ $('reveal-modal').classList.add('hidden'); resumeAfterReveal(); }
   $('reveal-close').addEventListener('click', closeReveal);
   // Klick auf den abgedunkelten Hintergrund schliesst; Klick in die Karte nicht.
   $('reveal-modal').addEventListener('click', e=>{ if(e.target===$('reveal-modal')) closeReveal(); });
@@ -4159,18 +4196,48 @@
   });
 
   const diffGrid=$('diff-grid');
-  Object.keys(THEMES).forEach(key=>{
+  const DIFF_KEYS=Object.keys(THEMES);
+  DIFF_KEYS.forEach(key=>{
     const theme=THEMES[key];
     const btn=el('button','diff-card'); btn.style.backgroundImage=`url("${svgUrl(theme.svg)}")`;
     btn.innerHTML=`<span class="sub">${theme.sub}</span><b class="title">${theme.title}</b><span class="blurb">${theme.blurb}</span>`;
-    btn.addEventListener('click',()=>{
-      sfx('click');
-      if(currentMode==='racing'){ if(playerCount===2) raceStartLocalDuel(key); else { raceDuel=null; raceStart(key); } return; }
-      if(playerCount===1){ if(currentMode==='grid') spgStart(key, gridVariant); else spcStart(key); }
-      else mpStart(key);
-    });
     diffGrid.appendChild(btn);
   });
+  function startDiff(key){
+    sfx('click');
+    if(currentMode==='racing'){ if(playerCount===2) raceStartLocalDuel(key); else { raceDuel=null; raceStart(key); } return; }
+    if(playerCount===1){ if(currentMode==='grid') spgStart(key, gridVariant); else spcStart(key); }
+    else mpStart(key);
+  }
+  // Wischbares Karussell: die zentrierte Karte ist aktiv, ein Tipp darauf startet.
+  // Ein Tipp auf eine Nachbarkarte schiebt sie nur in die Mitte (kein Fehlstart).
+  function initCarousel(car, dotsHost, onSelect){
+    const cards=Array.from(car.children); if(!cards.length) return null;
+    const dots=[];
+    function current(){
+      const cr=car.getBoundingClientRect(), center=cr.left+cr.width/2;
+      let best=0, bd=Infinity;
+      cards.forEach((c,i)=>{ const r=c.getBoundingClientRect(); const d=Math.abs((r.left+r.width/2)-center); if(d<bd){ bd=d; best=i; } });
+      return best;
+    }
+    function scrollToCard(i){
+      const cr=car.getBoundingClientRect(), r=cards[i].getBoundingClientRect();
+      car.scrollTo({ left: car.scrollLeft+(r.left-cr.left)-(cr.width-r.width)/2, behavior:'smooth' });
+    }
+    function setActive(i){ cards.forEach((c,j)=>c.classList.toggle('active',j===i)); dots.forEach((d,j)=>d.classList.toggle('active',j===i)); }
+    cards.forEach((c,i)=>{
+      const d=el('div','mdot'); d.addEventListener('click',()=>scrollToCard(i)); dotsHost.appendChild(d); dots.push(d);
+      c.addEventListener('click',()=>{ if(i!==current()) scrollToCard(i); else if(onSelect) onSelect(i); });
+    });
+    let t=null; car.addEventListener('scroll',()=>{ clearTimeout(t); t=setTimeout(()=>setActive(current()), 80); });
+    window.addEventListener('resize',()=>{
+      const i=cards.findIndex(c=>c.classList.contains('active'));
+      if(i>=0){ const cr=car.getBoundingClientRect(), r=cards[i].getBoundingClientRect(); car.scrollLeft += (r.left-cr.left)-(cr.width-r.width)/2; }
+    });
+    setActive(0);
+    return { scrollToCard, current };
+  }
+  initCarousel(diffGrid, $('diff-dots'), i=>startDiff(DIFF_KEYS[i]));
 
   // ===================== EDITOR =====================
   const ED_KEY='regel-detektiv-users';
