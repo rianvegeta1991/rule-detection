@@ -148,7 +148,8 @@
   .cell .dot{position:absolute; inset:14%; border-radius:50%; background:var(--accent); box-shadow:0 0 6px rgba(var(--accent-rgb),0.8); transition:box-shadow .15s;}
   /* Sherlock als Spielfigur: blickt in die zuletzt gelaufene Richtung, kurze Laufanimation je Feld */
   /* Figur fuellt das Feld nahezu aus */
-  .cell .fig{position:absolute; inset:-6%; color:var(--accent); filter:drop-shadow(0 1px 2px rgba(0,0,0,0.55));}
+  .cell .fig{position:absolute; inset:-6%; color:var(--accent); filter:drop-shadow(0 1px 2px rgba(0,0,0,0.55));
+    transition:filter .18s ease-out; will-change:transform; z-index:4;}
   .cell .fig svg{width:100%; height:100%; display:block; overflow:visible;}
   .fig .fig-leg{transform-box:fill-box; transform-origin:top center;}
   .fig.walking svg{animation:figBob var(--walk,250ms) ease-in-out var(--walkN,1);}
@@ -163,7 +164,11 @@
   /* Sichtfenster: die Welt (race-grid) scrollt darin in Halbschritten, das Auto liegt als eigene Ebene darueber */
   .race-view{position:relative; overflow:hidden; border-radius:10px; border:1px solid rgba(var(--accent-rgb),0.5); box-shadow:0 0 22px rgba(var(--accent-rgb),0.2); background:#0b1220; margin:0 auto;}
   .race-view .race-grid{position:absolute; left:0; top:0; border:none; box-shadow:none; border-radius:0; background:transparent; margin:0; will-change:transform;}
-  .race-car{position:absolute; z-index:5; display:flex; align-items:center; justify-content:center; transition:left .08s, transform .08s;}
+  .race-car{position:absolute; z-index:5; display:flex; align-items:center; justify-content:center;
+    transition:left .13s cubic-bezier(.22,.61,.36,1), top .13s cubic-bezier(.22,.61,.36,1), transform .13s ease-out;}
+  /* leichte Schraeglage in Fahrtrichtung – rein optisch */
+  .race-car.lean-l{transform:rotate(-9deg);} .race-car.lean-r{transform:rotate(9deg);}
+  .race-car.air.lean-l{transform:scale(1.3) rotate(-9deg);} .race-car.air.lean-r{transform:scale(1.3) rotate(9deg);}
   .race-car svg{width:88%; height:88%; display:block; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6));}
   .race-car.air{transform:scale(1.3);}
   .race-car.air svg{filter:drop-shadow(0 7px 5px rgba(0,0,0,0.7));}
@@ -193,9 +198,21 @@
   .race-cell .bomb svg,.race-cell .rocket svg,.race-cell .car svg{width:100%; height:100%; display:block;}
   .race-cell .bomb svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,0.6)) drop-shadow(0 0 3px rgba(251,146,60,0.85));}
   .race-cell .rocket svg{filter:drop-shadow(0 0 3px rgba(239,68,68,0.9));}
-  .race-cell .coin{position:absolute; inset:24%; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fde68a, #d97706 72%); box-shadow:0 0 5px rgba(250,204,21,0.75);}
-  /* Muenzen: wandernder Glanzstreifen + sanft pulsierender Schein (Feld- und Racing-Modus) */
-  .cell .coin, .race-cell .coin{overflow:hidden; animation:coinGlow 1.5s ease-in-out infinite alternate;}
+  .race-cell .coin{position:absolute; inset:20%; border-radius:50%;}
+  /* Muenzen: gepraegte Goldmuenze mit Rand und Wertzeichen – Glanzstreifen laeuft weiter darueber */
+  .cell .coin, .race-cell .coin{
+    overflow:hidden; animation:coinGlow 1.5s ease-in-out infinite alternate;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 54%, rgba(120,60,10,0.55) 56%, rgba(120,60,10,0) 60%),
+      radial-gradient(circle at 34% 28%, #fff3c4 0%, #fde68a 26%, #eab308 58%, #b45309 88%);
+    border:1px solid #8a5a12;
+    box-shadow:0 0 5px rgba(250,204,21,0.75), inset 0 1px 2px rgba(255,255,255,0.75), inset 0 -2px 3px rgba(120,60,10,0.5);
+  }
+  /* Wertzeichen in der Mitte (Stern), damit die Muenze auch klein als Muenze lesbar ist */
+  .cell .coin::before, .race-cell .coin::before{
+    content:'★'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:62%; line-height:1; color:rgba(120,60,10,0.72); text-shadow:0 1px 0 rgba(255,245,200,0.65); pointer-events:none;
+  }
   .cell .coin::after, .race-cell .coin::after{
     content:''; position:absolute; top:-40%; bottom:-40%; left:-60%; width:55%;
     background:linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 45%, rgba(255,255,255,0.95) 55%, rgba(255,255,255,0) 100%);
@@ -261,8 +278,9 @@
   .flash-bad .fig{filter:drop-shadow(0 0 5px var(--bad));}
   @keyframes blink{50%{opacity:0.12;}}
   .cell.wall{background:#2b3444 !important; box-shadow:inset 0 0 0 2px #0b1220, inset 0 0 6px rgba(0,0,0,0.6);}
-  .cell .coin{position:absolute; inset:24%; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fde68a, #d97706 72%); box-shadow:0 0 5px rgba(250,204,21,0.75);}
-  .cell .coin.center{inset:18%; box-shadow:0 0 10px rgba(250,204,21,0.95);}
+  /* nur Lage/Groesse – das Aussehen der Muenze steht weiter oben (gepraegte Goldmuenze) */
+  .cell .coin{position:absolute; inset:20%; border-radius:50%;}
+  .cell .coin.center{inset:14%;}
   .cell .goldkey{position:absolute; inset:16%;}
   .cell .goldkey::before{content:''; position:absolute; left:6%; top:24%; width:44%; height:44%; border:3px solid #fbbf24; border-radius:50%; box-shadow:0 0 8px #fbbf24;}
   .cell .goldkey::after{content:''; position:absolute; left:46%; top:44%; width:48%; height:12%; background:#fbbf24; box-shadow:0 0 6px #fbbf24;}
@@ -294,9 +312,10 @@
   @keyframes catTail{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-18deg);}}
   /* kurze Einblendungen: Schrittzahl ueber der Katze, Rotation je Ring */
   .step-label, .rot-label{fill:#f8fafc; font-family:inherit; font-weight:800; text-anchor:middle;
-    dominant-baseline:middle; paint-order:stroke; stroke:#0b1220; stroke-width:3px; stroke-linejoin:round;
-    opacity:0; transition:opacity .12s;}
-  .step-label.show, .rot-label.show{opacity:1;}
+    dominant-baseline:middle; paint-order:stroke; stroke:#0b1220; stroke-width:4px; stroke-linejoin:round;
+    opacity:0; transform-box:fill-box; transform-origin:center; transform:scale(0.7);
+    transition:opacity .18s ease-out, transform .18s cubic-bezier(.34,1.56,.64,1);}
+  .step-label.show, .rot-label.show{opacity:1; transform:scale(1);}
   .rot-label{fill:#fde68a;}
   .ring-field.current-p1{stroke:var(--p1); stroke-width:2.5;}
   .ring-field.current-p2{stroke:var(--p2); stroke-width:2.5;}
@@ -1409,7 +1428,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.22";
+  const APP_VERSION = "1.23";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1681,7 +1700,7 @@
       grid.appendChild(c); cells.push(c);
     }
     host.innerHTML=''; host.appendChild(outer);
-    const figs=figDefs.map((d,i)=>({ x:d.startX,y:d.startY,startX:d.startX,startY:d.startY, moves:0,mem:{},blinkUntil:0,checkpointIdx:0,reached:[],score:0,done:false,doneAtMove:null,lastFlash:null,colorClass:d.colorClass||'',idx:i, facing:2, walkSteps:0, walkUntil:0 }));
+    const figs=figDefs.map((d,i)=>({ x:d.startX,y:d.startY,startX:d.startX,startY:d.startY, moves:0,mem:{},blinkUntil:0,checkpointIdx:0,reached:[],score:0,done:false,doneAtMove:null,lastFlash:null,colorClass:d.colorClass||'',idx:i, facing:2, walkSteps:0, walkUntil:0, renderedAt:null }));
     return { cells, figs, shared, cellSize, onChange:null, dogTimer:null,
       hazards: shared.hazards.map(hh=>({x:hh.x,y:hh.y})), hazardSet:new Set(shared.hazards.map(hh=>hh.x+','+hh.y)),
       coins: shared.coins ? shared.coins.map(c=>({x:c.x,y:c.y})) : null,
@@ -1709,11 +1728,26 @@
       }
       fig.innerHTML=sherlockSvg(f.facing==null?2:f.facing);
       b.cells[pi].appendChild(fig);
+      // Gleiten statt Springen: die Figur startet optisch am alten Feld und faehrt herueber.
+      // Rein visuell – Position und Regeln stehen zu diesem Zeitpunkt laengst fest.
+      const from=f.renderedAt;
+      if(from!=null && from!==pi && b.cells[from]){
+        const a=b.cells[from], c=b.cells[pi];
+        const dx=a.offsetLeft-c.offsetLeft, dy=a.offsetTop-c.offsetTop;
+        if(dx||dy){
+          fig.style.transition='none';
+          fig.style.transform=`translate(${dx}px,${dy}px)`;
+          const ms=Math.max(70, Math.round(dur(230)));
+          requestAnimationFrame(()=>{ fig.style.transition=`transform ${ms}ms cubic-bezier(.22,.61,.36,1)`; fig.style.transform='translate(0,0)'; });
+        }
+      }
+      f.renderedAt=pi;
       if(f.lastFlash) b.cells[pi].classList.add(f.lastFlash==='good'?'flash-good':'flash-bad');
     });
   }
   function removeHazard(b,x,y){ const i=b.hazards.findIndex(hh=>hh.x===x&&hh.y===y); if(i>=0) b.hazards.splice(i,1); b.hazardSet=new Set(b.hazards.map(hh=>hh.x+','+hh.y)); }
-  function resetFig(b,f){ f.x=f.startX; f.y=f.startY; f.blinkUntil=Date.now()+3000; setTimeout(()=>{ if(b.figs.includes(f)){ renderGridBoard(b); if(b.onChange) b.onChange(); } }, 3050); }
+  // Nach einer Kollision setzt die Figur zurueck – dabei nicht ueber das halbe Brett gleiten
+  function resetFig(b,f){ f.x=f.startX; f.y=f.startY; f.renderedAt=null; f.walkSteps=0; f.blinkUntil=Date.now()+3000; setTimeout(()=>{ if(b.figs.includes(f)){ renderGridBoard(b); if(b.onChange) b.onChange(); } }, 3050); }
   // returns event object {type} | null
   function gridBoardSubmit(b, fi, reqDir){
     const s=b.shared, f=b.figs[fi], now=Date.now();
@@ -1960,7 +1994,7 @@
     cs.rotLabels=[];
     cs.rings.forEach((ring,ri)=>{
       const t=elNS('text'); t.setAttribute('class','rot-label');
-      t.setAttribute('x',cx); t.setAttribute('y',cy-mid[ri]); t.setAttribute('font-size',(11*s).toFixed(1));
+      t.setAttribute('x',cx); t.setAttribute('y',cy-mid[ri]); t.setAttribute('font-size',(17*s).toFixed(1));
       svg.appendChild(t); cs.rotLabels.push(t);
     });
     const marker=makeCatMarker(s); svg.appendChild(marker);
@@ -1988,15 +2022,15 @@
         +`<path d="M-6.4 -3.4 L-3.6 -3.8 M-6.4 -2 L-3.6 -2.8" stroke="#0b1220" stroke-width="0.42" opacity="0.65"/>`
         +`<path d="M6.4 -3.4 L3.6 -3.8 M6.4 -2 L3.6 -2.8" stroke="#0b1220" stroke-width="0.42" opacity="0.65"/>`
       +`</g></g>`
-      +`<text class="step-label" x="0" y="${(-15*k).toFixed(1)}" font-size="${(11*(s||1)).toFixed(1)}"></text>`;
+      +`<text class="step-label" x="0" y="${(-13*k).toFixed(1)}" font-size="${(19*(s||1)).toFixed(1)}"></text>`;
     return g;
   }
   // Kurze Einblendungen waehrend der Animationen: Schrittzahl an der Katze, Drehung je Ring
   function markerMoving(m, on){ if(m && m.classList) m.classList.toggle('moving', !!on); }
   function showStepLabel(m, delta){ if(!m) return; const t=m.querySelector('.step-label'); if(!t) return; t.textContent=fmtDelta(delta); t.classList.add('show'); }
-  function hideStepLabel(m){ if(!m) return; const t=m.querySelector('.step-label'); if(t) setTimeout(()=>t.classList.remove('show'), Math.max(180, dur(320))); }
+  function hideStepLabel(m){ if(!m) return; const t=m.querySelector('.step-label'); if(t) setTimeout(()=>t.classList.remove('show'), Math.max(700, dur(1100))); }
   function showRotLabels(cs, rots){ (cs.rotLabels||[]).forEach((t,i)=>{ const d=rots[i]||0; if(!d){ t.classList.remove('show'); return; } t.textContent=fmtDelta(d); t.classList.add('show'); }); }
-  function hideRotLabels(cs){ setTimeout(()=>{ (cs.rotLabels||[]).forEach(t=>t.classList.remove('show')); }, Math.max(180, dur(320))); }
+  function hideRotLabels(cs){ setTimeout(()=>{ (cs.rotLabels||[]).forEach(t=>t.classList.remove('show')); }, Math.max(700, dur(1100))); }
   function setMarkerPos(m, x, y){
     if(!m) return;
     if(m.tagName==='circle'){ m.setAttribute('cx',x); m.setAttribute('cy',y); }
@@ -2123,7 +2157,7 @@
   function pauseForReveal(){
     if(revealPausedAt!==null || onlineLaeuft()) return;
     revealPausedAt=Date.now();
-    if(race && race.alive) raceClearTimers();                 // Racing: Uhr anhalten
+    if(race && race.alive){ raceClearTimers(); raceFreezeShift(); }   // Racing: Uhr anhalten, Welt einfrieren
     if(spgState && spgState.board) stopDogTimer(spgState.board);
     if(mp){
       if(mp.board) stopDogTimer(mp.board);
@@ -2458,10 +2492,20 @@
     raceApplyShift(0);
   }
   // frac 0 = Feld gerade eingerastet, 0.5 = die Welt ist ein halbes Feld weitergezogen
-  function raceApplyShift(frac){
+  // frac 0 = gerade eingerastet, 1 = eine volle Reihe weiter. Mit ms laeuft die Fahrt weich
+  // durch (statt in Spruengen); ohne ms rastet sie sofort ein.
+  function raceApplyShift(frac, ms){
     if(!race||!race.gridEl) return;
     race.shiftFrac=frac;
+    race.gridEl.style.transition = ms ? `transform ${ms}ms linear` : 'none';
     race.gridEl.style.transform=`translateY(${(-(1-frac)*race.stepPx).toFixed(2)}px)`;
+  }
+  // beim Pausieren dort stehen bleiben, wo die Welt gerade ist
+  function raceFreezeShift(){
+    if(!race||!race.gridEl) return;
+    const cur=getComputedStyle(race.gridEl).transform;
+    race.gridEl.style.transition='none';
+    if(cur && cur!=='none') race.gridEl.style.transform=cur;
   }
   function raceRender(){
     if(!race||!race.cells.length) return;
@@ -2480,20 +2524,24 @@
     }
     if(race.carEl){
       const flash=race.carEl.classList.contains('bub-flash');   // kurzen Ring nicht wegrendern
+      const lean = race.leanDir && Date.now()<race.leanUntil ? (race.leanDir<0?' lean-l':' lean-r') : '';
       race.carEl.className='race-car'+(race.airborne>0?' air':'')+(race.skid>0?' skid':'')
-        +(race.bubble>0?' bubbled':'')+(flash?' bub-flash':'');
+        +(race.bubble>0?' bubbled':'')+(flash?' bub-flash':'')+lean;
       if(race.bubble>0 && race.bubbleZone!=null) race.carEl.style.setProperty('--bub', ZONE_COLORS[race.bubbleZone].tint);
       race.carEl.style.left=(RACE_PAD+race.carX*race.stepPx)+'px';
       race.carEl.style.top=(RACE_PAD+race.carRow*race.stepPx)+'px';
     }
   }
   function raceRenderStats(){ $('race-stats').innerHTML=`Punkte <b>${race.score}</b> &middot; M&uuml;nzen <b>${race.coins}</b> &middot; <b>${ZONE_COLORS[raceCarRowData().zone].name}</b>`; raceRenderDuel(); }
-  function raceClearTimers(){ if(race){ clearTimeout(race.timer); clearTimeout(race.halfTimer); } }
+  function raceClearTimers(){ if(race){ clearTimeout(race.timer); cancelAnimationFrame(race.halfTimer); } }
   function raceSchedule(){
     if(!race||!race.alive||!race.mounted) return;
     const iv=raceInterval();
-    raceApplyShift(0);                                  // frisch eingerastet
-    race.halfTimer=setTimeout(()=>{ if(race&&race.alive&&race.mounted) raceApplyShift(0.5); }, Math.max(40, Math.round(iv/2)));
+    raceApplyShift(0);                                  // frisch eingerastet (ohne Uebergang)
+    void race.gridEl.offsetHeight;                      // Reflow: sonst schluckt der Browser den Startwert
+    // Die Welt faehrt gleichmaessig eine ganze Reihe weiter; nach dem halben Intervall steht sie
+    // genau auf dem halben Feld. Die Spiellogik bleibt unveraendert – gerechnet wird nur in raceTick.
+    raceApplyShift(1, iv);
     race.timer=setTimeout(raceTick, iv);
   }
   // Jede Rakete darf pro Durchlauf genau EIN Feld zur Seite – erst alle Positionen sammeln,
@@ -2583,7 +2631,14 @@
     if(o==='coin'){ raceCarRowData().objs[race.carX]=null; race.coins++; race.score+=5; sfx('coin'); }
     return true;
   }
-  function raceMove(dx){ if(race.skid>0) return; sfx('move'); const step=dx>0?1:-1, n=Math.abs(dx); for(let k=0;k<n;k++) race.carX=clamp(race.carX+step,0,RACE_COLS-1); race.lastDir=step; if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); }
+  function raceMove(dx){ if(race.skid>0) return; sfx('move'); const step=dx>0?1:-1, n=Math.abs(dx); for(let k=0;k<n;k++) race.carX=clamp(race.carX+step,0,RACE_COLS-1); race.lastDir=step; raceLean(step); if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); }
+  // kurze Schraeglage beim Lenken (nur Optik, keine Spielwirkung)
+  function raceLean(dir){
+    if(!race||!race.carEl) return;
+    race.leanUntil=Date.now()+220; race.leanDir=dir;
+    clearTimeout(race.leanT);
+    race.leanT=setTimeout(()=>{ if(race&&race.carEl){ race.leanDir=0; raceRender(); } }, 220);
+  }
   // Sprung ueber 2,5 Felder: deckt zwei volle Landungen ab, damit auch zwei Bomben hintereinander gehen
   function raceJump(){ if(race.skid>0) return; if(race.jumpCd===0 && race.airborne===0){ race.airborne=2.5; sfx('jump'); raceRender(); } }
   function raceHop(){ if(race.skid>0) return; if(race.bHopCd===0){ race.carX=clamp(race.carX+2*race.lastDir,0,RACE_COLS-1); race.bHopCd=2; sfx('move'); if(!raceCheckImmediate()) return; raceRender(); raceRenderStats(); } }
