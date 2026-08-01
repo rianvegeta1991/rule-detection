@@ -100,6 +100,13 @@
   /* echtes Spielbild: wird 1:1 mit den Render-Funktionen gebaut und dann passend skaliert */
   .mc-inner{position:absolute; left:50%; top:50%; pointer-events:none; transform-origin:center center;}
   .mc-inner .race-grid{box-shadow:none;}
+  /* "Start" ueber dem Vorschaubild – nur auf der zentrierten Kachel, im 3-s-Takt ein- und ausblendend */
+  .mc-start{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); z-index:4; text-align:center;
+    font-family:'Palatino Linotype','Book Antiqua',Georgia,serif; font-size:2.7rem; font-weight:700; letter-spacing:0.1em;
+    color:#fff; text-shadow:0 2px 10px rgba(0,0,0,0.9), 0 0 26px rgba(var(--accent-rgb),0.95);
+    pointer-events:none; opacity:0;}
+  .mode-card.active .mc-start{animation:startFade 3s ease-in-out infinite;}
+  @keyframes startFade{0%{opacity:0;} 22%{opacity:1;} 62%{opacity:1;} 100%{opacity:0;}}
   .mc-body{display:flex; flex-direction:column; gap:3px;}
   .mc-title{font-size:1.12rem; font-family:'Palatino Linotype','Book Antiqua',Georgia,serif;}
   .mc-desc{font-size:0.8rem; color:var(--muted); line-height:1.4;}
@@ -1372,6 +1379,8 @@
         inner.appendChild(grid);
       }
     }catch(e){ console.warn('Vorschau fehlgeschlagen:', mode, e); }
+    // "Start" liegt ueber dem Vorschaubild – blendet langsam auf und wieder weg (3-s-Takt)
+    const badge=el('div','mc-start'); badge.textContent='Start'; host.appendChild(badge);
     requestAnimationFrame(()=>previewFit(host, inner, mode));
     setTimeout(()=>previewFit(host, inner, mode), 150);
     window.addEventListener('resize', ()=>previewFit(host, inner, mode));
@@ -1398,7 +1407,7 @@
     garden: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a7dc92"/><stop offset="45%" stop-color="#79c157"/><stop offset="100%" stop-color="#3f7a34"/></linearGradient></defs><rect width="400" height="300" fill="url(#ga)"/><circle cx="332" cy="52" r="22" fill="#fef9c3" opacity="0.75"/><ellipse cx="200" cy="280" rx="320" ry="95" fill="#3f7a34"/><ellipse cx="80" cy="250" rx="140" ry="50" fill="#4d8a3a"/><ellipse cx="310" cy="244" rx="130" ry="44" fill="#5aa346"/><rect x="16" y="196" width="130" height="48" rx="24" fill="#2f6a2a"/><rect x="250" y="206" width="126" height="42" rx="21" fill="#357a30"/><line x1="200" y1="252" x2="200" y2="214" stroke="#2f6a2a" stroke-width="3"/><circle cx="200" cy="207" r="9" fill="#f472b6"/><circle cx="200" cy="207" r="3.5" fill="#fde68a"/><line x1="232" y1="256" x2="232" y2="226" stroke="#2f6a2a" stroke-width="3"/><circle cx="232" cy="219" r="8" fill="#fb7185"/><circle cx="232" cy="219" r="3" fill="#fde68a"/><line x1="164" y1="256" x2="164" y2="226" stroke="#2f6a2a" stroke-width="3"/><circle cx="164" cy="219" r="8" fill="#facc15"/><circle cx="164" cy="219" r="3" fill="#fff"/></svg>`,
     office: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="of" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e6ebf2"/><stop offset="100%" stop-color="#b3bfd0"/></linearGradient></defs><rect width="400" height="300" fill="url(#of)"/><rect x="40" y="40" width="150" height="112" fill="#cfe0f0"/><rect x="40" y="40" width="150" height="112" fill="none" stroke="#8fa0b5" stroke-width="4"/><line x1="115" y1="40" x2="115" y2="152" stroke="#8fa0b5" stroke-width="3"/><line x1="40" y1="96" x2="190" y2="96" stroke="#8fa0b5" stroke-width="3"/><rect x="0" y="210" width="400" height="90" fill="#c9a878"/><rect x="0" y="204" width="400" height="9" fill="#e0c79c"/><rect x="248" y="150" width="92" height="58" rx="4" fill="#334155" stroke="#94a3b8" stroke-width="3"/><rect x="289" y="208" width="10" height="12" fill="#94a3b8"/><rect x="60" y="220" width="46" height="34" fill="#ffffff" transform="rotate(-8 83 237)"/><rect x="128" y="224" width="46" height="34" fill="#f8fafc" transform="rotate(6 151 241)"/><rect x="360" y="182" width="24" height="28" fill="#9aa3af"/><circle cx="372" cy="178" r="14" fill="#5aa346"/></svg>`,
     night: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="ni" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5a0d16"/><stop offset="100%" stop-color="#160304"/></linearGradient></defs><rect width="400" height="300" fill="url(#ni)"/><polygon points="200,80 108,300 176,300" fill="#ef4444" opacity="0.28"/><polygon points="200,80 292,300 224,300" fill="#f43f5e" opacity="0.26"/><circle cx="200" cy="55" r="26" fill="#dc2626"/><g stroke="#160304" stroke-width="1.2"><line x1="174" y1="55" x2="226" y2="55"/><line x1="200" y1="29" x2="200" y2="81"/><line x1="182" y1="37" x2="218" y2="73"/><line x1="218" y1="37" x2="182" y2="73"/></g><rect x="36" y="120" width="96" height="9" rx="4" fill="#ef4444"/><rect x="48" y="140" width="72" height="6" rx="3" fill="#f87171"/><circle cx="332" cy="150" r="11" fill="#fb7185"/><circle cx="332" cy="150" r="19" fill="none" stroke="#f43f5e" stroke-width="2" opacity="0.7"/><path d="M320 208 L344 208 L332 230 Z" fill="#fca5a5" opacity="0.9"/><line x1="332" y1="230" x2="332" y2="256" stroke="#fca5a5" stroke-width="2"/><line x1="322" y1="256" x2="342" y2="256" stroke="#fca5a5" stroke-width="2"/><circle cx="327" cy="204" r="3" fill="#fee2e2"/></svg>`,
-    graveyard: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="gy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#161c26"/><stop offset="100%" stop-color="#0a0d12"/></linearGradient></defs><rect width="400" height="300" fill="url(#gy)"/><circle cx="316" cy="60" r="26" fill="#c7ccd6" opacity="0.5"/><g fill="#5b6472" opacity="0.5"><circle cx="60" cy="50" r="1.3"/><circle cx="140" cy="36" r="1"/><circle cx="230" cy="64" r="1.2"/><circle cx="360" cy="90" r="1"/></g><ellipse cx="200" cy="292" rx="320" ry="68" fill="#1a2028"/><ellipse cx="200" cy="300" rx="320" ry="58" fill="#20272f"/><path d="M50 252 L50 150 M50 190 L30 165 M50 175 L72 150 M50 210 L28 196" stroke="#0e1319" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="118" y="210" width="34" height="56" rx="16" fill="#3a4250"/><rect x="118" y="210" width="34" height="56" rx="16" fill="none" stroke="#252b34" stroke-width="2"/><line x1="126" y1="228" x2="144" y2="228" stroke="#252b34" stroke-width="2"/><rect x="228" y="222" width="30" height="46" rx="14" fill="#333b47"/><rect x="292" y="204" width="8" height="60" fill="#3a4250"/><rect x="280" y="220" width="32" height="8" fill="#3a4250"/><ellipse cx="150" cy="266" rx="120" ry="14" fill="#5b6472" opacity="0.12"/><ellipse cx="280" cy="272" rx="110" ry="12" fill="#5b6472" opacity="0.1"/></svg>`,
+    graveyard: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="gy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1b2331"/><stop offset="60%" stop-color="#111722"/><stop offset="100%" stop-color="#080b10"/></linearGradient><radialGradient id="gymoon" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#eef2f7" stop-opacity="0.5"/><stop offset="100%" stop-color="#eef2f7" stop-opacity="0"/></radialGradient><linearGradient id="gystone" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9aa4b4"/><stop offset="100%" stop-color="#59637255"/></linearGradient></defs><rect width="400" height="300" fill="url(#gy)"/><circle cx="330" cy="44" r="52" fill="url(#gymoon)"/><circle cx="330" cy="44" r="24" fill="#e8eef6"/><circle cx="321" cy="37" r="5" fill="#cfd8e3" opacity="0.55"/><g fill="#aab4c4"><circle cx="52" cy="34" r="1.6"/><circle cx="128" cy="24" r="1.3"/><circle cx="208" cy="44" r="1.5"/><circle cx="262" cy="22" r="1.2"/><circle cx="378" cy="86" r="1.3"/></g><g transform="translate(0,-46)"><ellipse cx="200" cy="298" rx="330" ry="72" fill="#1d242e"/><ellipse cx="200" cy="306" rx="330" ry="60" fill="#252d38"/><g stroke="#080c12" stroke-width="7" fill="none" stroke-linecap="round"><path d="M64 262 L64 150"/><path d="M64 188 L36 158"/><path d="M64 172 L94 142"/><path d="M64 216 L34 200"/><path d="M64 202 L90 182"/></g><g><rect x="110" y="198" width="54" height="80" rx="27" fill="url(#gystone)"/><rect x="110" y="198" width="54" height="80" rx="27" fill="none" stroke="#39424f" stroke-width="3"/><rect x="133" y="216" width="9" height="38" rx="2.5" fill="#39424f"/><rect x="120" y="228" width="35" height="9" rx="2.5" fill="#39424f"/></g><g><rect x="194" y="216" width="48" height="62" rx="24" fill="url(#gystone)"/><rect x="194" y="216" width="48" height="62" rx="24" fill="none" stroke="#39424f" stroke-width="3"/><text x="218" y="252" font-family="Georgia,serif" font-size="19" font-weight="700" fill="#39424f" text-anchor="middle">RIP</text></g><g><rect x="286" y="188" width="14" height="92" rx="3" fill="url(#gystone)"/><rect x="264" y="214" width="58" height="14" rx="3" fill="url(#gystone)"/><rect x="286" y="188" width="14" height="92" rx="3" fill="none" stroke="#39424f" stroke-width="2.5"/><rect x="264" y="214" width="58" height="14" rx="3" fill="none" stroke="#39424f" stroke-width="2.5"/></g><g fill="#05070a"><ellipse cx="352" cy="254" rx="15" ry="9"/><circle cx="364" cy="244" r="6"/><path d="M369 242 l9 2 l-9 3 z"/><path d="M341 250 q-11 -7 -3 12 z"/></g><g fill="#c8d2e0" opacity="0.10"><ellipse cx="120" cy="250" rx="105" ry="12"/><ellipse cx="300" cy="266" rx="120" ry="10"/></g></g></svg>`,
     startbg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#241a12"/><stop offset="100%" stop-color="#140f0a"/></linearGradient><linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#101d33"/><stop offset="100%" stop-color="#060b16"/></linearGradient><radialGradient id="candleGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffcf6b" stop-opacity="0.5"/><stop offset="100%" stop-color="#ffcf6b" stop-opacity="0"/></radialGradient><radialGradient id="lampGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffe3a0" stop-opacity="0.45"/><stop offset="100%" stop-color="#ffe3a0" stop-opacity="0"/></radialGradient><radialGradient id="vig" cx="50%" cy="40%" r="75%"><stop offset="52%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="0.6"/></radialGradient></defs><rect width="1200" height="800" fill="url(#wall)"/><rect y="600" width="1200" height="200" fill="#1c130c"/><rect y="598" width="1200" height="7" fill="#3a2a1a"/><rect x="800" y="70" width="300" height="330" fill="url(#sky2)"/><g fill="#dbeafe"><circle cx="850" cy="120" r="2"/><circle cx="910" cy="95" r="1.5"/><circle cx="980" cy="140" r="2"/><circle cx="1040" cy="105" r="1.5"/><circle cx="870" cy="205" r="1.5"/><circle cx="1000" cy="240" r="2"/><circle cx="930" cy="285" r="1.5"/><circle cx="1055" cy="310" r="1.5"/><circle cx="828" cy="300" r="1.5"/></g><circle cx="1000" cy="150" r="34" fill="#eef2f7"/><circle cx="1014" cy="142" r="30" fill="url(#sky2)"/><rect x="800" y="70" width="300" height="330" fill="none" stroke="#4a3623" stroke-width="14"/><line x1="950" y1="70" x2="950" y2="400" stroke="#4a3623" stroke-width="10"/><line x1="800" y1="235" x2="1100" y2="235" stroke="#4a3623" stroke-width="10"/><path d="M800 70 q40 60 20 160 q-20 100 10 170 l-42 0 l0 -330 z" fill="#3a2a1a" opacity="0.9"/><rect x="70" y="120" width="240" height="430" fill="#3a2818"/><rect x="80" y="130" width="220" height="410" fill="#2a1d11"/><rect x="80" y="240" width="220" height="10" fill="#3a2818"/><rect x="80" y="350" width="220" height="10" fill="#3a2818"/><rect x="80" y="460" width="220" height="10" fill="#3a2818"/><g><rect x="90" y="150" width="18" height="90" fill="#7f1d1d"/><rect x="110" y="155" width="16" height="85" fill="#1e3a5f"/><rect x="128" y="150" width="20" height="90" fill="#3f6212"/><rect x="150" y="160" width="14" height="80" fill="#7c2d12"/><rect x="166" y="150" width="18" height="90" fill="#4c1d95"/><rect x="186" y="158" width="16" height="82" fill="#a16207"/><rect x="204" y="150" width="20" height="90" fill="#334155"/><rect x="226" y="155" width="16" height="85" fill="#065f46"/><rect x="244" y="150" width="18" height="90" fill="#831843"/><rect x="264" y="160" width="16" height="80" fill="#1e3a5f"/></g><g><rect x="90" y="262" width="16" height="88" fill="#1e3a5f"/><rect x="108" y="258" width="20" height="92" fill="#7f1d1d"/><rect x="130" y="262" width="14" height="88" fill="#a16207"/><rect x="146" y="258" width="18" height="92" fill="#3f6212"/><rect x="166" y="262" width="16" height="88" fill="#334155"/><rect x="184" y="258" width="20" height="92" fill="#4c1d95"/><rect x="206" y="262" width="16" height="88" fill="#065f46"/><rect x="224" y="258" width="18" height="92" fill="#7c2d12"/><rect x="244" y="262" width="16" height="88" fill="#831843"/><rect x="262" y="258" width="18" height="92" fill="#1e3a5f"/></g><g><rect x="90" y="372" width="18" height="88" fill="#3f6212"/><rect x="110" y="372" width="16" height="88" fill="#7f1d1d"/><rect x="128" y="380" width="60" height="14" fill="#a16207" transform="rotate(-4 158 387)"/><rect x="196" y="372" width="18" height="88" fill="#4c1d95"/><rect x="216" y="372" width="16" height="88" fill="#334155"/><rect x="234" y="372" width="18" height="88" fill="#065f46"/><rect x="254" y="376" width="16" height="84" fill="#831843"/></g><g fill="#5a4028" stroke="#3a2818" stroke-width="4"><rect x="60" y="600" width="120" height="110"/><rect x="72" y="500" width="96" height="100"/></g><g stroke="#3a2818" stroke-width="3" opacity="0.7"><line x1="60" y1="655" x2="180" y2="655"/><line x1="120" y1="600" x2="120" y2="710"/><line x1="72" y1="550" x2="168" y2="550"/></g><ellipse cx="500" cy="470" rx="130" ry="66" fill="url(#lampGlow)"/><ellipse cx="690" cy="520" rx="80" ry="52" fill="url(#candleGlow)"/><rect x="420" y="560" width="620" height="30" rx="4" fill="#6b4a2a"/><rect x="420" y="560" width="620" height="8" fill="#8a6440"/><rect x="470" y="590" width="20" height="160" fill="#513418"/><rect x="970" y="590" width="20" height="160" fill="#513418"/><rect x="492" y="548" width="16" height="14" fill="#3a2a1a"/><path d="M500 548 L500 470 L560 445" stroke="#4a3623" stroke-width="6" fill="none"/><path d="M540 424 l46 0 l-10 34 l-26 0 z" fill="#b45309"/><ellipse cx="563" cy="458" rx="14" ry="5" fill="#fde68a"/><rect x="676" y="512" width="28" height="42" rx="3" fill="#e7dcc0"/><rect x="676" y="512" width="28" height="6" fill="#cbbf9c"/><ellipse cx="690" cy="554" rx="24" ry="7" fill="#6b4a2a"/><path d="M690 512 q-7 -12 0 -22 q7 10 0 22 z" fill="#fbbf24"/><path d="M690 508 q-4 -7 0 -13 q4 6 0 13 z" fill="#fef08a"/><ellipse cx="850" cy="556" rx="60" ry="14" fill="#5c4c34"/><path d="M800 552 Q850 500 900 552 Z" fill="#6b5a3f"/><ellipse cx="850" cy="552" rx="50" ry="12" fill="#5c4c34"/><path d="M792 552 l-16 6 l16 5 z" fill="#5c4c34"/><path d="M908 552 l16 6 l-16 5 z" fill="#5c4c34"/><circle cx="850" cy="518" r="4" fill="#8a765a"/><circle cx="590" cy="545" r="26" fill="rgba(191,227,240,0.18)" stroke="#f59e0b" stroke-width="6"/><line x1="609" y1="564" x2="640" y2="586" stroke="#7c5c2e" stroke-width="8" stroke-linecap="round"/><path d="M960 560 l24 0 l-4 -24 l-16 0 z" fill="#7c4a25"/><path d="M972 536 q-20 -30 -34 -20 q10 22 34 20 z" fill="#3f7a34"/><path d="M972 536 q20 -34 36 -22 q-12 24 -36 22 z" fill="#4d8a3a"/><path d="M972 536 q0 -34 0 -34 q9 20 0 34 z" fill="#5aa346"/><ellipse cx="905" cy="556" rx="22" ry="13" fill="#b91c1c"/><ellipse cx="905" cy="552" rx="22" ry="12" fill="#dc2626"/><g stroke="#e5e7eb" stroke-width="2"><line x1="905" y1="548" x2="900" y2="536"/><line x1="913" y1="550" x2="923" y2="540"/><line x1="897" y1="550" x2="887" y2="542"/></g><circle cx="900" cy="536" r="2.5" fill="#facc15"/><circle cx="923" cy="540" r="2.5" fill="#22d3ee"/><circle cx="887" cy="542" r="2.5" fill="#f472b6"/><g fill="#e5e7eb"><rect x="638" y="556" width="40" height="6" transform="rotate(-6 658 559)"/><rect x="720" y="558" width="40" height="6" transform="rotate(4 740 561)"/></g><rect width="1200" height="800" fill="url(#vig)"/></svg>`
   };
   function svgUrl(key){ return 'data:image/svg+xml,' + encodeURIComponent(SVGS[key]); }
@@ -1428,7 +1437,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.23";
+  const APP_VERSION = "1.24";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2662,7 +2671,8 @@
     const ov=$('race-overlay'); ov.classList.remove('hidden');
     $('race-overlay-msg').innerHTML=`<b>Crash!</b><br>Du hast <b>${race.score}</b> Zeilen geschafft (${race.coins} M&uuml;nzen eingesammelt).`;
     const acts=$('race-overlay-actions'); acts.innerHTML='';
-    const again=el('button','action primary'); again.textContent='Nochmal'; again.onclick=()=>raceStart(race.diffKey); acts.appendChild(again);
+    // race.ov mitgeben, sonst faellt eine Editor-Partie auf die Standardregeln zurueck
+    const again=el('button','action primary'); again.textContent='Nochmal'; again.onclick=()=>raceStart(race.diffKey, race.ov); acts.appendChild(again);
     const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
   }
 
@@ -2931,9 +2941,12 @@
   }
 
   // ===================== MULTIPLAYER =====================
-  function mpStart(diffKey, ov, circVar){
+  // gridVar/circVar sind optional: beim Wiederholen wird die TATSAECHLICH gespielte Variante
+  // durchgereicht, damit eine Partie nicht in die zuletzt im Menue gewaehlte zurueckfaellt.
+  function mpStart(diffKey, ov, circVar, gridVar){
     teardownActive(); hideAllScreens(); document.body.classList.add('playing');
-    if(currentMode==='grid'){ mpStartGrid(diffKey, ov); return; }
+    const istFeld = gridVar ? true : (currentMode==='grid');
+    if(istFeld){ mpStartGrid(diffKey, ov, gridVar); return; }
     const cv = circVar || circleVariant;
     if(cv==='gerangel') mpcgStart(diffKey, ov); else mpStartCircle(diffKey, ov);
   }
@@ -3003,9 +3016,9 @@
     res.classList.remove('hidden'); sfx('win');
   }
 
-  function mpStartGrid(diffKey, ov){
+  function mpStartGrid(diffKey, ov, variant){
     $('mp-grid').classList.remove('hidden'); document.body.classList.add('playing');
-    const gerangel = gridVariant==='gerangel';
+    const gerangel = (variant || gridVariant)==='gerangel';
     const shared=buildGridShared(diffKey, gridVariant, gerangel, ov); setThemeBg(shared.theme);
     $('mpg-result').classList.add('hidden'); closeReveal();
     if(gerangel){
@@ -3047,7 +3060,7 @@
     const cs1=makeCircleState(config); const cs2=makeCircleState(config);
     circleBuildRings(cs1, $('mpc-host1'), 0.66); circleMarkerFlash(cs1);
     circleBuildRings(cs2, $('mpc-host2'), 0.66); circleMarkerFlash(cs2);
-    mp={ mode:'circle', config, ov, finished:false, winner:null, reason:null, loser:null, players:[{cs:cs1},{cs:cs2}] };
+    mp={ mode:'circle', circVar:'duell', config, ov, finished:false, winner:null, reason:null, loser:null, players:[{cs:cs1},{cs:cs2}] };
     renderDetectiveCenter($('mpc-host1'), cs1.gandalfPose, 'W', ()=>mpCyclePose(0), 0.66);
     renderDetectiveCenter($('mpc-host2'), cs2.gandalfPose, '↑', ()=>mpCyclePose(1), 0.66);
     $('mpc-title').innerHTML=`${config.theme.title} &middot; <small>${winCond==='fastest'?'Schnellster ins Zentrum':'Wenigste Züge'} &ndash; identische Regeln für beide</small>`;
@@ -4204,14 +4217,19 @@
     const dc=$('diff-caption'); if(dc) dc.textContent = racing ? 'Strecke' : 'Schwierigkeit';
   }
 
-  // Modus-Karussell (wischbar; die zentrierte Kachel bestimmt den Modus)
+  // Welche Schwierigkeit gerade im unteren Karussell zentriert ist (gesetzt beim Wischen dort)
+  let selectedDiffKey=null;
+  // Modus-Karussell (wischbar; die zentrierte Kachel bestimmt den Modus UND startet das Spiel)
   (function(){
     const car=$('mode-carousel'); if(!car) return;
     const cards=Array.from(car.querySelectorAll('.mode-card'));
     const dotsHost=$('mode-dots');
     cards.forEach(c=>{ buildModePreview(c.querySelector('.mc-preview'), c.dataset.mode); });
     cards.forEach((c,i)=>{ const d=el('div','mdot'); d.addEventListener('click',()=>scrollToCard(i)); dotsHost.appendChild(d);
-      c.addEventListener('click',()=>{ if(cards.indexOf(c)!==currentIndex()) scrollToCard(cards.indexOf(c)); }); });
+      c.addEventListener('click',()=>{
+        if(cards.indexOf(c)!==currentIndex()){ scrollToCard(cards.indexOf(c)); return; }
+        startDiff(selectedDiffKey || Object.keys(THEMES)[0]);      // zentrierte Kachel = Startknopf
+      }); });
     const dots=Array.from(dotsHost.children);
     function currentIndex(){ const cr=car.getBoundingClientRect(); const center=cr.left+cr.width/2; let best=0,bd=Infinity; cards.forEach((c,i)=>{ const r=c.getBoundingClientRect(); const d=Math.abs((r.left+r.width/2)-center); if(d<bd){bd=d;best=i;} }); return best; }
     function scrollToCard(i){ const cr=car.getBoundingClientRect(), r=cards[i].getBoundingClientRect(); car.scrollTo({left: car.scrollLeft + (r.left-cr.left) - (cr.width-r.width)/2, behavior:'smooth'}); }
@@ -4266,7 +4284,7 @@
   }
   // Wischbares Karussell: die zentrierte Karte ist aktiv, ein Tipp darauf startet.
   // Ein Tipp auf eine Nachbarkarte schiebt sie nur in die Mitte (kein Fehlstart).
-  function initCarousel(car, dotsHost, onSelect){
+  function initCarousel(car, dotsHost, onSelect, onActive){
     const cards=Array.from(car.children); if(!cards.length) return null;
     const dots=[];
     function current(){
@@ -4279,7 +4297,7 @@
       const cr=car.getBoundingClientRect(), r=cards[i].getBoundingClientRect();
       car.scrollTo({ left: car.scrollLeft+(r.left-cr.left)-(cr.width-r.width)/2, behavior:'smooth' });
     }
-    function setActive(i){ cards.forEach((c,j)=>c.classList.toggle('active',j===i)); dots.forEach((d,j)=>d.classList.toggle('active',j===i)); }
+    function setActive(i){ cards.forEach((c,j)=>c.classList.toggle('active',j===i)); dots.forEach((d,j)=>d.classList.toggle('active',j===i)); if(onActive) onActive(i); }
     cards.forEach((c,i)=>{
       const d=el('div','mdot'); d.addEventListener('click',()=>scrollToCard(i)); dotsHost.appendChild(d); dots.push(d);
       c.addEventListener('click',()=>{ if(i!==current()) scrollToCard(i); else if(onSelect) onSelect(i); });
@@ -4292,7 +4310,8 @@
     setActive(0);
     return { scrollToCard, current };
   }
-  initCarousel(diffGrid, $('diff-dots'), i=>startDiff(DIFF_KEYS[i]));
+  // Das Schwierigkeits-Karussell waehlt nur noch aus – gestartet wird oben ueber die Modus-Kachel.
+  initCarousel(diffGrid, $('diff-dots'), null, i=>{ selectedDiffKey=DIFF_KEYS[i]; });
 
   // ===================== EDITOR =====================
   const ED_KEY='regel-detektiv-users';
@@ -4593,10 +4612,10 @@
 
   // MP controls
   $('mpg-reveal').addEventListener('click',mpShowReveal);
-  $('mpg-again').addEventListener('click',()=>{ if(mp) mpStart(mp.shared.diffKey, mp.ov); });
+  $('mpg-again').addEventListener('click',()=>{ if(mp) mpStart(mp.shared.diffKey, mp.ov, null, mp.variant||gridVariant); });
   $('mpg-back').addEventListener('click',backToMenu);
   $('mpc-reveal').addEventListener('click',mpShowReveal);
-  $('mpc-again').addEventListener('click',()=>{ if(mp) mpStart(mp.config.diffKey, mp.ov); });
+  $('mpc-again').addEventListener('click',()=>{ if(mp) mpStart(mp.config.diffKey, mp.ov, mp.circVar||'duell'); });
   $('mpc-back').addEventListener('click',backToMenu);
   $('mpc-log-btn').addEventListener('click',()=>{ if(mp&&mp.players) openLog(logHtml(renderLog, [{label:'Spieler 1',cls:'p1',log:mp.players[0].cs.log},{label:'Spieler 2',cls:'p2',log:mp.players[1].cs.log}])); });
   $('mpcg-reveal').addEventListener('click',mpcgShowReveal);
