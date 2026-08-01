@@ -1437,7 +1437,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.24";
+  const APP_VERSION = "1.25";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -3018,8 +3018,11 @@
 
   function mpStartGrid(diffKey, ov, variant){
     $('mp-grid').classList.remove('hidden'); document.body.classList.add('playing');
-    const gerangel = (variant || gridVariant)==='gerangel';
-    const shared=buildGridShared(diffKey, gridVariant, gerangel, ov); setThemeBg(shared.theme);
+    // Eine Quelle der Wahrheit: sonst baut das Brett die eine Variante, waehrend die Oberflaeche
+    // auf die andere verzweigt (trat beim Wiederholen einer Editor-Partie auf).
+    const vari = variant || gridVariant;
+    const gerangel = vari==='gerangel';
+    const shared=buildGridShared(diffKey, vari, gerangel, ov); setThemeBg(shared.theme);
     $('mpg-result').classList.add('hidden'); closeReveal();
     if(gerangel){
       $('mpg-twocol').classList.add('hidden'); $('mpg-shared-wrap').classList.remove('hidden');
@@ -4225,8 +4228,13 @@
     const cards=Array.from(car.querySelectorAll('.mode-card'));
     const dotsHost=$('mode-dots');
     cards.forEach(c=>{ buildModePreview(c.querySelector('.mc-preview'), c.dataset.mode); });
+    // Wischen darf nicht versehentlich starten: gezogene Finger unterdruecken den Klick.
+    let downX=0, downY=0, gezogen=false;
+    car.addEventListener('pointerdown', e=>{ downX=e.clientX; downY=e.clientY; gezogen=false; }, {passive:true});
+    car.addEventListener('pointermove', e=>{ if(Math.abs(e.clientX-downX)>8 || Math.abs(e.clientY-downY)>8) gezogen=true; }, {passive:true});
     cards.forEach((c,i)=>{ const d=el('div','mdot'); d.addEventListener('click',()=>scrollToCard(i)); dotsHost.appendChild(d);
       c.addEventListener('click',()=>{
+        if(gezogen){ gezogen=false; return; }
         if(cards.indexOf(c)!==currentIndex()){ scrollToCard(cards.indexOf(c)); return; }
         startDiff(selectedDiffKey || Object.keys(THEMES)[0]);      // zentrierte Kachel = Startknopf
       }); });
