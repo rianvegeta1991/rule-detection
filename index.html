@@ -203,6 +203,9 @@
   .race-cell{border-radius:3px; position:relative; background:#1e293b;}
   .race-cell .bomb,.race-cell .rocket,.race-cell .car{position:absolute; inset:6%; display:flex; align-items:center; justify-content:center;}
   .race-cell .bomb svg,.race-cell .rocket svg,.race-cell .car svg{width:100%; height:100%; display:block;}
+  /* Raketen gleiten zwischen den Feldern: aussen der Antrieb (senkrecht), innen der Seitenschritt */
+  .race-cell .rocket{will-change:transform;}
+  .race-cell .rocket .rk-in{width:100%; height:100%; display:flex; align-items:center; justify-content:center; will-change:transform;}
   .race-cell .bomb svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,0.6)) drop-shadow(0 0 3px rgba(251,146,60,0.85));}
   .race-cell .rocket svg{filter:drop-shadow(0 0 3px rgba(239,68,68,0.9));}
   .race-cell .coin{position:absolute; inset:20%; border-radius:50%;}
@@ -291,8 +294,16 @@
   .cell .goldkey{position:absolute; inset:16%;}
   .cell .goldkey::before{content:''; position:absolute; left:6%; top:24%; width:44%; height:44%; border:3px solid #fbbf24; border-radius:50%; box-shadow:0 0 8px #fbbf24;}
   .cell .goldkey::after{content:''; position:absolute; left:46%; top:44%; width:48%; height:12%; background:#fbbf24; box-shadow:0 0 6px #fbbf24;}
-  .cell .dog{position:absolute; inset:6%;}
-  .cell .dog svg{width:100%; height:100%; display:block;}
+  /* Hunde laufen wie die Spielfigur: sie gleiten zum Nachbarfeld und trippeln dabei mit den Beinen */
+  .cell .dog{position:absolute; inset:6%; will-change:transform; z-index:3;}
+  .cell .dog svg{width:100%; height:100%; display:block; overflow:visible;}
+  .dog .dog-leg{transform-box:fill-box; transform-origin:top center;}
+  .dog.walking svg{animation:dogBob var(--walk,300ms) ease-in-out 1;}
+  .dog.walking .dog-leg.a{animation:dogLegA var(--walk,300ms) ease-in-out 1;}
+  .dog.walking .dog-leg.b{animation:dogLegB var(--walk,300ms) ease-in-out 1;}
+  @keyframes dogLegA{0%,100%{transform:rotate(0deg);} 30%{transform:rotate(24deg);} 70%{transform:rotate(-16deg);}}
+  @keyframes dogLegB{0%,100%{transform:rotate(0deg);} 30%{transform:rotate(-24deg);} 70%{transform:rotate(16deg);}}
+  @keyframes dogBob{0%,100%{transform:translateY(0);} 35%{transform:translateY(-7%);} 75%{transform:translateY(-2%);}}
 
   .rings-svg{display:block; max-width:100%; height:auto;}
   .ring-field{fill:rgba(var(--accent-rgb),0.16); stroke:#0b1220; stroke-width:1.5;}
@@ -1207,7 +1218,17 @@
   const HAZARD_COUNT = { leicht:2, mittel:4, schwer:6, experte:8 };
   const GERANGEL_SIZE = { leicht:13, mittel:15, schwer:15, experte:17 };
   const DOG_COLOR = '#000';
-  function dogSvg(){ const c=DOG_COLOR; return `<svg viewBox="0 0 24 20" xmlns="http://www.w3.org/2000/svg"><ellipse cx="10.5" cy="11" rx="7" ry="3.6" fill="${c}"/><circle cx="17.5" cy="8.5" r="3.4" fill="${c}"/><path d="M15.5 6 L14.2 2.6 L17.4 5.2 Z" fill="${c}"/><rect x="19.6" y="8.3" width="3.2" height="2.4" rx="1.1" fill="${c}"/><rect x="5.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="8.4" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="12.6" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><rect x="15.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/><path d="M3.6 9.5 Q0.8 7.2 2.4 11.5" stroke="${c}" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`; }
+  // Der Hund blickt in seine Laufrichtung (face<0 = nach links, gespiegelt wie bei Sherlock).
+  // Die Beine tragen abwechselnd die Klassen a/b, damit sie beim Gehen gegenlaeufig ausschlagen.
+  function dogSvg(face){ const c=DOG_COLOR;
+    const inner=`<ellipse cx="10.5" cy="11" rx="7" ry="3.6" fill="${c}"/><circle cx="17.5" cy="8.5" r="3.4" fill="${c}"/><path d="M15.5 6 L14.2 2.6 L17.4 5.2 Z" fill="${c}"/><rect x="19.6" y="8.3" width="3.2" height="2.4" rx="1.1" fill="${c}"/>`
+      +`<rect class="dog-leg a" x="5.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/>`
+      +`<rect class="dog-leg b" x="8.4" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/>`
+      +`<rect class="dog-leg b" x="12.6" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/>`
+      +`<rect class="dog-leg a" x="15.2" y="12.6" width="1.7" height="5.2" rx="0.6" fill="${c}"/>`
+      +`<path d="M3.6 9.5 Q0.8 7.2 2.4 11.5" stroke="${c}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    return `<svg viewBox="0 0 24 20" xmlns="http://www.w3.org/2000/svg">`
+      + (face<0 ? `<g transform="translate(24,0) scale(-1,1)">${inner}</g>` : inner) + `</svg>`; }
   // Sherlock als Spielfigur im Feld-Modus. dir: 0=oben, 1=rechts, 2=unten, 3=links.
   // Mantel und Muetze sind braun; der Schal traegt die Spielerfarbe (currentColor),
   // damit sich im Duell beide Figuren weiterhin unterscheiden lassen.
@@ -1437,7 +1458,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.25";
+  const APP_VERSION = "1.26";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -1715,10 +1736,42 @@
       coins: shared.coins ? shared.coins.map(c=>({x:c.x,y:c.y})) : null,
       centerItem: shared.centerItem ? {x:shared.centerItem.x,y:shared.centerItem.y,type:shared.centerItem.type,taken:false} : null };
   }
+  // Gleiten statt Springen: das frisch gebaute Element startet optisch auf dem alten Feld und faehrt
+  // herueber. `st` merkt sich den Animationsstand – wird mittendrin neu gezeichnet (z. B. weil der
+  // Spieler zieht, waehrend ein Hund laeuft), setzt die Fahrt fort statt zurueckzuspringen.
+  // Rein optisch: Position und Regeln stehen zu diesem Zeitpunkt laengst fest.
+  function glideFromCell(b, node, st, pi, ms, pend){
+    const now=Date.now();
+    let src=null, rest=0, span=ms;
+    if(st.renderedAt!=null && st.renderedAt!==pi){ src=st.renderedAt; rest=ms; span=ms; st.animFrom=src; st.animTo=pi; st.animT0=now; st.animMs=ms; }
+    else if(st.animTo===pi && st.animMs && now-st.animT0<st.animMs){ src=st.animFrom; span=st.animMs; rest=st.animMs-(now-st.animT0); }
+    st.renderedAt=pi;
+    if(src==null || src===pi || !b.cells[src] || rest<=0) return false;
+    const k=rest/span, a=b.cells[src], c=b.cells[pi];
+    const dx=(a.offsetLeft-c.offsetLeft)*k, dy=(a.offsetTop-c.offsetTop)*k;
+    if(!dx && !dy) return false;
+    node.style.transition='none';
+    node.style.transform=`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px)`;
+    pend.push({node, ms:rest});
+    return true;
+  }
+  // Erst alle Startwerte setzen, dann EIN Reflow, dann alle Ziele – sonst schluckt der Browser
+  // die Zwischenschritte (und rAF feuert in einem nicht gerenderten Tab gar nicht).
+  function glideCommit(pend, ref){
+    if(!pend.length) return;
+    if(ref) void ref.offsetHeight;
+    pend.forEach(p=>{ p.node.style.transition=`transform ${Math.round(p.ms)}ms linear`; p.node.style.transform='translate(0,0)'; });
+  }
   function renderGridBoard(b){
-    const s=b.shared, now=Date.now();
+    const s=b.shared, now=Date.now(), pend=[];
     b.cells.forEach(c=>{ c.innerHTML=''; c.classList.remove('flash-good','flash-bad'); });
-    b.hazards.forEach(hh=>{ const hz=el('div', s.hazardType==='dog'?'dog':'bomb'); if(s.hazardType==='dog'){ hz.innerHTML=dogSvg(); hz.style.filter=`drop-shadow(0 0 3px rgba(${s.theme.accent||'148,163,184'},0.9))`; } else { hz.innerHTML=bombSvg(); } b.cells[hh.y*s.cols+hh.x].appendChild(hz); });
+    // Hunde: gleiten zum Nachbarfeld und blicken in ihre Laufrichtung
+    const dogMs=Math.max(80, Math.min(Math.round(dur(300)), Math.round((s.hazardTick||900)*0.6)));
+    b.hazards.forEach(hh=>{ const hz=el('div', s.hazardType==='dog'?'dog':'bomb'); const pi=hh.y*s.cols+hh.x;
+      if(s.hazardType==='dog'){ hz.innerHTML=dogSvg(hh.face||1); hz.style.filter=`drop-shadow(0 0 3px rgba(${s.theme.accent||'148,163,184'},0.9))`; } else { hz.innerHTML=bombSvg(); }
+      b.cells[pi].appendChild(hz);
+      if(s.hazardType==='dog' && glideFromCell(b, hz, hh, pi, dogMs, pend)){ hz.classList.add('walking'); hz.style.setProperty('--walk', dogMs+'ms'); }
+    });
     if(b.coins) b.coins.forEach(c=>{ b.cells[c.y*s.cols+c.x].appendChild(el('div','coin')); });
     if(b.centerItem && !b.centerItem.taken){ b.cells[b.centerItem.y*s.cols+b.centerItem.x].appendChild(el('div', b.centerItem.type==='key'?'goldkey':'coin center')); }
     if(s.layoutKind==='bands'){
@@ -1737,26 +1790,14 @@
       }
       fig.innerHTML=sherlockSvg(f.facing==null?2:f.facing);
       b.cells[pi].appendChild(fig);
-      // Gleiten statt Springen: die Figur startet optisch am alten Feld und faehrt herueber.
-      // Rein visuell – Position und Regeln stehen zu diesem Zeitpunkt laengst fest.
-      const from=f.renderedAt;
-      if(from!=null && from!==pi && b.cells[from]){
-        const a=b.cells[from], c=b.cells[pi];
-        const dx=a.offsetLeft-c.offsetLeft, dy=a.offsetTop-c.offsetTop;
-        if(dx||dy){
-          fig.style.transition='none';
-          fig.style.transform=`translate(${dx}px,${dy}px)`;
-          const ms=Math.max(70, Math.round(dur(230)));
-          requestAnimationFrame(()=>{ fig.style.transition=`transform ${ms}ms cubic-bezier(.22,.61,.36,1)`; fig.style.transform='translate(0,0)'; });
-        }
-      }
-      f.renderedAt=pi;
+      glideFromCell(b, fig, f, pi, Math.max(70, Math.round(dur(230))), pend);
       if(f.lastFlash) b.cells[pi].classList.add(f.lastFlash==='good'?'flash-good':'flash-bad');
     });
+    glideCommit(pend, b.cells[0]);
   }
   function removeHazard(b,x,y){ const i=b.hazards.findIndex(hh=>hh.x===x&&hh.y===y); if(i>=0) b.hazards.splice(i,1); b.hazardSet=new Set(b.hazards.map(hh=>hh.x+','+hh.y)); }
   // Nach einer Kollision setzt die Figur zurueck – dabei nicht ueber das halbe Brett gleiten
-  function resetFig(b,f){ f.x=f.startX; f.y=f.startY; f.renderedAt=null; f.walkSteps=0; f.blinkUntil=Date.now()+3000; setTimeout(()=>{ if(b.figs.includes(f)){ renderGridBoard(b); if(b.onChange) b.onChange(); } }, 3050); }
+  function resetFig(b,f){ f.x=f.startX; f.y=f.startY; f.renderedAt=null; f.animTo=null; f.walkSteps=0; f.blinkUntil=Date.now()+3000; setTimeout(()=>{ if(b.figs.includes(f)){ renderGridBoard(b); if(b.onChange) b.onChange(); } }, 3050); }
   // returns event object {type} | null
   function gridBoardSubmit(b, fi, reqDir){
     const s=b.shared, f=b.figs[fi], now=Date.now();
@@ -1804,6 +1845,7 @@
       const opts=shuffle(VECS.slice());
       for(const v of opts){ const nx=h.x+v[0], ny=h.y+v[1], k=nx+','+ny;
         if(nx<0||ny<0||nx>=s.cols||ny>=s.rows) continue; if(s.wallSet&&s.wallSet.has(k)) continue; if(forbid.has(k)) continue; if(occ.has(k)) continue;
+        if(v[0]) h.face=v[0]<0?-1:1;                       // bei Seitwaertsschritten dreht sich der Hund um
         h.x=nx; h.y=ny; break; }
       occ.add(h.x+','+h.y);
     });
@@ -2516,21 +2558,46 @@
     race.gridEl.style.transition='none';
     if(cur && cur!=='none') race.gridEl.style.transform=cur;
   }
+  // Raketen gleiten zwischen den Feldern, statt zu springen – aussen der Antrieb (senkrecht), innen
+  // der Seitenschritt, damit beide Bewegungen ihre eigene Dauer behalten. Alles rein optisch:
+  // gerechnet wird weiter in ganzen Feldern (raceMoveRockets / raceRocketThrust).
+  // Der Fortschritt haengt an der Uhr, damit ein Neuzeichnen mittendrin (Lenken, Springen) fortsetzt.
+  function raceRocketGlide(outer, inner, row, x, pend){
+    const now=Date.now(), sp=race.stepPx;
+    const ty=(race.rocketThrust ? (race.rocketDrift||0) : 0)*sp;
+    let fy=ty, my=0;
+    if(race.rocketThrust && race.rkThrustT0){
+      const k=1-(now-race.rkThrustT0)/race.rkThrustMs;
+      if(k>0){ fy=ty-0.5*k*sp; my=race.rkThrustMs*k; }
+    }
+    outer.style.transition='none'; outer.style.transform=`translateY(${fy.toFixed(2)}px)`;
+    if(my>0) pend.push({node:outer, ms:my, to:`translateY(${ty.toFixed(2)}px)`});
+    const a=row.rkAnim && row.rkAnim[x];
+    if(a){
+      const k=1-(now-a.t0)/a.ms;
+      if(k>0){
+        inner.style.transition='none'; inner.style.transform=`translateX(${(a.dx*k*sp).toFixed(2)}px)`;
+        pend.push({node:inner, ms:a.ms*k, to:'translateX(0px)'});
+      }
+    }
+  }
   function raceRender(){
     if(!race||!race.cells.length) return;
-    const totalRows=RACE_ROWS+1;
+    const totalRows=RACE_ROWS+1, pend=[];
     for(let y=0;y<totalRows;y++){ const row=race.grid[y];
       for(let x=0;x<RACE_COLS;x++){ const cell=race.cells[y*RACE_COLS+x];
         cell.style.background=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`; cell.innerHTML='';
         const o=row.objs[x];
         if(o==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); cell.appendChild(d); }
-        else if(o==='rocket'){ const d=el('div','rocket'); d.innerHTML=rocketSvg(race.rocketThrust);
-          // Antrieb schiebt die Rakete zwischen zwei Datenzeilen sichtbar ein halbes Feld tiefer
-          if(race.rocketThrust && race.rocketDrift) d.style.transform=`translateY(${(race.rocketDrift*race.stepPx).toFixed(1)}px)`;
-          cell.appendChild(d); }
+        else if(o==='rocket'){ const d=el('div','rocket'), inner=el('div','rk-in');
+          inner.innerHTML=rocketSvg(race.rocketThrust); d.appendChild(inner); cell.appendChild(d);
+          raceRocketGlide(d, inner, row, x, pend); }
         else if(o==='coin'){ cell.appendChild(el('div','coin')); }
       }
     }
+    // ein einziger Reflow fuer alle Raketen, dann die Ziele setzen
+    if(pend.length){ void race.gridEl.offsetHeight;
+      pend.forEach(p=>{ p.node.style.transition=`transform ${Math.round(p.ms)}ms linear`; p.node.style.transform=p.to; }); }
     if(race.carEl){
       const flash=race.carEl.classList.contains('bub-flash');   // kurzen Ring nicht wegrendern
       const lean = race.leanDir && Date.now()<race.leanUntil ? (race.leanDir<0?' lean-l':' lean-r') : '';
@@ -2556,18 +2623,24 @@
   // Jede Rakete darf pro Durchlauf genau EIN Feld zur Seite – erst alle Positionen sammeln,
   // sonst wandert dieselbe Rakete in der Schleife gleich zweimal weiter.
   function raceMoveRockets(){
+    const now=Date.now(), ms=Math.max(90, Math.min(320, raceInterval()*0.7));
     for(let y=0;y<race.grid.length;y++){
       const row=race.grid[y];
       const spots=[]; for(let x=0;x<RACE_COLS;x++) if(row.objs[x]==='rocket') spots.push(x);
+      const anim={};                                    // Startpunkte fuer das Hinuebergleiten
       spots.forEach(x=>{
         const dir=raceRnd()<0.5?-1:1, nx=x+dir;
-        if(nx>=0 && nx<RACE_COLS && !row.objs[nx]){ row.objs[nx]='rocket'; row.objs[x]=null; }
+        if(nx>=0 && nx<RACE_COLS && !row.objs[nx]){ row.objs[nx]='rocket'; row.objs[x]=null; anim[nx]={dx:x-nx, t0:now, ms}; }
       });
+      row.rkAnim=anim;
     }
   }
   // Friedhof: die Raketen haben Antrieb und schieben sich alle zwei Intervalle ein halbes Feld nach unten.
   // Bei jedem zweiten halben Schritt rutschen sie eine ganze Datenzeile tiefer.
   function raceRocketThrust(){
+    // Der halbe Schritt laeuft ueber die vollen zwei Intervalle bis zum naechsten – dadurch sinken
+    // die Raketen gleichmaessig, statt zweimal je Runde zu ruckeln.
+    race.rkThrustT0=Date.now(); race.rkThrustMs=Math.max(120, raceInterval()*2);
     race.rocketDrift=(race.rocketDrift||0)+0.5;
     if(race.rocketDrift<1) return;
     race.rocketDrift-=1;
@@ -2576,7 +2649,9 @@
       for(let x=0;x<RACE_COLS;x++){
         if(row.objs[x]!=='rocket') continue;
         row.objs[x]=null;
-        if(below && !below.objs[x]) below.objs[x]='rocket';    // unten aus dem Bild = weg
+        // laufender Seitwaerts-Schritt zieht mit in die neue Zeile, sonst bricht er hier ab
+        const a=row.rkAnim && row.rkAnim[x]; if(row.rkAnim) delete row.rkAnim[x];
+        if(below && !below.objs[x]){ below.objs[x]='rocket'; if(a){ (below.rkAnim=below.rkAnim||{})[x]=a; } }   // unten aus dem Bild = weg
       }
     }
   }
@@ -3998,7 +4073,12 @@
       f.lastFlash = p.flash || null;
     });
     b.coins=(st.coins||[]).map(c=>({x:c.x,y:c.y}));
-    b.hazards=(st.hazards||[]).map(h=>({x:h.x,y:h.y}));
+    // Hunde behalten ihre Identitaet (gleiche Reihenfolge aus dem gemeinsamen Seed), sonst waeren
+    // es beim Gast jedes Mal neue Objekte – und sie wuerden springen statt zu laufen.
+    const inHz=(st.hazards||[]);
+    if(b.hazards && b.hazards.length===inHz.length){
+      inHz.forEach((h,i)=>{ const o=b.hazards[i]; if(h.x!==o.x) o.face=h.x<o.x?-1:1; o.x=h.x; o.y=h.y; });
+    } else b.hazards=inHz.map(h=>({x:h.x,y:h.y}));
     b.hazardSet=new Set(b.hazards.map(h=>h.x+','+h.y));
     if(b.centerItem) b.centerItem.taken=!!st.centerTaken;
     onl.finished=!!st.finished;
