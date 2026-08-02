@@ -219,6 +219,17 @@
   .race-objs .fo .coin{position:absolute; inset:20%; border-radius:50%;}
   /* frei fahrend wird jeden Frame neu gesetzt – eine Uebergangszeit auf left wuerde nachhinken */
   .race-car.free{transition:transform .13s ease-out;}
+  /* Ohne Kaestchen braucht es auch kein Raster: die 1px-Kante fuellt genau den 2px-Zwischenraum,
+     die Farbzonen werden dadurch zu durchgehenden Baendern. */
+  .race-grid.free .race-cell{border-radius:0; box-shadow:0 0 0 1px currentColor;}
+  /* dezente Tiefe darueber – Lichtschein von oben, weiche Abdunklung zum Rand.
+     Bewusst schwach gehalten, damit die Zonenfarben klar lesbar bleiben. */
+  .race-view.free::after{
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:3;
+    background:
+      radial-gradient(120% 62% at 50% 0%, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 62%),
+      radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.32) 100%);
+  }
   /* Muenzen: gepraegte Goldmuenze mit Rand und Wertzeichen – Glanzstreifen laeuft weiter darueber */
   .cell .coin, .race-cell .coin, .race-objs .fo .coin{
     overflow:hidden; animation:coinGlow 1.5s ease-in-out infinite alternate;
@@ -1093,9 +1104,6 @@
       <input type="checkbox" id="opt-racefree" style="width:17px; height:17px; accent-color:var(--gold); flex:0 0 auto;">
       <span>&#127950;&#65039; Racing: freie Fahrt</span>
     </label>
-    <div class="small" style="margin:4px 0 0 26px; color:var(--muted); line-height:1.45;">
-      Ohne K&auml;stchenbindung: Auto und Raketen bewegen sich stufenlos &uuml;ber die Strecke, Zusammenst&ouml;&szlig;e z&auml;hlen rein nach &Uuml;berlappung. Die Regeln zum Seitw&auml;rtsfahren wirken dann auf die <b>Geschwindigkeit</b>.
-    </div>
     <button class="action" id="sound-test" style="width:100%; margin-top:14px;">&#128264; Ton testen</button>
     <div id="sound-status" class="small" style="margin-top:6px; color:var(--muted); line-height:1.5;"></div>
     <button class="action" id="open-guide" style="width:100%; margin-top:14px;">&#128218; Anleitung</button>
@@ -1122,8 +1130,16 @@
       </div>
     </details>
     <details class="ed-adv">
+      <summary>Racing-Modus</summary>
+      <div class="intro" style="margin-top:8px;">
+        Dein Auto f&auml;hrt am unteren Rand, die Strecke kommt dir entgegen. <b>&#9664; / &#9654;</b> lenken, <b>A</b> hebt das Auto 2,5 Felder ab (danach 3 Felder Pause), <b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei &ndash; auch wenn du die Zone wechselst. Bomben und Raketen bedeuten das Aus, M&uuml;nzen bringen Punkte. Wie im Feld- und Kreis-Modus verzerren die <b>Farbzonen</b> deine Eingaben, und zwar verborgen: Herausfinden ist die eigentliche Aufgabe. Getroffen wird erst, wenn sich Auto und Hindernis deutlich &uuml;berdecken &ndash; ein Streifen am Rand geht noch gut.<br><br>
+        <b>Freie Fahrt</b> (in den Einstellungen): Damit f&auml;llt die K&auml;stchenbindung weg. Das Auto f&auml;hrt seitlich, <b>solange du die Taste gedr&uuml;ckt h&auml;ltst</b>, und Hindernisse, M&uuml;nzen und Raketen liegen frei auf der Strecke statt in Feldern &ndash; Raketen suchen sich dabei immer wieder neue Bahnen. Die Regeln zum Seitw&auml;rtsfahren wirken hier nicht mehr auf die Feldzahl, sondern auf die <b>Geschwindigkeit</b>: Wo sonst „zwei Felder" st&uuml;nde, f&auml;hrt das Auto doppelt so schnell. Im Online-Duell bleibt die freie Fahrt aus, damit beide Ger&auml;te nach denselben Regeln fahren.
+      </div>
+    </details>
+    <details class="ed-adv">
       <summary>Steuerung</summary>
       <div class="intro" style="margin-top:8px;">
+        <b>Racing-Modus:</b> &larr; / &rarr; lenken, A bzw. &uarr; hebt ab, B bzw. &darr; speichert die Farbregel. In der <b>freien Fahrt</b> gilt: Taste halten = weiterfahren.<br><br>
         <b>Feld-Modus &ndash; Einzelspieler:</b> Pfeiltasten bewegen, Leertaste = bleiben. Auf dem Handy das Steuerkreuz.<br><br>
         <b>Feld-Modus &ndash; Duell:</b> <span class="p1">Spieler 1</span>: W A S D bewegen, X = bleiben &nbsp;·&nbsp; <span class="p2">Spieler 2</span>: Pfeiltasten, 0 = bleiben.<br><br>
         <b>Kreis-Modus &ndash; Einzelspieler:</b> A / S / D = &minus;1 / 0 / +1, Shift+A bzw. Shift+D = &minus;2 / +2, W oder &uarr; wechselt die Detektiv-Pose. Pfeiltasten gehen ebenfalls.<br><br>
@@ -1472,7 +1488,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.27";
+  const APP_VERSION = "1.28";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2555,10 +2571,10 @@
     const host=$('race-host'); host.innerHTML='';
     const cs=raceCellSize(); race.cell=cs; race.stepPx=cs+RACE_GAP;
     const totalRows=RACE_ROWS+1;
-    const view=el('div','race-view');
+    const view=el('div','race-view'+(race.free?' free':''));
     view.style.width=(RACE_COLS*cs+(RACE_COLS-1)*RACE_GAP+2*RACE_PAD)+'px';
     view.style.height=(RACE_ROWS*cs+(RACE_ROWS-1)*RACE_GAP+2*RACE_PAD)+'px';
-    const grid=el('div','race-grid');
+    const grid=el('div','race-grid'+(race.free?' free':''));
     grid.style.gridTemplateColumns=`repeat(${RACE_COLS}, ${cs}px)`;
     grid.style.gridTemplateRows=`repeat(${totalRows}, ${cs}px)`;
     race.cells=[];
@@ -2626,12 +2642,25 @@
       }
     }
   }
+  // In der freien Fahrt haengt die Schraeglage an der tatsaechlichen Seitengeschwindigkeit –
+  // sie bleibt also so lange bestehen, wie die Taste gehalten wird.
+  function raceCarClass(){
+    const flash=race.carEl.classList.contains('bub-flash');   // kurzen Ring nicht wegrendern
+    let lean='';
+    if(race.free){ const vx=raceFreeVx(Date.now()); lean = vx>0?' lean-r':(vx<0?' lean-l':''); }
+    else lean = race.leanDir && Date.now()<race.leanUntil ? (race.leanDir<0?' lean-l':' lean-r') : '';
+    return 'race-car'+(race.free?' free':'')+(race.airborne>0?' air':'')
+      +((race.skid>0||race.skidUntil)?' skid':'')
+      +(race.bubble>0?' bubbled':'')+(flash?' bub-flash':'')+lean;
+  }
   function raceRender(){
     if(!race||!race.cells.length) return;
     const totalRows=RACE_ROWS+1, pend=[];
     for(let y=0;y<totalRows;y++){ const row=race.grid[y];
+      const farbe=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`;
       for(let x=0;x<RACE_COLS;x++){ const cell=race.cells[y*RACE_COLS+x];
-        cell.style.background=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`; cell.innerHTML='';
+        cell.style.background=farbe; cell.innerHTML='';
+        if(race.free) cell.style.color=farbe;          // faerbt die Kante, die das Raster zudeckt
         const o=row.objs[x];
         if(o==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); cell.appendChild(d); }
         else if(o==='rocket'){ const d=el('div','rocket'), inner=el('div','rk-in');
@@ -2644,11 +2673,7 @@
     if(pend.length){ void race.gridEl.offsetHeight;
       pend.forEach(p=>{ p.node.style.transition=`transform ${Math.round(p.ms)}ms linear`; p.node.style.transform=p.to; }); }
     if(race.carEl){
-      const flash=race.carEl.classList.contains('bub-flash');   // kurzen Ring nicht wegrendern
-      const lean = race.leanDir && Date.now()<race.leanUntil ? (race.leanDir<0?' lean-l':' lean-r') : '';
-      race.carEl.className='race-car'+(race.free?' free':'')+(race.airborne>0?' air':'')
-        +((race.skid>0||race.skidUntil)?' skid':'')
-        +(race.bubble>0?' bubbled':'')+(flash?' bub-flash':'')+lean;
+      race.carEl.className=raceCarClass();
       if(race.bubble>0 && race.bubbleZone!=null) race.carEl.style.setProperty('--bub', ZONE_COLORS[race.bubbleZone].tint);
       race.carEl.style.left=(RACE_PAD+race.carX*race.stepPx)+'px';
       race.carEl.style.top=(RACE_PAD+race.carRow*race.stepPx)+'px';
@@ -2758,6 +2783,7 @@
         y0:-1, tick0:race.tickCount,
         vx: rakete ? (raceRnd()<0.5?-1:1)*(0.25+raceRnd()*0.45) : 0,   // Felder je Intervall
         vy: (rakete && race.rocketThrust) ? 0.28 : 0,                  // Antrieb zusaetzlich zum Scrollen
+        turnAt: Date.now()+700+raceRnd()*1500,                         // naechster Kurswechsel
         el:null });
       row.objs[x]=null;                                                // die Kaestchen bleiben leer
     });
@@ -2766,14 +2792,19 @@
   function raceFreeStep(){
     const now=Date.now(), frac=raceShiftNow(), iv=raceInterval();
     const dt=Math.min(120, now-(race.frameLast||now)); race.frameLast=now;
-    // Auto: seitliche Geschwindigkeit laeuft nach dem Tipp wieder aus
-    if(race.skidUntil){ if(now>=race.skidUntil){ race.skidUntil=0; race.vx=0; raceRender(); } }   // Drehen endet sofort sichtbar
-    else if(race.vxUntil && now>=race.vxUntil){ race.vx=0; race.vxUntil=0; }
-    if(race.vx) race.carX=clamp(race.carX+race.vx*dt/1000, 0, RACE_COLS-1);
+    if(race.skidUntil && now>=race.skidUntil){ race.skidUntil=0; race.skidVx=0; }
+    const vx=raceFreeVx(now);
+    if(vx) race.carX=clamp(race.carX+vx*dt/1000, 0, RACE_COLS-1);
     // Objekte: senkrecht am Takt aufgehaengt (driftet nicht weg), seitlich frei integriert
     for(let i=race.objs.length-1;i>=0;i--){
       const o=race.objs[i];
       o.y=o.y0+((race.tickCount-o.tick0)+frac)*(1+o.vy);
+      if(o.type==='rocket' && now>=o.turnAt){
+        // Raketen suchen sich neue Bahnen – Kurswechsel gehoert dem Spielverlauf, nicht dem
+        // Streckengenerator, deshalb der globale Zufall (wie beim Schlingern).
+        o.vx=(Math.random()<0.5?-1:1)*(0.18+Math.random()*0.5);
+        o.turnAt=now+700+Math.random()*1500;
+      }
       if(o.vx){
         o.x+=o.vx*dt/iv;
         if(o.x<0){ o.x=-o.x; o.vx=-o.vx; }                             // an den Raendern abprallen
@@ -2798,7 +2829,10 @@
       }
       o.el.style.transform=`translate(${(RACE_PAD+o.x*sp).toFixed(1)}px,${(RACE_PAD+o.y*sp).toFixed(1)}px)`;
     });
-    if(race.carEl) race.carEl.style.left=(RACE_PAD+race.carX*sp)+'px';
+    if(race.carEl){
+      race.carEl.style.left=(RACE_PAD+race.carX*sp)+'px';
+      const c=raceCarClass(); if(race.carEl.className!==c) race.carEl.className=c;
+    }
   }
   // Trefferpruefung laeuft mit jedem Bild, nicht nur im Takt – sonst haengt sie der Ansicht nach
   function raceFrame(){
@@ -2856,24 +2890,40 @@
   function raceInput(btn){
     if(!race||!race.alive) return;
     const a=raceResolveInput(btn, raceActiveDist()); if(!a) return;
+    // In der freien Fahrt wird aus der Richtung eine gehaltene Fahrt – gemerkt wird die
+    // gedrueckte Taste, nicht die Richtung: die Verzerrung kann sie ja umgedreht haben.
+    if(a.move!==undefined && race.free){ if(race.skid===0 && !race.skidUntil){ sfx('move'); raceHoldStart(btn, a.move); } return; }
     if(a.move!==undefined) raceMove(a.move);
     else if(a.act==='jump') raceJump();
     else if(a.act==='hop') raceHop();
     else if(a.act==='bubble') raceBubble();
     else if(a.act==='skid') raceSkid();
   }
-  // Freie Fahrt: ein Tipp setzt die Seitengeschwindigkeit fuer RACE_VX_MS – aus "zwei Felder"
-  // wird dabei "doppelt so schnell", die Strecke ergibt sich von selbst.
-  function raceFreeSteer(cells){
+  // Freie Fahrt: das Auto faehrt, solange die Taste unten ist. Aus "zwei Felder" wird dabei
+  // "doppelt so schnell" – die Strecke ergibt sich aus der Haltedauer.
+  function raceHoldStart(btn, cells){
+    if(race.skidUntil) return;
     const dir=cells<0?-1:1;
-    race.vx=dir*RACE_VX_BASE*Math.abs(cells);
-    race.vxUntil=Date.now()+RACE_VX_MS;
-    race.lastDir=dir; raceLean(dir);
+    race.heldBtn=btn; race.holdVx=dir*RACE_VX_BASE*Math.abs(cells); race.lastDir=dir;
+  }
+  function raceRelease(btn){
+    if(!race||!race.free) return;
+    if(race.heldBtn===btn){ race.heldBtn=null; race.holdVx=0; }
+  }
+  // kurzer Stoss (Hop) – der einzige zeitlich begrenzte Seitwaertsimpuls
+  function raceBurst(cells){
+    const dir=cells<0?-1:1;
+    race.burstVx=dir*RACE_VX_BASE*Math.abs(cells); race.burstUntil=Date.now()+RACE_VX_MS; race.lastDir=dir;
+  }
+  // Schlingern schlaegt Stoss schlaegt gehaltene Taste
+  function raceFreeVx(now){
+    if(race.skidUntil) return race.skidVx;
+    if(race.burstUntil && now<race.burstUntil) return race.burstVx;
+    return race.holdVx||0;
   }
   function raceMove(dx){
     if(race.skid>0 || race.skidUntil) return;
     sfx('move');
-    if(race.free){ raceFreeSteer(dx); return; }        // die Trefferpruefung laeuft ohnehin jedes Bild
     const step=dx>0?1:-1, n=Math.abs(dx); for(let k=0;k<n;k++) race.carX=clamp(race.carX+step,0,RACE_COLS-1);
     race.lastDir=step; raceLean(step);
     if(!raceCollide()) return; raceRender(); raceRenderStats();
@@ -2891,7 +2941,7 @@
     if(race.skid>0 || race.skidUntil) return;
     if(race.bHopCd!==0) return;
     race.bHopCd=2; sfx('move');
-    if(race.free){ raceFreeSteer(2*race.lastDir); return; }
+    if(race.free){ raceBurst(2*race.lastDir); return; }
     race.carX=clamp(race.carX+2*race.lastDir,0,RACE_COLS-1);
     if(!raceCollide()) return; raceRender(); raceRenderStats();
   }
@@ -2912,7 +2962,7 @@
     if(race.free){
       // drei Felder weit unsteuerbar – in der freien Fahrt als Dauer statt als Feldzahl
       const iv=raceInterval();
-      race.skidUntil=Date.now()+3*iv; race.vx=race.skidDir*1000/iv; race.vxUntil=0;
+      race.skidUntil=Date.now()+3*iv; race.skidVx=race.skidDir*1000/iv;
       raceRender(); return;
     }
     race.skid=3; raceRender();
@@ -3015,7 +3065,8 @@
       skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:null,
       // Freie Fahrt: im Online-Duell aus, sonst faehren beide Geraete nach verschiedenen Regeln
       free: raceFreeOpt && opts.seed==null, objs:[], objLayer:null,
-      vx:0, vxUntil:0, skidUntil:0, frameT0:Date.now(), frameIv:0, frameLast:0, raf:null,
+      heldBtn:null, holdVx:0, burstVx:0, burstUntil:0, skidVx:0, skidUntil:0,
+      frameT0:Date.now(), frameIv:0, frameLast:0, raf:null,
       rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
       rng: (opts.seed!=null ? mulberry32(opts.seed>>>0) : null),
       rocketThrust:(opts.thrust!=null?opts.thrust:(diffKey==='experte')), rocketDrift:0,   // Friedhof: Raketen haben Antrieb
@@ -4867,7 +4918,14 @@
   $('spg-back').addEventListener('click',backToMenu);
 
   // Racing controls
-  document.querySelectorAll('#race-controls .race-btn[data-btn]').forEach(b=>{ b.addEventListener('click',()=>raceInput(b.dataset.btn)); });
+  // Halten statt Tippen: in der freien Fahrt faehrt das Auto, solange die Taste unten ist.
+  // Der Zeiger wird eingefangen, damit das Loslassen auch neben der Taste ankommt.
+  document.querySelectorAll('#race-controls .race-btn[data-btn]').forEach(b=>{
+    const btn=b.dataset.btn;
+    b.addEventListener('pointerdown',e=>{ e.preventDefault(); if(b.setPointerCapture) try{ b.setPointerCapture(e.pointerId); }catch(_){} raceInput(btn); });
+    b.addEventListener('pointerup',()=>raceRelease(btn));
+    b.addEventListener('pointercancel',()=>raceRelease(btn));
+  });
   $('race-reveal').addEventListener('click',()=>{ if(race) raceReveal(); });
   $('race-reset').addEventListener('click',()=>{
     if(!race) return;
@@ -4929,6 +4987,11 @@
   function circleKeyS1(e){ switch(e.key){ case 'a':return -1; case 'A':return -2; case 'd':return 1; case 'D':return 2; case 's': case 'S':return 0; default:return null; } }
   function circleKeyS2(e){ switch(e.key){ case 'ArrowDown':return 0; case 'ArrowLeft':return zeroHeld?-2:-1; case 'ArrowRight':return zeroHeld?2:1; default:return null; } }
 
+  // Loslassen beendet die gehaltene Fahrt (nur die freie Fahrt kennt gehaltene Tasten)
+  document.addEventListener('keyup',(e)=>{
+    const m={ 'ArrowLeft':'L','ArrowRight':'R' };
+    if(e.key in m) raceRelease(m[e.key]);
+  });
   document.addEventListener('keydown',(e)=>{
     // Offene Popups fangen Escape ab und schlucken sonst nichts.
     if(e.key==='Escape'){
@@ -4938,6 +5001,7 @@
     }
     if(!$('reveal-modal').classList.contains('hidden') || !$('log-modal').classList.contains('hidden') || !$('mini-modal').classList.contains('hidden')) return;
     if(!$('racing').classList.contains('hidden') && race){
+      if(e.repeat){ e.preventDefault(); return; }        // Tastenwiederholung ist kein neuer Druck
       const m={ 'ArrowLeft':'L','ArrowRight':'R' };
       if(e.key in m){ e.preventDefault(); raceInput(m[e.key]); }
       else if(e.key==='a'||e.key==='A'||e.key==='ArrowUp'){ e.preventDefault(); raceInput('A'); }
