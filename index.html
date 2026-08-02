@@ -200,7 +200,58 @@
   }
   @keyframes bubRing{ from{transform:scale(0.45); opacity:1;} to{transform:scale(1.4); opacity:0;} }
   .race-grid{position:relative; display:grid; gap:2px; padding:4px; border-radius:10px; border:1px solid rgba(var(--accent-rgb),0.5); box-shadow:0 0 22px rgba(var(--accent-rgb),0.2); background:#0b1220; margin:0 auto;}
-  .race-cell{border-radius:3px; position:relative; background:#1e293b;}
+  .race-cell{border-radius:3px; position:relative; background-color:#1e293b; background-repeat:repeat;}
+  /* Untergrund je Farbzone. Die Muster liegen ueber der Zonenfarbe; ihre Position wird je Zeile
+     mitgefuehrt (row.py), damit sie nahtlos ueber die Kaestchengrenzen laufen und mitscrollen.
+     Mehrere Lagen mit teilerfremden Kachelgroessen ergeben ein unregelmaessiges, fragmentiertes Bild. */
+  /* Die grossen Flecken-Lagen liegen zuerst und brechen das feine Korn auf – ihre Kachelgroessen
+     sind teilerfremd, dadurch wiederholt sich das Gesamtbild erst nach sehr langer Strecke. */
+  /* Die Fleckenlagen sind deutlich groesser als das Sichtfenster und untereinander teilerfremd –
+     sonst legt sich ihre Wiederholung als sichtbares Raster ueber die Strecke. Das feine Korn darf
+     dagegen eng kacheln: unterhalb weniger Pixel liest es das Auge als Struktur, nicht als Muster. */
+  /* Gelb = Sand: Verwehungen und Korn */
+  .race-cell.z0{
+    background-image:
+      radial-gradient(ellipse 62px 38px at 31% 38%, rgba(238,206,138,0.17) 0 52%, rgba(0,0,0,0) 100%),
+      radial-gradient(ellipse 40px 62px at 74% 67%, rgba(118,84,32,0.19) 0 52%, rgba(0,0,0,0) 100%),
+      radial-gradient(ellipse 70px 28px at 13% 81%, rgba(114,80,28,0.16) 0 52%, rgba(0,0,0,0) 100%),
+      radial-gradient(ellipse 46px 34px at 58% 22%, rgba(240,210,146,0.13) 0 52%, rgba(0,0,0,0) 100%),
+      radial-gradient(circle at 22% 32%, rgba(255,241,203,0.22) 0 1.1px, rgba(0,0,0,0) 1.7px),
+      radial-gradient(circle at 68% 74%, rgba(116,82,30,0.24) 0 1.2px, rgba(0,0,0,0) 1.8px),
+      radial-gradient(circle at 45% 12%, rgba(255,236,186,0.16) 0 1px, rgba(0,0,0,0) 1.5px);
+    background-size:149px 113px, 191px 167px, 127px 211px, 97px 181px, 13px 13px, 17px 17px, 9px 9px;
+  }
+  /* Gruen = Gras: Bueschel und kahle Stellen, darueber kurze Halme in zwei Richtungen */
+  .race-cell.z1{
+    background-image:
+      radial-gradient(ellipse 44px 30px at 33% 42%, rgba(138,196,126,0.28) 0 52%, rgba(0,0,0,0) 100%),
+      radial-gradient(ellipse 52px 38px at 71% 25%, rgba(16,50,24,0.32) 0 52%, rgba(0,0,0,0) 100%),
+      radial-gradient(ellipse 28px 46px at 17% 77%, rgba(18,56,26,0.26) 0 52%, rgba(0,0,0,0) 100%),
+      repeating-linear-gradient(97deg, rgba(24,62,30,0.30) 0 1.4px, rgba(0,0,0,0) 1.4px 6px),
+      repeating-linear-gradient(76deg, rgba(163,213,150,0.18) 0 1.2px, rgba(0,0,0,0) 1.2px 9px);
+    background-size:149px 113px, 191px 167px, 127px 211px, 11px 14px, 15px 19px;
+  }
+  /* Blau = Pfuetzen: verschieden grosse Lachen mit hellem Rand, dazu nasser Glanz */
+  .race-cell.z2{
+    background-image:
+      radial-gradient(ellipse 26px 12px at 24% 34%, rgba(222,242,255,0.34) 0 30%, rgba(20,46,84,0.44) 42%, rgba(0,0,0,0) 72%),
+      radial-gradient(ellipse 16px 8px at 69% 71%, rgba(210,236,255,0.28) 0 30%, rgba(20,44,80,0.38) 42%, rgba(0,0,0,0) 70%),
+      radial-gradient(ellipse 34px 14px at 87% 19%, rgba(206,232,255,0.24) 0 32%, rgba(18,42,78,0.34) 44%, rgba(0,0,0,0) 70%),
+      radial-gradient(ellipse 11px 6px at 45% 85%, rgba(214,238,255,0.26) 0 34%, rgba(0,0,0,0) 76%),
+      radial-gradient(circle at 60% 14%, rgba(255,255,255,0.10) 0 1.2px, rgba(0,0,0,0) 2px);
+    background-size:113px 89px, 149px 127px, 191px 167px, 71px 97px, 19px 19px;
+  }
+  /* Grau = Strasse: Flicken, vereinzelte Risse und Asphaltkorn */
+  .race-cell.z3{
+    background-image:
+      radial-gradient(ellipse 56px 36px at 27% 35%, rgba(158,164,176,0.20) 0 52%, rgba(0,0,0,0) 100%),
+      radial-gradient(ellipse 42px 52px at 73% 69%, rgba(12,16,22,0.26) 0 52%, rgba(0,0,0,0) 100%),
+      repeating-linear-gradient(63deg, rgba(12,16,22,0.24) 0 1px, rgba(0,0,0,0) 1px 29px),
+      repeating-linear-gradient(151deg, rgba(12,16,22,0.18) 0 1px, rgba(0,0,0,0) 1px 37px),
+      radial-gradient(circle at 33% 21%, rgba(233,238,248,0.13) 0 1px, rgba(0,0,0,0) 1.5px),
+      radial-gradient(circle at 77% 63%, rgba(12,16,22,0.26) 0 1.1px, rgba(0,0,0,0) 1.7px);
+    background-size:149px 113px, 191px 167px, 173px 131px, 211px 157px, 7px 7px, 11px 11px;
+  }
   .race-cell .bomb,.race-cell .rocket,.race-cell .car{position:absolute; inset:6%; display:flex; align-items:center; justify-content:center;}
   .race-cell .bomb svg,.race-cell .rocket svg,.race-cell .car svg{width:100%; height:100%; display:block;}
   /* Raketen gleiten zwischen den Feldern: aussen der Antrieb (senkrecht), innen der Seitenschritt */
@@ -219,9 +270,10 @@
   .race-objs .fo .coin{position:absolute; inset:20%; border-radius:50%;}
   /* frei fahrend wird jeden Frame neu gesetzt – eine Uebergangszeit auf left wuerde nachhinken */
   .race-car.free{transition:transform .13s ease-out;}
-  /* Ohne Kaestchen braucht es auch kein Raster: die 1px-Kante fuellt genau den 2px-Zwischenraum,
-     die Farbzonen werden dadurch zu durchgehenden Baendern. */
-  .race-grid.free .race-cell{border-radius:0; box-shadow:0 0 0 1px currentColor;}
+  /* Ohne Kaestchen kein Raster: keine Zwischenraeume, kein Rand, keine runden Ecken – der
+     Untergrund laeuft dadurch ohne Trennlinien durch. Die Geometrie zieht buildRaceBoard nach. */
+  .race-grid.free{gap:0; padding:0;}
+  .race-grid.free .race-cell{border-radius:0;}
   /* dezente Tiefe darueber – Lichtschein von oben, weiche Abdunklung zum Rand.
      Bewusst schwach gehalten, damit die Zonenfarben klar lesbar bleiben. */
   .race-view.free::after{
@@ -269,6 +321,12 @@
   .race-duel .rd.out{opacity:0.55;}
   .race-duel .rd.lead{box-shadow:0 0 0 2px rgba(var(--accent-rgb),0.45);}
   .race-controls{display:flex; gap:8px; width:100%; max-width:440px; margin:6px auto 0;}
+  /* Beim Halten darf der Browser die Beschriftung nicht als Text markieren – Knoepfe und
+     Steuerzonen sind Bedienelemente. (Bilder waeren dafuer nicht noetig und wuerden nur die
+     Vorlesbarkeit kosten; die Zeichen bleiben also Zeichen.) */
+  button, .pad-zone, .pad-ic, .pad-stay, .rb-label, .step-label, .mc-start{
+    -webkit-user-select:none; -moz-user-select:none; user-select:none; -webkit-touch-callout:none;
+  }
   .race-btn{flex:1 1 0; min-height:62px; border-radius:14px; border:1px solid #4b5563; background:linear-gradient(#3a3f47,#22262c); color:var(--text); font-size:1.7rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
   .race-btn:active:not(:disabled){transform:translateY(1px); box-shadow:inset 0 3px 8px rgba(0,0,0,0.7);}
   .race-btn.dir{border-color:var(--accent); color:var(--accent);}
@@ -1417,9 +1475,10 @@
         grid.style.gridTemplateRows=`repeat(${rows}, ${cell}px)`;
         const objs={ '0,5':'coin', '1,1':'rocket', '2,4':'bomb', '3,2':'coin', '3,6':'bomb' };
         for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
-          const c=el('div','race-cell');
           const z = y<3 ? 1 : 0;                       // zwei Farbzonen mit sichtbarer Grenze
-          c.style.background=`rgba(${ZONE_COLORS[z].tint},0.82)`;
+          const c=el('div','race-cell z'+z);           // mit Bodenmuster, wie im Spiel
+          c.style.backgroundColor=`rgba(${ZONE_COLORS[z].tint},0.82)`;
+          c.style.backgroundPosition=`${-x*(cell+RACE_GAP)}px ${-y*(cell+RACE_GAP)}px`;
           const t=objs[y+','+x];
           if(t==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); c.appendChild(d); }
           else if(t==='rocket'){ const d=el('div','rocket'); d.innerHTML=rocketSvg(); c.appendChild(d); }
@@ -1488,7 +1547,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.28";
+  const APP_VERSION = "1.29";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2552,6 +2611,12 @@
   function raceSpawnRow(initial){
     race.zoneRowCounter=(race.zoneRowCounter||0)+1;
     if(race.zoneRowCounter>RACE_ZONE_ROWS){ race.curZone=raceNewZone(race.curZone); race.zoneRowCounter=1; }
+    // Musterposition des Untergrunds: beim Aufbau nach unten wachsend, spaeter nach oben fallend.
+    // Jede Zeile behaelt ihre Zahl – nur so laeuft der Boden nahtlos weiter, wenn oben eine neue
+    // Zeile hereinrutscht (die Zeilen wandern ja im Array, das Muster darf dabei nicht springen).
+    let py;
+    if(initial){ py = race.nextPy = (race.nextPy==null ? 0 : race.nextPy+1); race.topPy=0; }
+    else py = --race.topPy;
     const objs=new Array(RACE_COLS).fill(null);
     if(!initial){
       const rockets = (race.rockets!=null) ? race.rockets : (race.diffKey==='schwer'||race.diffKey==='experte');
@@ -2561,7 +2626,7 @@
       }
       if(raceRnd()<(race.coinProb!=null?race.coinProb:0.13)){ for(let t=0;t<6;t++){ const cx=raceRandInt(RACE_COLS); if(!objs[cx]){ objs[cx]='coin'; break; } } }
     }
-    return { zone: race.curZone, objs };
+    return { zone: race.curZone, objs, py };
   }
   function raceCellSize(){ const availW=Math.min(window.innerWidth||400,440)-16; const availH=(window.innerHeight||700)-240; return Math.max(20, Math.min(48, Math.floor(Math.min(availW/RACE_COLS, availH/RACE_ROWS)))); }
   const RACE_GAP=2, RACE_PAD=4;                  // muss zum CSS von .race-grid passen
@@ -2569,11 +2634,15 @@
   function raceCarRowData(){ return race.grid[race.carRow+1]; }
   function buildRaceBoard(){
     const host=$('race-host'); host.innerHTML='';
-    const cs=raceCellSize(); race.cell=cs; race.stepPx=cs+RACE_GAP;
+    // In der freien Fahrt gibt es keine Kaestchen – also auch keine Zwischenraeume und keinen Rand.
+    // Der Boden laeuft dadurch wirklich durch, statt von Trennlinien zerschnitten zu werden.
+    const gap = race.free ? 0 : RACE_GAP, pad = race.free ? 0 : RACE_PAD;
+    race.gap=gap; race.pad=pad;
+    const cs=raceCellSize(); race.cell=cs; race.stepPx=cs+gap;
     const totalRows=RACE_ROWS+1;
     const view=el('div','race-view'+(race.free?' free':''));
-    view.style.width=(RACE_COLS*cs+(RACE_COLS-1)*RACE_GAP+2*RACE_PAD)+'px';
-    view.style.height=(RACE_ROWS*cs+(RACE_ROWS-1)*RACE_GAP+2*RACE_PAD)+'px';
+    view.style.width=(RACE_COLS*cs+(RACE_COLS-1)*gap+2*pad)+'px';
+    view.style.height=(RACE_ROWS*cs+(RACE_ROWS-1)*gap+2*pad)+'px';
     const grid=el('div','race-grid'+(race.free?' free':''));
     grid.style.gridTemplateColumns=`repeat(${RACE_COLS}, ${cs}px)`;
     grid.style.gridTemplateRows=`repeat(${totalRows}, ${cs}px)`;
@@ -2658,9 +2727,16 @@
     const totalRows=RACE_ROWS+1, pend=[];
     for(let y=0;y<totalRows;y++){ const row=race.grid[y];
       const farbe=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`;
+      const posY=-(row.py||0)*race.stepPx;
       for(let x=0;x<RACE_COLS;x++){ const cell=race.cells[y*RACE_COLS+x];
-        cell.style.background=farbe; cell.innerHTML='';
-        if(race.free) cell.style.color=farbe;          // faerbt die Kante, die das Raster zudeckt
+        cell.innerHTML='';
+        // Nur bei echter Aenderung anfassen: hinter jeder Zone stecken mehrere Verlaufslagen,
+        // die sonst bei jedem Takt fuer alle Kaestchen neu gezeichnet wuerden.
+        if(cell._z!==row.zone){
+          cell.className='race-cell z'+row.zone;       // traegt das Bodenmuster der Zone
+          cell.style.backgroundColor=farbe; cell._z=row.zone;
+        }
+        if(cell._py!==row.py){ cell.style.backgroundPosition=`${-x*race.stepPx}px ${posY}px`; cell._py=row.py; }
         const o=row.objs[x];
         if(o==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); cell.appendChild(d); }
         else if(o==='rocket'){ const d=el('div','rocket'), inner=el('div','rk-in');
@@ -2675,8 +2751,8 @@
     if(race.carEl){
       race.carEl.className=raceCarClass();
       if(race.bubble>0 && race.bubbleZone!=null) race.carEl.style.setProperty('--bub', ZONE_COLORS[race.bubbleZone].tint);
-      race.carEl.style.left=(RACE_PAD+race.carX*race.stepPx)+'px';
-      race.carEl.style.top=(RACE_PAD+race.carRow*race.stepPx)+'px';
+      race.carEl.style.left=(race.pad+race.carX*race.stepPx)+'px';
+      race.carEl.style.top=(race.pad+race.carRow*race.stepPx)+'px';
     }
   }
   function raceRenderStats(){ $('race-stats').innerHTML=`Punkte <b>${race.score}</b> &middot; M&uuml;nzen <b>${race.coins}</b> &middot; <b>${ZONE_COLORS[raceCarRowData().zone].name}</b>`; raceRenderDuel(); }
@@ -2827,10 +2903,10 @@
         d.style.width=cs+'px'; d.style.height=cs+'px';
         race.objLayer.appendChild(d); o.el=d;
       }
-      o.el.style.transform=`translate(${(RACE_PAD+o.x*sp).toFixed(1)}px,${(RACE_PAD+o.y*sp).toFixed(1)}px)`;
+      o.el.style.transform=`translate(${(race.pad+o.x*sp).toFixed(1)}px,${(race.pad+o.y*sp).toFixed(1)}px)`;
     });
     if(race.carEl){
-      race.carEl.style.left=(RACE_PAD+race.carX*sp)+'px';
+      race.carEl.style.left=(race.pad+race.carX*sp)+'px';
       const c=raceCarClass(); if(race.carEl.className!==c) race.carEl.className=c;
     }
   }
