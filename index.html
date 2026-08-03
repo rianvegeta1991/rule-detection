@@ -1163,7 +1163,6 @@
       <span>&#127950;&#65039; Racing: freie Fahrt</span>
     </label>
     <button class="action" id="sound-test" style="width:100%; margin-top:14px;">&#128264; Ton testen</button>
-    <div id="sound-status" class="small" style="margin-top:6px; color:var(--muted); line-height:1.5;"></div>
     <button class="action" id="open-guide" style="width:100%; margin-top:14px;">&#128218; Anleitung</button>
   </div>
 </div>
@@ -1202,6 +1201,13 @@
         <b>Feld-Modus &ndash; Duell:</b> <span class="p1">Spieler 1</span>: W A S D bewegen, X = bleiben &nbsp;·&nbsp; <span class="p2">Spieler 2</span>: Pfeiltasten, 0 = bleiben.<br><br>
         <b>Kreis-Modus &ndash; Einzelspieler:</b> A / S / D = &minus;1 / 0 / +1, Shift+A bzw. Shift+D = &minus;2 / +2, W oder &uarr; wechselt die Detektiv-Pose. Pfeiltasten gehen ebenfalls.<br><br>
         <b>Kreis-Modus &ndash; Duell:</b> <span class="p1">Spieler 1</span>: A / D = &minus;1 / +1, Shift+A / Shift+D = &minus;2 / +2, S = 0, W = Detektiv-Pose &nbsp;·&nbsp; <span class="p2">Spieler 2</span>: &larr; / &rarr; = &minus;1 / +1, &darr; = 0, „0" halten + &larr;/&rarr; = &minus;2 / +2, &uarr; = Detektiv-Pose.
+      </div>
+    </details>
+    <details class="ed-adv">
+      <summary>Ton</summary>
+      <div class="intro" style="margin-top:8px;">
+        Alle Kl&auml;nge und die Musik entstehen im Browser selbst &ndash; es werden keine Tondateien geladen, das Spiel klingt also auch offline. Lautst&auml;rke f&uuml;r Effekte und Musik stellst du in den <b>Einstellungen</b> ein.<br><br>
+        Mobile Browser lassen Ton erst nach der ersten Ber&uuml;hrung zu. Bleibt es still, tippe oben links auf <b>&#128266; Ton an</b> oder in den Einstellungen auf <b>Ton testen</b>. H&ouml;rst du den Testton trotzdem nicht, liegt es meist am Ger&auml;t: beim iPhone den <b>Stummschalter</b> an der Seite ausschalten und die <b>Medien-Lautst&auml;rke</b> hochdrehen. Klappt es danach immer noch nicht, blockiert der Browser den Ton &ndash; das passiert etwa im Energiespar- oder Lesemodus.
       </div>
     </details>
     <details class="ed-adv">
@@ -1547,7 +1553,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.29";
+  const APP_VERSION = "1.30";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2343,7 +2349,6 @@
     $('opt-sfx').value=Math.round(sfxVol*100); $('sfx-val').textContent=Math.round(sfxVol*100)+'%';
     $('opt-music').value=Math.round(musicVol*100); $('music-val').textContent=Math.round(musicVol*100)+'%';
     $('settings-modal').classList.remove('hidden');
-    if(typeof soundStatus==='function') soundStatus();
   }
   function closeSettings(){ $('settings-modal').classList.add('hidden'); }
   $('opt-sfx').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('sfx-val').textContent=v+'%'; setSfxVol(v/100); });
@@ -2486,15 +2491,6 @@
   $('sound-fab').addEventListener('click', unlockAudio);
   updateSoundFab();
   // Diagnose: klarer Testton + Anzeige des AudioContext-Zustands (hilft, Software- von Hardware-Ursachen zu trennen)
-  function soundStatus(){
-    const el=$('sound-status'); if(!el) return;
-    if(!audioCtx){ el.textContent='AudioContext: noch nicht gestartet – tippe „Ton testen".'; return; }
-    const st=audioCtx.state;
-    let msg=`AudioContext: <b>${st}</b> &middot; SFX ${Math.round(sfxVol*100)}% &middot; Musik ${Math.round(musicVol*100)}%`;
-    if(st==='running') msg+='<br><span style="color:var(--good)">L&auml;uft. H&ouml;rst du trotzdem nichts? &rarr; iPhone-Stummschalter (seitlich) aus und Medien-Lautst&auml;rke hoch.</span>';
-    else msg+='<br><span style="color:var(--bad)">Noch gesperrt. Nochmal tippen; klappt es nicht, blockiert der Browser den Ton (z. B. Energiesparmodus / Reader-Modus).</span>';
-    el.innerHTML=msg;
-  }
   function soundTest(){
     unlockAudio(); audioResume();
     if(audioCtx){ const t=audioCtx.currentTime;
@@ -2503,7 +2499,6 @@
       tone(880,0.20,'triangle',t+0.17,0.7,null,masterGain);
       tone(1175,0.30,'triangle',t+0.35,0.65,null,masterGain);
     }
-    setTimeout(soundStatus,140);
   }
   $('sound-test').addEventListener('click', soundTest);
 
@@ -2573,6 +2568,7 @@
   // In der freien Fahrt zaehlt die Seitengeschwindigkeit, nicht die Feldzahl
   const RACE_DIST_LABEL_FREE={
     double:'Jede Richtung schiebt das Auto mit doppelter Seitengeschwindigkeit.',
+    repeatInvert:'Dieselbe Richtung zweimal hintereinander kehrt sich um &ndash; h&auml;ltst du die Taste, dreht das Auto nach einer halben Sekunde von selbst.',
     actionPool:'Beide Aktionen sind ausgetauscht: A schiebt das Auto mit doppelter Geschwindigkeit in die zuletzt gewählte Richtung, B lässt es schlingern – drei Reihen lang unsteuerbar.'
   };
   // Hintergrund-Auswahl im Editor -> passende Strecke (Tempo/Optik)
@@ -2586,6 +2582,72 @@
   let race=null;
   // Duell-Kontext: lokal (nacheinander auf einem Geraet) oder online (beide gleichzeitig)
   let raceDuel=null;
+
+  // ---- Untergrund einmal backen ----
+  // Als CSS-Verlaeufe musste der Browser den Boden bei jedem Takt fuer alle 91 Kaestchen neu
+  // ausrechnen (gemessen: 33 ms je Bild statt 16 ms) – das war der kurze Hänger je Reihe. Jetzt
+  // wird jede Zone einmal in eine Kachel gezeichnet und danach nur noch geblittet.
+  const RACE_TILE=256;
+  let raceGroundStyle=null;
+  function raceGroundTile(z){
+    const T=RACE_TILE, cv=document.createElement('canvas'); cv.width=cv.height=T;
+    const g=cv.getContext('2d');
+    const r=(a,b)=>a+Math.random()*(b-a);
+    // Jede Form wird ueber die Kachelraender hinaus wiederholt – nur so kachelt sie nahtlos.
+    const fleck=(x,y,rx,ry,farbe,a)=>{
+      for(let ox=-1;ox<=1;ox++) for(let oy=-1;oy<=1;oy++){
+        g.save(); g.translate(x+ox*T, y+oy*T); g.scale(1, ry/rx);
+        const gr=g.createRadialGradient(0,0,0,0,0,rx);
+        gr.addColorStop(0,`rgba(${farbe},${a})`); gr.addColorStop(0.55,`rgba(${farbe},${a*0.7})`); gr.addColorStop(1,`rgba(${farbe},0)`);
+        g.fillStyle=gr; g.beginPath(); g.arc(0,0,rx,0,6.2832); g.fill(); g.restore();
+      }
+    };
+    const korn=(n,farbe,a,rmin,rmax)=>{
+      g.fillStyle=`rgba(${farbe},${a})`;
+      for(let i=0;i<n;i++){ const x=r(0,T), y=r(0,T), rr=r(rmin,rmax);
+        for(let ox=-1;ox<=1;ox++) for(let oy=-1;oy<=1;oy++){ const px=x+ox*T, py=y+oy*T;
+          if(px<-rr||px>T+rr||py<-rr||py>T+rr) continue;
+          g.beginPath(); g.arc(px,py,rr,0,6.2832); g.fill(); } }
+    };
+    const strich=(n,farbe,a,laenge,breite,winkel,streu)=>{
+      g.strokeStyle=`rgba(${farbe},${a})`; g.lineWidth=breite; g.lineCap='round';
+      for(let i=0;i<n;i++){ const x=r(0,T), y=r(0,T), w=winkel+r(-streu,streu), l=r(laenge*0.6,laenge*1.4);
+        const dx=Math.cos(w)*l, dy=Math.sin(w)*l;
+        for(let ox=-1;ox<=1;ox++) for(let oy=-1;oy<=1;oy++){ const px=x+ox*T, py=y+oy*T;
+          if(px<-l||px>T+l||py<-l||py>T+l) continue;
+          g.beginPath(); g.moveTo(px,py); g.lineTo(px+dx,py+dy); g.stroke(); } }
+    };
+    if(z===0){                                   // Gelb = Sand: Verwehungen und Korn
+      for(let i=0;i<5;i++) fleck(r(0,T),r(0,T),r(30,58),r(18,40),'238,206,138',0.17);
+      for(let i=0;i<5;i++) fleck(r(0,T),r(0,T),r(26,52),r(16,44),'118,84,32',0.17);
+      korn(700,'255,241,203',0.22,0.5,1.1); korn(520,'116,82,30',0.22,0.5,1.2);
+    } else if(z===1){                            // Gruen = Gras: Bueschel, kahle Stellen, Halme
+      for(let i=0;i<4;i++) fleck(r(0,T),r(0,T),r(28,52),r(20,38),'138,196,126',0.20);
+      for(let i=0;i<5;i++) fleck(r(0,T),r(0,T),r(26,56),r(18,42),'16,50,24',0.24);
+      strich(1100,'24,62,30',0.30,6,1.1,-1.35,0.28);
+      strich(700,'163,213,150',0.20,5,1.0,-1.25,0.30);
+    } else if(z===2){                            // Blau = Pfuetzen mit hellem Rand und Glanz
+      for(let i=0;i<9;i++){ const x=r(0,T), y=r(0,T), rx=r(10,30), ry=rx*r(0.35,0.6);
+        fleck(x,y,rx,ry,'20,46,84',0.42); fleck(x,y,rx*0.62,ry*0.56,'222,242,255',0.30); }
+      korn(220,'255,255,255',0.10,0.5,1.0);
+    } else {                                     // Grau = Strasse: Flicken, Risse, Asphaltkorn
+      for(let i=0;i<3;i++) fleck(r(0,T),r(0,T),r(34,60),r(22,44),'154,160,172',0.15);
+      for(let i=0;i<4;i++) fleck(r(0,T),r(0,T),r(28,54),r(20,46),'12,16,22',0.20);
+      strich(26,'12,16,22',0.26,55,1.1,r(0,3.14),1.2);
+      korn(900,'233,238,248',0.13,0.4,0.9); korn(700,'12,16,22',0.24,0.4,1.0);
+    }
+    return cv.toDataURL('image/png');
+  }
+  function raceEnsureGround(){
+    if(raceGroundStyle) return;
+    try{
+      const regeln=[];
+      for(let z=0;z<ZONE_COLORS.length;z++)
+        regeln.push(`.race-cell.z${z}{background-image:url(${raceGroundTile(z)});background-size:${RACE_TILE}px ${RACE_TILE}px;}`);
+      const st=document.createElement('style'); st.id='race-ground'; st.textContent=regeln.join('\n');
+      document.head.appendChild(st); raceGroundStyle=st;
+    }catch(e){ raceGroundStyle=true; }          // ohne Canvas bleiben die CSS-Verlaeufe als Rueckfall
+  }
   // Freie Fahrt: Einstellung, greift ab der naechsten Partie (race.free haelt den Stand der laufenden)
   const RACE_FREE_KEY='regel-detektiv-racefree';
   let raceFreeOpt = localStorage.getItem(RACE_FREE_KEY)==='1';
@@ -2597,9 +2659,20 @@
   // RACE_VX_MS an und traegt damit genau ein Feld weit – "Doppelschritt" verdoppelt hier
   // folgerichtig die Geschwindigkeit statt der Feldzahl.
   const RACE_VX_BASE=4.5, RACE_VX_MS=220;
+  // "Wiederholung kehrt um": So lange faehrt das Auto bei gehaltener Taste in die erste Richtung,
+  // bevor es von selbst dreht – auf einen zweiten Druck zu warten hiesse warten auf etwas,
+  // das beim Halten nie kommt.
+  const RACE_FLIP_MS=500;
 
-  // Erste Zone ist immer neutral, die uebrigen bekommen je eine verborgene Verzerrung
-  function raceAssignDistorts(n){ const pool=shuffle(RACE_DIST_POOL.slice()); const out=['none']; for(let i=1;i<n;i++) out.push(pool[i-1]); return out; }
+  // Genau eine Zone ist neutral, die uebrigen bekommen je eine verborgene Verzerrung. Welche
+  // Farbe die neutrale ist, wird jede Runde neu ausgewuerfelt – sonst waere sie gratis verraten.
+  function raceAssignDistorts(n){
+    const pool=shuffle(RACE_DIST_POOL.slice());
+    const neutral=randInt(n);
+    const out=[]; let p=0;
+    for(let i=0;i<n;i++) out.push(i===neutral ? 'none' : pool[p++]);
+    return out;
+  }
   // Weltgenerator-Zufall: im Online-Duell aus einem Seed, damit beide Geraete dieselbe Strecke bekommen.
   // Nur Streckenaufbau nutzt ihn (Spieleraktionen wie Schlingern bleiben beim globalen Zufall).
   function raceRnd(){ return race.rng ? race.rng() : Math.random(); }
@@ -2729,7 +2802,7 @@
       const farbe=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`;
       const posY=-(row.py||0)*race.stepPx;
       for(let x=0;x<RACE_COLS;x++){ const cell=race.cells[y*RACE_COLS+x];
-        cell.innerHTML='';
+        if(cell.firstChild) cell.textContent='';    // leere Kaestchen gar nicht erst anfassen
         // Nur bei echter Aenderung anfassen: hinter jeder Zone stecken mehrere Verlaufslagen,
         // die sonst bei jedem Takt fuer alle Kaestchen neu gezeichnet wuerden.
         if(cell._z!==row.zone){
@@ -2767,7 +2840,10 @@
     raceApplyShift(1, iv);
     race.frameT0=Date.now(); race.frameIv=iv;            // Uhr, an der die Trefferpruefung haengt
     race.timer=setTimeout(raceTick, iv);
-    if(!race.raf) race.raf=requestAnimationFrame(raceFrame);
+    // Jeden Takt neu anwerfen (vorher abbestellen, damit nicht zwei Schleifen laufen): so faengt
+    // sich die Bildschleife selbst wieder ein, falls ein Handle mal ins Leere zeigt.
+    cancelAnimationFrame(race.raf);
+    race.raf=requestAnimationFrame(raceFrame);
   }
   // Jede Rakete darf pro Durchlauf genau EIN Feld zur Seite – erst alle Positionen sammeln,
   // sonst wandert dieselbe Rakete in der Schleife gleich zweimal weiter.
@@ -2851,6 +2927,12 @@
   // Objekte wandern aber in die freie Ebene und bekommen dort krumme Koordinaten.
   function raceSpawnFreeRow(){
     const row=raceSpawnRow(false);
+    // Aufraeumen im Takt, nicht nur im Bild: in einem verdeckten Tab laeuft die Bildschleife nicht,
+    // die Strecke aber weiter – ohne das hier wuerde die Objektliste unbegrenzt wachsen.
+    for(let i=race.objs.length-1;i>=0;i--){
+      const o=race.objs[i];
+      if((race.tickCount-o.tick0)*(1+o.vy) > RACE_ROWS+2){ if(o.el) o.el.remove(); race.objs.splice(i,1); }
+    }
     row.objs.forEach((t,x)=>{
       if(!t) return;
       const rakete = t==='rocket';
@@ -2869,6 +2951,8 @@
     const now=Date.now(), frac=raceShiftNow(), iv=raceInterval();
     const dt=Math.min(120, now-(race.frameLast||now)); race.frameLast=now;
     if(race.skidUntil && now>=race.skidUntil){ race.skidUntil=0; race.skidVx=0; }
+    // Fahrtrichtung dreht bei gehaltener Taste von selbst um ("Wiederholung kehrt um")
+    if(race.flipAt && now>=race.flipAt){ race.holdVx=race.flipVx; race.lastDir=race.flipVx<0?-1:1; race.flipAt=0; }
     const vx=raceFreeVx(now);
     if(vx) race.carX=clamp(race.carX+vx*dt/1000, 0, RACE_COLS-1);
     // Objekte: senkrecht am Takt aufgehaengt (driftet nicht weg), seitlich frei integriert
@@ -2912,8 +2996,9 @@
   }
   // Trefferpruefung laeuft mit jedem Bild, nicht nur im Takt – sonst haengt sie der Ansicht nach
   function raceFrame(){
-    if(!race||!race.alive||!race.mounted) return;
-    race.raf=null;
+    if(!race) return;
+    race.raf=null;                                     // immer loeschen, auch beim Aussteigen –
+    if(!race.alive||!race.mounted) return;              // sonst haelt ein toter Handle die Schleife an
     if(race.free) raceFreeStep();
     else if(!raceCollide()) return;
     race.raf=requestAnimationFrame(raceFrame);
@@ -2965,10 +3050,11 @@
   }
   function raceInput(btn){
     if(!race||!race.alive) return;
-    const a=raceResolveInput(btn, raceActiveDist()); if(!a) return;
+    const dist=raceActiveDist();
+    const a=raceResolveInput(btn, dist); if(!a) return;
     // In der freien Fahrt wird aus der Richtung eine gehaltene Fahrt – gemerkt wird die
     // gedrueckte Taste, nicht die Richtung: die Verzerrung kann sie ja umgedreht haben.
-    if(a.move!==undefined && race.free){ if(race.skid===0 && !race.skidUntil){ sfx('move'); raceHoldStart(btn, a.move); } return; }
+    if(a.move!==undefined && race.free){ if(race.skid===0 && !race.skidUntil){ sfx('move'); raceHoldStart(btn, a.move, dist); } return; }
     if(a.move!==undefined) raceMove(a.move);
     else if(a.act==='jump') raceJump();
     else if(a.act==='hop') raceHop();
@@ -2977,14 +3063,23 @@
   }
   // Freie Fahrt: das Auto faehrt, solange die Taste unten ist. Aus "zwei Felder" wird dabei
   // "doppelt so schnell" – die Strecke ergibt sich aus der Haltedauer.
-  function raceHoldStart(btn, cells){
+  function raceHoldStart(btn, cells, dist){
     if(race.skidUntil) return;
     const dir=cells<0?-1:1;
     race.heldBtn=btn; race.holdVx=dir*RACE_VX_BASE*Math.abs(cells); race.lastDir=dir;
+    race.flipAt=0;
+    // Halten IST eine Wiederholung derselben Richtung – also dreht das Auto nach RACE_FLIP_MS
+    // von selbst um. Hat der Druck schon die gedrehte Richtung ergeben (zweites Halten derselben
+    // Taste), steht sie bereits richtig und es gibt nichts mehr zu drehen.
+    if(dist==='repeatInvert'){
+      const roh = btn==='L' ? -1 : (btn==='R' ? 1 : dir);
+      race.flipVx = -roh*RACE_VX_BASE;
+      if(race.flipVx!==race.holdVx) race.flipAt=Date.now()+RACE_FLIP_MS;
+    }
   }
   function raceRelease(btn){
     if(!race||!race.free) return;
-    if(race.heldBtn===btn){ race.heldBtn=null; race.holdVx=0; }
+    if(race.heldBtn===btn){ race.heldBtn=null; race.holdVx=0; race.flipAt=0; }
   }
   // kurzer Stoss (Hop) – der einzige zeitlich begrenzte Seitwaertsimpuls
   function raceBurst(cells){
@@ -3141,7 +3236,7 @@
       skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:null,
       // Freie Fahrt: im Online-Duell aus, sonst faehren beide Geraete nach verschiedenen Regeln
       free: raceFreeOpt && opts.seed==null, objs:[], objLayer:null,
-      heldBtn:null, holdVx:0, burstVx:0, burstUntil:0, skidVx:0, skidUntil:0,
+      heldBtn:null, holdVx:0, burstVx:0, burstUntil:0, skidVx:0, skidUntil:0, flipAt:0, flipVx:0,
       frameT0:Date.now(), frameIv:0, frameLast:0, raf:null,
       rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
       rng: (opts.seed!=null ? mulberry32(opts.seed>>>0) : null),
@@ -3152,7 +3247,9 @@
     // Verzerrungen und Startzone aus demselben Seed – im Online-Duell fahren beide dieselbe Strecke
     if(opts.seed!=null){ const r=mulberry32((opts.seed>>>0)^0x9e3779b9); const pool=RACE_DIST_POOL.slice();
       for(let i=pool.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); const t=pool[i]; pool[i]=pool[j]; pool[j]=t; }
-      race.zoneDistort=['none']; for(let i=1;i<zoneCount;i++) race.zoneDistort.push(pool[i-1]);
+      const neutral=Math.floor(r()*zoneCount);      // auch hier wandert die neutrale Zone
+      race.zoneDistort=[]; let p=0;
+      for(let i=0;i<zoneCount;i++) race.zoneDistort.push(i===neutral ? 'none' : pool[p++]);
       race.curZone=Math.floor(r()*zoneCount);
     } else { race.zoneDistort=raceAssignDistorts(zoneCount); race.curZone=randInt(zoneCount); }
     // feste Zonenregeln aus dem Editor ('random' bleibt zufaellig – und doppelt sich nicht mit einer festen)
@@ -3169,6 +3266,7 @@
       });
     }
     race.ov=opts;
+    raceEnsureGround();                          // Bodenkacheln stehen vor dem ersten Bild bereit
     // eine Zeile mehr als sichtbar: die oberste haengt verdeckt ueber dem Feld und rutscht in Halbschritten herein
     for(let y=0;y<RACE_ROWS+1;y++) race.grid.push(raceSpawnRow(true));
     race.lastCarZone=raceCarRowData().zone;
