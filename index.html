@@ -1553,7 +1553,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.31";
+  const APP_VERSION = "1.32";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2550,7 +2550,9 @@
 
   // ===================== RACING =====================
   const RACE_COLS=7, RACE_ROWS=13, RACE_ZONE_ROWS=12;   // Zonenhöhe ~3x Spurensuche-Band
-  const RACE_SPEED={ leicht:{s:800,e:200}, mittel:{s:700,e:180}, schwer:{s:600,e:140}, experte:{s:500,e:100} };
+  // Werte sind Millisekunden je Reihe – kleiner heisst schneller. Alle Stufen um ein Viertel
+  // beschleunigt (Zeit mal 0,8 = Tempo mal 1,25). Das Editor-Tempo hat eigene Regler und bleibt.
+  const RACE_SPEED={ leicht:{s:640,e:160}, mittel:{s:560,e:144}, schwer:{s:480,e:112}, experte:{s:400,e:80} };
   // Wie viele verschiedene Farbzonen (= Regeln) eine Strecke benutzt
   const RACE_ZONES={ leicht:2, mittel:3, schwer:4, experte:4 };
   const RACE_BOMB={ leicht:0.10, mittel:0.15, schwer:0.20, experte:0.28 };
@@ -2747,13 +2749,62 @@
     }
     return cv.toDataURL('image/png');
   }
+  // Eingangsstreifen: die neue Zone greift mit einer ausgefransten Kante in die Zeile darunter,
+  // also in die letzte Zeile der alten Zone. Dadurch zerfliesst der Uebergang, statt als gerade
+  // Linie quer ueber die Strecke zu laufen.
+  function raceEntryTile(z, W, step){
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=Math.ceil(step);
+    const g=cv.getContext('2d');
+    const r=(a,b)=>a+Math.random()*(b-a);
+    // Die Zonenfarbe liegt im Spiel mit 0,82 ueber dem Brettgrund – hier deckend nachgemischt,
+    // sonst wuerde der Streifen die darunterliegende (alte) Farbe durchscheinen lassen.
+    const t=ZONE_COLORS[z].tint.split(',').map(Number), grund=[11,18,32];   // Brettgrund #0b1220
+    const farbe=`rgb(${t.map((v,i)=>Math.round(v*0.82+grund[i]*0.18)).join(',')})`;
+    const p1=r(0,6.28), p2=r(0,6.28);
+    const n=Math.max(14, Math.round(W/7));
+    const kante=[];
+    for(let i=0;i<=n;i++){
+      const x=W*i/n;
+      let y=step*(0.30 + 0.26*Math.sin(x*0.052+p1) + 0.16*Math.sin(x*0.119+p2));
+      y += r(-0.09,0.09)*step;
+      if(Math.random()<0.11) y += r(0.22,0.50)*step;            // vereinzelte lange Zungen
+      kante.push([x, Math.min(step*0.94, Math.max(step*0.05, y))]);
+    }
+    g.fillStyle=farbe;
+    g.beginPath(); g.moveTo(0,0); g.lineTo(W,0); g.lineTo(W,kante[n][1]);
+    for(let i=n;i>=0;i--) g.lineTo(kante[i][0], kante[i][1]);
+    g.closePath(); g.fill();
+    // Kruemel entlang der Kante und einzelne Inseln – macht aus dem Schnitt ein Zerfliessen
+    for(let i=0;i<Math.round(W/9);i++){
+      const k=kante[Math.floor(r(0,n+1))];
+      g.beginPath(); g.ellipse(k[0]+r(-6,6), k[1]+r(-2,6), r(2.5,7), r(1.5,4.5), r(0,3), 0, 6.2832); g.fill();
+    }
+    for(let i=0;i<Math.round(W/26);i++){
+      const k=kante[Math.floor(r(0,n+1))];
+      g.globalAlpha=r(0.45,0.85);
+      g.beginPath(); g.ellipse(k[0]+r(-8,8), k[1]+r(5,16), r(1.5,4), r(1,3), r(0,3), 0, 6.2832); g.fill();
+      g.globalAlpha=1;
+    }
+    // etwas Korn der Zone, damit der Streifen nicht flach wirkt
+    const korn = z===0 ? '255,241,203' : z===1 ? '24,62,30' : z===2 ? '255,255,255' : '12,16,22';
+    g.fillStyle=`rgba(${korn},0.20)`;
+    for(let i=0;i<Math.round(W*step/140);i++){
+      const x=r(0,W), y=r(0,step*0.8);
+      g.beginPath(); g.arc(x,y,r(0.5,1.2),0,6.2832); g.fill();
+    }
+    return cv.toDataURL('image/png');
+  }
   function raceEnsureGround(step){
     if(raceGroundStep===step) return;             // nur bei geaenderter Feldgroesse neu backen
     try{
-      const W=RACE_COLS*step, H=Math.round(step*10);
-      const regeln=[];
-      for(let z=0;z<ZONE_COLORS.length;z++)
-        regeln.push(`.race-view .race-cell.z${z}{background-image:url(${raceGroundTile(z,W,H,step)});background-size:${W}px ${H}px;}`);
+      const W=RACE_COLS*step, H=Math.round(step*10), S=Math.ceil(step);
+      // Beide Lagen haengen an Variablen: so steht jede Kachel nur einmal im Stylesheet, und
+      // die Zeile mit Uebergang schaltet nur die obere Lage dazu.
+      const regeln=[`.race-view .race-cell{background-image:var(--eingang,none),var(--boden,none);background-size:${W}px ${S}px,${W}px ${H}px;}`];
+      for(let z=0;z<ZONE_COLORS.length;z++){
+        regeln.push(`.race-view .race-cell.z${z}{--boden:url(${raceGroundTile(z,W,H,step)});}`);
+        regeln.push(`.race-view .race-cell.e${z}{--eingang:url(${raceEntryTile(z,W,step)});}`);
+      }
       if(!raceGroundStyle){ raceGroundStyle=document.createElement('style'); raceGroundStyle.id='race-ground'; document.head.appendChild(raceGroundStyle); }
       raceGroundStyle.textContent=regeln.join('\n');
       raceGroundStep=step;
@@ -2794,7 +2845,8 @@
   function raceBombProb(){ const base=(race.bombBase!=null?race.bombBase:(RACE_BOMB[race.diffKey]||0.15)); const extra=Math.max(0,(raceElapsed()-120)/120)*0.18; return Math.min(0.6, base+extra); }
   function raceSpawnRow(initial){
     race.zoneRowCounter=(race.zoneRowCounter||0)+1;
-    if(race.zoneRowCounter>RACE_ZONE_ROWS){ race.curZone=raceNewZone(race.curZone); race.zoneRowCounter=1; }
+    let neueZone=false;
+    if(race.zoneRowCounter>RACE_ZONE_ROWS){ race.curZone=raceNewZone(race.curZone); race.zoneRowCounter=1; neueZone=true; }
     // Musterposition des Untergrunds: beim Aufbau nach unten wachsend, spaeter nach oben fallend.
     // Jede Zeile behaelt ihre Zahl – nur so laeuft der Boden nahtlos weiter, wenn oben eine neue
     // Zeile hereinrutscht (die Zeilen wandern ja im Array, das Muster darf dabei nicht springen).
@@ -2810,7 +2862,14 @@
       }
       if(raceRnd()<(race.coinProb!=null?race.coinProb:0.13)){ for(let t=0;t<6;t++){ const cx=raceRandInt(RACE_COLS); if(!objs[cx]){ objs[cx]='coin'; break; } } }
     }
-    return { zone: race.curZone, objs, py };
+    const row={ zone: race.curZone, objs, py };
+    // Neue Zeilen rutschen oben herein, die zuletzt erzeugte liegt also direkt darunter. Genau
+    // dorthin haengt der Eingangsstreifen der neuen Zone. Beim Aufbau des Bretts ist die
+    // Reihenfolge umgekehrt (die Zeilen werden angehaengt) – dort bleibt die Kante gerade,
+    // sie scrollt ohnehin binnen weniger Takte aus dem Bild.
+    if(neueZone && !initial && race.lastRow) race.lastRow.entry=race.curZone;
+    race.lastRow=row;
+    return row;
   }
   function raceCellSize(){ const availW=Math.min(window.innerWidth||400,440)-16; const availH=(window.innerHeight||700)-240; return Math.max(20, Math.min(48, Math.floor(Math.min(availW/RACE_COLS, availH/RACE_ROWS)))); }
   const RACE_GAP=2, RACE_PAD=4;                  // muss zum CSS von .race-grid passen
@@ -2913,15 +2972,17 @@
     for(let y=0;y<totalRows;y++){ const row=race.grid[y];
       const farbe=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`;
       const posY=-(row.py||0)*race.stepPx;
+      const kennung=row.zone+'/'+(row.entry==null?'-':row.entry);
       for(let x=0;x<RACE_COLS;x++){ const cell=race.cells[y*RACE_COLS+x];
         if(cell.firstChild) cell.textContent='';    // leere Kaestchen gar nicht erst anfassen
         // Nur bei echter Aenderung anfassen: hinter jeder Zone stecken mehrere Verlaufslagen,
         // die sonst bei jedem Takt fuer alle Kaestchen neu gezeichnet wuerden.
-        if(cell._z!==row.zone){
-          cell.className='race-cell z'+row.zone;       // traegt das Bodenmuster der Zone
-          cell.style.backgroundColor=farbe; cell._z=row.zone;
+        if(cell._z!==kennung){
+          cell.className='race-cell z'+row.zone+(row.entry==null?'':' e'+row.entry);
+          cell.style.backgroundColor=farbe; cell._z=kennung;
         }
-        if(cell._py!==row.py){ cell.style.backgroundPosition=`${-x*race.stepPx}px ${posY}px`; cell._py=row.py; }
+        // Der Eingangsstreifen sitzt oben in der Zeile, der Boden folgt seiner Musterposition
+        if(cell._py!==row.py){ cell.style.backgroundPosition=`${-x*race.stepPx}px 0px, ${-x*race.stepPx}px ${posY}px`; cell._py=row.py; }
         const o=row.objs[x];
         if(o==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); cell.appendChild(d); }
         else if(o==='rocket'){ const d=el('div','rocket'), inner=el('div','rk-in');
