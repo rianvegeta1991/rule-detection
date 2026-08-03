@@ -1553,7 +1553,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.30";
+  const APP_VERSION = "1.31";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2587,66 +2587,177 @@
   // Als CSS-Verlaeufe musste der Browser den Boden bei jedem Takt fuer alle 91 Kaestchen neu
   // ausrechnen (gemessen: 33 ms je Bild statt 16 ms) – das war der kurze Hänger je Reihe. Jetzt
   // wird jede Zone einmal in eine Kachel gezeichnet und danach nur noch geblittet.
-  const RACE_TILE=256;
-  let raceGroundStyle=null;
-  function raceGroundTile(z){
-    const T=RACE_TILE, cv=document.createElement('canvas'); cv.width=cv.height=T;
+  // Die Kachel ist genau so breit wie die Strecke. Dadurch weiss sie, wo aussen ist, und kann
+  // Leitplanken, Palmen, Baeume und Salzufer an die Raender setzen; gekachelt wird nur senkrecht.
+  let raceGroundStyle=null, raceGroundStep=0;
+  function raceGroundTile(z, W, H, step){
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
     const g=cv.getContext('2d');
     const r=(a,b)=>a+Math.random()*(b-a);
-    // Jede Form wird ueber die Kachelraender hinaus wiederholt – nur so kachelt sie nahtlos.
+    // Senkrecht wird jede Form ueber die Kachelraender wiederholt – nur so kachelt sie nahtlos.
+    // Waagerecht nicht: links und rechts sind hier bewusst verschieden.
     const fleck=(x,y,rx,ry,farbe,a)=>{
-      for(let ox=-1;ox<=1;ox++) for(let oy=-1;oy<=1;oy++){
-        g.save(); g.translate(x+ox*T, y+oy*T); g.scale(1, ry/rx);
+      for(let oy=-1;oy<=1;oy++){ const py=y+oy*H; if(py<-ry||py>H+ry) continue;
+        g.save(); g.translate(x,py); g.scale(1, ry/rx);
         const gr=g.createRadialGradient(0,0,0,0,0,rx);
         gr.addColorStop(0,`rgba(${farbe},${a})`); gr.addColorStop(0.55,`rgba(${farbe},${a*0.7})`); gr.addColorStop(1,`rgba(${farbe},0)`);
         g.fillStyle=gr; g.beginPath(); g.arc(0,0,rx,0,6.2832); g.fill(); g.restore();
       }
     };
-    const korn=(n,farbe,a,rmin,rmax)=>{
+    const korn=(n,farbe,a,rmin,rmax,x0,x1)=>{
       g.fillStyle=`rgba(${farbe},${a})`;
-      for(let i=0;i<n;i++){ const x=r(0,T), y=r(0,T), rr=r(rmin,rmax);
-        for(let ox=-1;ox<=1;ox++) for(let oy=-1;oy<=1;oy++){ const px=x+ox*T, py=y+oy*T;
-          if(px<-rr||px>T+rr||py<-rr||py>T+rr) continue;
-          g.beginPath(); g.arc(px,py,rr,0,6.2832); g.fill(); } }
+      for(let i=0;i<n;i++){ const x=r(x0==null?0:x0, x1==null?W:x1), y=r(0,H), rr=r(rmin,rmax);
+        for(let oy=-1;oy<=1;oy++){ const py=y+oy*H; if(py<-rr||py>H+rr) continue;
+          g.beginPath(); g.arc(x,py,rr,0,6.2832); g.fill(); } }
     };
-    const strich=(n,farbe,a,laenge,breite,winkel,streu)=>{
+    const strich=(n,farbe,a,laenge,breite,winkel,streu,x0,x1)=>{
       g.strokeStyle=`rgba(${farbe},${a})`; g.lineWidth=breite; g.lineCap='round';
-      for(let i=0;i<n;i++){ const x=r(0,T), y=r(0,T), w=winkel+r(-streu,streu), l=r(laenge*0.6,laenge*1.4);
+      for(let i=0;i<n;i++){ const x=r(x0==null?0:x0, x1==null?W:x1), y=r(0,H), w=winkel+r(-streu,streu), l=r(laenge*0.6,laenge*1.4);
         const dx=Math.cos(w)*l, dy=Math.sin(w)*l;
-        for(let ox=-1;ox<=1;ox++) for(let oy=-1;oy<=1;oy++){ const px=x+ox*T, py=y+oy*T;
-          if(px<-l||px>T+l||py<-l||py>T+l) continue;
-          g.beginPath(); g.moveTo(px,py); g.lineTo(px+dx,py+dy); g.stroke(); } }
+        for(let oy=-1;oy<=1;oy++){ const py=y+oy*H; if(py<-l||py>H+l) continue;
+          g.beginPath(); g.moveTo(x,py); g.lineTo(x+dx,py+dy); g.stroke(); } }
     };
-    if(z===0){                                   // Gelb = Sand: Verwehungen und Korn
-      for(let i=0;i<5;i++) fleck(r(0,T),r(0,T),r(30,58),r(18,40),'238,206,138',0.17);
-      for(let i=0;i<5;i++) fleck(r(0,T),r(0,T),r(26,52),r(16,44),'118,84,32',0.17);
-      korn(700,'255,241,203',0.22,0.5,1.1); korn(520,'116,82,30',0.22,0.5,1.2);
-    } else if(z===1){                            // Gruen = Gras: Bueschel, kahle Stellen, Halme
-      for(let i=0;i<4;i++) fleck(r(0,T),r(0,T),r(28,52),r(20,38),'138,196,126',0.20);
-      for(let i=0;i<5;i++) fleck(r(0,T),r(0,T),r(26,56),r(18,42),'16,50,24',0.24);
-      strich(1100,'24,62,30',0.30,6,1.1,-1.35,0.28);
-      strich(700,'163,213,150',0.20,5,1.0,-1.25,0.30);
-    } else if(z===2){                            // Blau = Pfuetzen mit hellem Rand und Glanz
-      for(let i=0;i<9;i++){ const x=r(0,T), y=r(0,T), rx=r(10,30), ry=rx*r(0.35,0.6);
-        fleck(x,y,rx,ry,'20,46,84',0.42); fleck(x,y,rx*0.62,ry*0.56,'222,242,255',0.30); }
-      korn(220,'255,255,255',0.10,0.5,1.0);
-    } else {                                     // Grau = Strasse: Flicken, Risse, Asphaltkorn
-      for(let i=0;i<3;i++) fleck(r(0,T),r(0,T),r(34,60),r(22,44),'154,160,172',0.15);
-      for(let i=0;i<4;i++) fleck(r(0,T),r(0,T),r(28,54),r(20,46),'12,16,22',0.20);
-      strich(26,'12,16,22',0.26,55,1.1,r(0,3.14),1.2);
-      korn(900,'233,238,248',0.13,0.4,0.9); korn(700,'12,16,22',0.24,0.4,1.0);
+    // Ein ganzes Gebilde (Palme, Baum) an beiden Kachelraendern wiederholt zeichnen
+    const amRand=(y, mal)=>{ for(let oy=-1;oy<=1;oy++){ g.save(); g.translate(0, y+oy*H); mal(); g.restore(); } };
+
+    if(z===0){                                   // Gelb = Sand mit Palmen an den Raendern
+      for(let i=0;i<Math.round(W*H/11000);i++) fleck(r(0,W),r(0,H),r(30,58),r(18,40),'238,206,138',0.17);
+      for(let i=0;i<Math.round(W*H/11000);i++) fleck(r(0,W),r(0,H),r(26,52),r(16,44),'118,84,32',0.17);
+      korn(Math.round(W*H/95),'255,241,203',0.22,0.5,1.1);
+      korn(Math.round(W*H/128),'116,82,30',0.22,0.5,1.2);
+      const palme=(x,s)=>{
+        g.save(); g.translate(x,0);
+        g.fillStyle='rgba(92,68,28,0.20)';                       // Schatten auf dem Sand
+        g.beginPath(); g.ellipse(s*0.28,s*0.34,s*1.0,s*0.85,0,0,6.2832); g.fill();
+        g.lineCap='round';
+        for(let k=0;k<8;k++){                                    // Wedel von oben gesehen
+          const w=k*0.7854+r(-0.18,0.18), l=s*r(0.85,1.2);
+          g.strokeStyle=k%2 ? 'rgba(38,92,46,0.92)' : 'rgba(56,120,60,0.92)';
+          g.lineWidth=s*0.24;
+          g.beginPath(); g.moveTo(0,0);
+          g.quadraticCurveTo(Math.cos(w+0.3)*l*0.6, Math.sin(w+0.3)*l*0.6, Math.cos(w)*l, Math.sin(w)*l); g.stroke();
+        }
+        g.fillStyle='rgba(78,54,24,0.95)'; g.beginPath(); g.arc(0,0,s*0.19,0,6.2832); g.fill();
+        g.restore();
+      };
+      const n=Math.max(2, Math.round(H/(step*2.6)));
+      for(let i=0;i<n;i++){
+        amRand(r(0,H), ()=>palme(r(step*0.10,step*0.40), step*0.44));
+        amRand(r(0,H), ()=>palme(W-r(step*0.10,step*0.40), step*0.44));
+      }
+    } else if(z===1){                            // Gruen = Gras mit Baeumen an den Raendern
+      for(let i=0;i<Math.round(W*H/13000);i++) fleck(r(0,W),r(0,H),r(28,52),r(20,38),'138,196,126',0.20);
+      for(let i=0;i<Math.round(W*H/11000);i++) fleck(r(0,W),r(0,H),r(26,56),r(18,42),'16,50,24',0.24);
+      strich(Math.round(W*H/60),'24,62,30',0.30,6,1.1,-1.35,0.28);
+      strich(Math.round(W*H/95),'163,213,150',0.20,5,1.0,-1.25,0.30);
+      const baum=(x,s)=>{
+        g.save(); g.translate(x,0);
+        g.fillStyle='rgba(10,32,16,0.28)';                       // Schatten
+        g.beginPath(); g.ellipse(s*0.3,s*0.34,s*1.02,s*0.94,0,0,6.2832); g.fill();
+        g.fillStyle='rgba(24,68,32,0.95)';                       // Krone
+        g.beginPath(); g.arc(0,0,s*0.92,0,6.2832); g.fill();
+        for(let k=0;k<9;k++){                                    // Laubtupfen fuer Struktur
+          const w=r(0,6.2832), d=r(0,s*0.72);
+          g.fillStyle=`rgba(${k%2?'52,116,58':'18,54,26'},0.85)`;
+          g.beginPath(); g.arc(Math.cos(w)*d, Math.sin(w)*d, s*r(0.16,0.30), 0, 6.2832); g.fill();
+        }
+        g.fillStyle='rgba(96,168,96,0.55)';
+        g.beginPath(); g.arc(-s*0.22,-s*0.24,s*0.26,0,6.2832); g.fill();   // Lichtseite
+        g.restore();
+      };
+      const n=Math.max(2, Math.round(H/(step*2.8)));
+      for(let i=0;i<n;i++){
+        amRand(r(0,H), ()=>baum(r(step*0.05,step*0.42), step*0.48));
+        amRand(r(0,H), ()=>baum(W-r(step*0.05,step*0.42), step*0.48));
+      }
+    } else if(z===2){                            // Blau = Salzsee: Himmel spiegelt sich, Ufer aus Salz
+      const himmel=g.createLinearGradient(0,0,0,H);              // gleiche Farbe oben/unten -> nahtlos
+      himmel.addColorStop(0,'rgba(96,152,212,0.80)');
+      himmel.addColorStop(0.5,'rgba(132,186,232,0.74)');
+      himmel.addColorStop(1,'rgba(96,152,212,0.80)');
+      g.fillStyle=himmel; g.fillRect(0,0,W,H);
+      // Wolken in der Spiegelung – weich und nur angedeutet
+      for(let i=0;i<Math.round(H/step*0.9);i++){
+        const x=r(W*0.12,W*0.88), y=r(0,H), rx=r(W*0.10,W*0.26), a=r(0.10,0.22);
+        fleck(x,y,rx,rx*r(0.22,0.38),'255,255,255',a);
+        fleck(x+rx*r(-0.5,0.5),y+r(-4,4),rx*0.55,rx*0.16,'255,255,255',a*0.8);
+      }
+      // Ufer: Salzkruste an beiden Seiten. Die Innenkante schwingt periodisch – sonst bricht sie
+      // an der Kachelgrenze ab.
+      const uferB=step*0.9;
+      const kante=(y)=>uferB*(0.52 + 0.24*Math.sin(6.2832*y/H*2) + 0.16*Math.sin(6.2832*y/H*3+1.1));
+      const ufer=(links)=>{
+        g.save(); g.beginPath();
+        const n=48;
+        if(links){ g.moveTo(0,0); for(let i=0;i<=n;i++){ const y=H*i/n; g.lineTo(kante(y), y); } g.lineTo(0,H); }
+        else { g.moveTo(W,0); for(let i=0;i<=n;i++){ const y=H*i/n; g.lineTo(W-kante(y), y); } g.lineTo(W,H); }
+        g.closePath(); g.clip();
+        g.fillStyle='rgba(240,238,228,0.94)'; g.fillRect(0,0,W,H);      // trockene Salzkruste
+        g.strokeStyle='rgba(196,188,170,0.75)'; g.lineWidth=1;          // Krustenrisse
+        for(let i=0;i<Math.round(H/3);i++){
+          const x=links ? r(0,uferB) : r(W-uferB,W), y=r(0,H), w=r(0,6.2832), l=r(4,13);
+          g.beginPath(); g.moveTo(x,y); g.lineTo(x+Math.cos(w)*l, y+Math.sin(w)*l); g.stroke();
+        }
+        g.fillStyle='rgba(255,255,255,0.55)';                           // helle Salzflecken
+        for(let i=0;i<Math.round(H/16);i++){
+          const x=links ? r(0,uferB) : r(W-uferB,W), y=r(0,H);
+          g.beginPath(); g.ellipse(x,y,r(3,9),r(2,6),r(0,3),0,6.2832); g.fill();
+        }
+        g.restore();
+        // nasser Saum direkt vor dem Ufer
+        g.save(); g.beginPath(); g.lineWidth=step*0.16; g.strokeStyle='rgba(46,96,150,0.34)';
+        g.moveTo(links?kante(0):W-kante(0), 0);
+        for(let i=1;i<=n;i++){ const y=H*i/n; g.lineTo(links?kante(y):W-kante(y), y); }
+        g.stroke();
+        g.lineWidth=1.4; g.strokeStyle='rgba(255,255,255,0.55)';
+        g.beginPath(); g.moveTo(links?kante(0):W-kante(0), 0);
+        for(let i=1;i<=n;i++){ const y=H*i/n; g.lineTo(links?kante(y):W-kante(y), y); }
+        g.stroke(); g.restore();
+      };
+      ufer(true); ufer(false);
+      korn(Math.round(H*1.2),'255,255,255',0.09,0.4,0.9, uferB, W-uferB);   // feiner Glanz auf dem Wasser
+    } else {                                     // Grau = Strasse: fuenf Fahrstreifen, Leitplanken
+      for(let i=0;i<Math.round(W*H/22000);i++) fleck(r(0,W),r(0,H),r(34,60),r(22,44),'154,160,172',0.15);
+      for(let i=0;i<Math.round(W*H/16000);i++) fleck(r(0,W),r(0,H),r(28,54),r(20,46),'12,16,22',0.20);
+      strich(Math.round(H/22),'12,16,22',0.26,55,1.1,r(0,3.14),1.2);
+      korn(Math.round(W*H/75),'233,238,248',0.13,0.4,0.9);
+      korn(Math.round(W*H/95),'12,16,22',0.24,0.4,1.0);
+      const planke=step*0.34;                    // Breite der Leitplanke
+      const innen0=planke, innen1=W-planke, fahrbahn=innen1-innen0;
+      // vier gestrichelte Trennlinien ergeben fuenf Fahrstreifen
+      g.lineCap='butt';
+      const strichL=step*0.55, luecke=step*0.45;   // Periode = step, teilt H glatt
+      for(let s=1;s<=4;s++){
+        const x=innen0+fahrbahn*s/5;
+        g.strokeStyle='rgba(238,240,246,0.62)'; g.lineWidth=Math.max(1.5, step*0.055);
+        for(let y=0;y<H;y+=strichL+luecke){ g.beginPath(); g.moveTo(x,y); g.lineTo(x, Math.min(y+strichL,H)); g.stroke(); }
+      }
+      // durchgezogene Randlinien
+      g.strokeStyle='rgba(238,240,246,0.5)'; g.lineWidth=Math.max(1.5, step*0.05);
+      [innen0+step*0.12, innen1-step*0.12].forEach(x=>{ g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); });
+      // Leitplanken: dunkler Sockel, helles Metallband, Pfosten im festen Abstand
+      [0, W-planke].forEach((x0,seite)=>{
+        g.fillStyle='rgba(10,13,18,0.75)'; g.fillRect(x0,0,planke,H);
+        const bandX=seite===0 ? x0+planke*0.52 : x0+planke*0.48;
+        g.fillStyle='rgba(186,192,204,0.95)'; g.fillRect(bandX-planke*0.20,0,planke*0.40,H);
+        g.fillStyle='rgba(240,244,250,0.75)'; g.fillRect(bandX-planke*0.06,0,planke*0.12,H);   // Glanzkante
+        g.fillStyle='rgba(64,70,82,0.95)';
+        for(let y=step*0.5;y<H;y+=step){ g.fillRect(x0+planke*0.12, y, planke*0.76, Math.max(2, step*0.10)); }
+      });
     }
     return cv.toDataURL('image/png');
   }
-  function raceEnsureGround(){
-    if(raceGroundStyle) return;
+  function raceEnsureGround(step){
+    if(raceGroundStep===step) return;             // nur bei geaenderter Feldgroesse neu backen
     try{
+      const W=RACE_COLS*step, H=Math.round(step*10);
       const regeln=[];
       for(let z=0;z<ZONE_COLORS.length;z++)
-        regeln.push(`.race-cell.z${z}{background-image:url(${raceGroundTile(z)});background-size:${RACE_TILE}px ${RACE_TILE}px;}`);
-      const st=document.createElement('style'); st.id='race-ground'; st.textContent=regeln.join('\n');
-      document.head.appendChild(st); raceGroundStyle=st;
-    }catch(e){ raceGroundStyle=true; }          // ohne Canvas bleiben die CSS-Verlaeufe als Rueckfall
+        regeln.push(`.race-view .race-cell.z${z}{background-image:url(${raceGroundTile(z,W,H,step)});background-size:${W}px ${H}px;}`);
+      if(!raceGroundStyle){ raceGroundStyle=document.createElement('style'); raceGroundStyle.id='race-ground'; document.head.appendChild(raceGroundStyle); }
+      raceGroundStyle.textContent=regeln.join('\n');
+      raceGroundStep=step;
+    }catch(e){ raceGroundStep=step; }             // ohne Canvas bleiben die CSS-Verlaeufe als Rueckfall
   }
   // Freie Fahrt: Einstellung, greift ab der naechsten Partie (race.free haelt den Stand der laufenden)
   const RACE_FREE_KEY='regel-detektiv-racefree';
@@ -2712,6 +2823,7 @@
     const gap = race.free ? 0 : RACE_GAP, pad = race.free ? 0 : RACE_PAD;
     race.gap=gap; race.pad=pad;
     const cs=raceCellSize(); race.cell=cs; race.stepPx=cs+gap;
+    raceEnsureGround(race.stepPx);               // Bodenkacheln passen zur Feldgroesse
     const totalRows=RACE_ROWS+1;
     const view=el('div','race-view'+(race.free?' free':''));
     view.style.width=(RACE_COLS*cs+(RACE_COLS-1)*gap+2*pad)+'px';
@@ -3266,7 +3378,6 @@
       });
     }
     race.ov=opts;
-    raceEnsureGround();                          // Bodenkacheln stehen vor dem ersten Bild bereit
     // eine Zeile mehr als sichtbar: die oberste haengt verdeckt ueber dem Feld und rutscht in Halbschritten herein
     for(let y=0;y<RACE_ROWS+1;y++) race.grid.push(raceSpawnRow(true));
     race.lastCarZone=raceCarRowData().zone;
