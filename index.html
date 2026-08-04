@@ -199,8 +199,19 @@
     border:2.5px solid rgba(var(--bub,250,204,21),0.98); animation:bubRing 0.55s ease-out forwards;
   }
   @keyframes bubRing{ from{transform:scale(0.45); opacity:1;} to{transform:scale(1.4); opacity:0;} }
-  .race-grid{position:relative; display:grid; gap:2px; padding:4px; border-radius:10px; border:1px solid rgba(var(--accent-rgb),0.5); box-shadow:0 0 22px rgba(var(--accent-rgb),0.2); background:#0b1220; margin:0 auto;}
-  .race-cell{border-radius:3px; position:relative; background-color:#1e293b; background-repeat:repeat;}
+  .race-grid{position:relative; display:grid; gap:2px; padding:4px; border-radius:10px; border:1px solid rgba(var(--accent-rgb),0.5); box-shadow:0 0 22px rgba(var(--accent-rgb),0.2); background:#0b1220; margin:0 auto; overflow:hidden;}
+  /* im Spiel bringt die Bodenebene die Farbe mit – der Gitterhintergrund wuerde sie verdecken */
+  .race-view .race-grid{background:transparent;}
+  /* Bodenebene: liegt im Gitter unter den Kaestchen und faehrt mit dessen Transform mit.
+     Je Farbzone ein Band; verschoben wird nur, nie neu angestrichen. */
+  .race-ground{position:absolute; left:0; top:0; width:100%; height:100%; overflow:hidden; z-index:0; pointer-events:none;}
+  .race-ground .rg-band, .race-ground .rg-saum{position:absolute; will-change:transform;}
+  .race-ground .rg-band{background-repeat:repeat;}
+  .race-ground .rg-saum{background-repeat:no-repeat;}
+  /* Die Kaestchen tragen nur noch die Objekte. Im Kaestchen-Modus zeichnet ihr Rand die
+     Trennlinien, die frueher der Gitterhintergrund durch die Luecken zeigte. */
+  .race-cell{border-radius:3px; position:relative; z-index:1; background:transparent;}
+  .race-grid:not(.free) .race-cell{box-shadow:0 0 0 1px rgba(8,12,20,0.92);}
   /* Untergrund je Farbzone. Die Muster liegen ueber der Zonenfarbe; ihre Position wird je Zeile
      mitgefuehrt (row.py), damit sie nahtlos ueber die Kaestchengrenzen laufen und mitscrollen.
      Mehrere Lagen mit teilerfremden Kachelgroessen ergeben ein unregelmaessiges, fragmentiertes Bild. */
@@ -1553,7 +1564,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.32";
+  const APP_VERSION = "1.33";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2591,11 +2602,16 @@
   // wird jede Zone einmal in eine Kachel gezeichnet und danach nur noch geblittet.
   // Die Kachel ist genau so breit wie die Strecke. Dadurch weiss sie, wo aussen ist, und kann
   // Leitplanken, Palmen, Baeume und Salzufer an die Raender setzen; gekachelt wird nur senkrecht.
-  let raceGroundStyle=null, raceGroundStep=0;
+  let raceGroundStyle=null, raceGroundStep=0, raceTileH=0;
   function raceGroundTile(z, W, H, step){
     const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
     const g=cv.getContext('2d');
     const r=(a,b)=>a+Math.random()*(b-a);
+    // Deckend grundieren: der Boden liegt jetzt als eigene Ebene unter dem Gitter und bringt
+    // die Zonenfarbe selbst mit (frueher kam sie vom Hintergrund des Kaestchens).
+    const tn=ZONE_COLORS[z].tint.split(',').map(Number), gr0=[11,18,32];
+    g.fillStyle=`rgb(${tn.map((v,i)=>Math.round(v*0.82+gr0[i]*0.18)).join(',')})`;
+    g.fillRect(0,0,W,H);
     // Senkrecht wird jede Form ueber die Kachelraender wiederholt – nur so kachelt sie nahtlos.
     // Waagerecht nicht: links und rechts sind hier bewusst verschieden.
     const fleck=(x,y,rx,ry,farbe,a)=>{
@@ -2747,19 +2763,20 @@
         for(let y=step*0.5;y<H;y+=step){ g.fillRect(x0+planke*0.12, y, planke*0.76, Math.max(2, step*0.10)); }
       });
     }
-    return cv.toDataURL('image/png');
+    return cv;                                   // die Leinwand selbst – der Saum schneidet daraus
   }
   // Eingangsstreifen: die neue Zone greift mit einer ausgefransten Kante in die Zeile darunter,
   // also in die letzte Zeile der alten Zone. Dadurch zerfliesst der Uebergang, statt als gerade
   // Linie quer ueber die Strecke zu laufen.
-  function raceEntryTile(z, W, step){
-    const cv=document.createElement('canvas'); cv.width=W; cv.height=Math.ceil(step);
+  function raceEntryTile(z, W, step, bodenCv){
+    const hs=Math.ceil(step);
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=hs;
     const g=cv.getContext('2d');
     const r=(a,b)=>a+Math.random()*(b-a);
-    // Die Zonenfarbe liegt im Spiel mit 0,82 ueber dem Brettgrund – hier deckend nachgemischt,
-    // sonst wuerde der Streifen die darunterliegende (alte) Farbe durchscheinen lassen.
-    const t=ZONE_COLORS[z].tint.split(',').map(Number), grund=[11,18,32];   // Brettgrund #0b1220
-    const farbe=`rgb(${t.map((v,i)=>Math.round(v*0.82+grund[i]*0.18)).join(',')})`;
+    // Der Saum zeigt echtes Material der neuen Zone, keine flache Farbe: eine Scheibe des
+    // Bodens, aus der die ausgefranste Form ausgeschnitten wird. Senkrechte Merkmale
+    // (Leitplanken, Ufer) laufen dadurch nahtlos weiter, egal welche Scheibe genommen wird.
+    g.drawImage(bodenCv, 0, 0, W, hs, 0, 0, W, hs);
     const p1=r(0,6.28), p2=r(0,6.28);
     const n=Math.max(14, Math.round(W/7));
     const kante=[];
@@ -2770,40 +2787,37 @@
       if(Math.random()<0.11) y += r(0.22,0.50)*step;            // vereinzelte lange Zungen
       kante.push([x, Math.min(step*0.94, Math.max(step*0.05, y))]);
     }
-    g.fillStyle=farbe;
-    g.beginPath(); g.moveTo(0,0); g.lineTo(W,0); g.lineTo(W,kante[n][1]);
+    // Alles in EINEN Pfad, dann ein einziges destination-in: nacheinander wuerde jeder Schnitt
+    // das vorher Behaltene wieder wegnehmen.
+    g.globalCompositeOperation='destination-in';
+    g.beginPath();
+    g.moveTo(0,0); g.lineTo(W,0); g.lineTo(W,kante[n][1]);
     for(let i=n;i>=0;i--) g.lineTo(kante[i][0], kante[i][1]);
-    g.closePath(); g.fill();
-    // Kruemel entlang der Kante und einzelne Inseln – macht aus dem Schnitt ein Zerfliessen
-    for(let i=0;i<Math.round(W/9);i++){
+    g.closePath();
+    for(let i=0;i<Math.round(W/9);i++){                        // Kruemel entlang der Kante
       const k=kante[Math.floor(r(0,n+1))];
-      g.beginPath(); g.ellipse(k[0]+r(-6,6), k[1]+r(-2,6), r(2.5,7), r(1.5,4.5), r(0,3), 0, 6.2832); g.fill();
+      const cx=k[0]+r(-6,6), cy=k[1]+r(-2,6);
+      g.moveTo(cx,cy); g.ellipse(cx, cy, r(2.5,7), r(1.5,4.5), r(0,3), 0, 6.2832);
     }
-    for(let i=0;i<Math.round(W/26);i++){
+    for(let i=0;i<Math.round(W/26);i++){                       // einzelne Inseln davor
       const k=kante[Math.floor(r(0,n+1))];
-      g.globalAlpha=r(0.45,0.85);
-      g.beginPath(); g.ellipse(k[0]+r(-8,8), k[1]+r(5,16), r(1.5,4), r(1,3), r(0,3), 0, 6.2832); g.fill();
-      g.globalAlpha=1;
+      const cx=k[0]+r(-8,8), cy=Math.min(hs-1, k[1]+r(5,16));
+      g.moveTo(cx,cy); g.ellipse(cx, cy, r(1.5,4), r(1,3), r(0,3), 0, 6.2832);
     }
-    // etwas Korn der Zone, damit der Streifen nicht flach wirkt
-    const korn = z===0 ? '255,241,203' : z===1 ? '24,62,30' : z===2 ? '255,255,255' : '12,16,22';
-    g.fillStyle=`rgba(${korn},0.20)`;
-    for(let i=0;i<Math.round(W*step/140);i++){
-      const x=r(0,W), y=r(0,step*0.8);
-      g.beginPath(); g.arc(x,y,r(0.5,1.2),0,6.2832); g.fill();
-    }
+    g.fill();
+    g.globalCompositeOperation='source-over';
     return cv.toDataURL('image/png');
   }
   function raceEnsureGround(step){
     if(raceGroundStep===step) return;             // nur bei geaenderter Feldgroesse neu backen
     try{
       const W=RACE_COLS*step, H=Math.round(step*10), S=Math.ceil(step);
-      // Beide Lagen haengen an Variablen: so steht jede Kachel nur einmal im Stylesheet, und
-      // die Zeile mit Uebergang schaltet nur die obere Lage dazu.
-      const regeln=[`.race-view .race-cell{background-image:var(--eingang,none),var(--boden,none);background-size:${W}px ${S}px,${W}px ${H}px;}`];
+      raceTileH=H;
+      const regeln=[];
       for(let z=0;z<ZONE_COLORS.length;z++){
-        regeln.push(`.race-view .race-cell.z${z}{--boden:url(${raceGroundTile(z,W,H,step)});}`);
-        regeln.push(`.race-view .race-cell.e${z}{--eingang:url(${raceEntryTile(z,W,step)});}`);
+        const boden=raceGroundTile(z,W,H,step);
+        regeln.push(`.rg-band.rg-z${z}{background-image:url(${boden.toDataURL('image/png')});background-size:${W}px ${H}px;}`);
+        regeln.push(`.rg-saum.rg-s${z}{background-image:url(${raceEntryTile(z,W,step,boden)});background-size:${W}px ${S}px;}`);
       }
       if(!raceGroundStyle){ raceGroundStyle=document.createElement('style'); raceGroundStyle.id='race-ground'; document.head.appendChild(raceGroundStyle); }
       raceGroundStyle.textContent=regeln.join('\n');
@@ -2847,12 +2861,10 @@
     race.zoneRowCounter=(race.zoneRowCounter||0)+1;
     let neueZone=false;
     if(race.zoneRowCounter>RACE_ZONE_ROWS){ race.curZone=raceNewZone(race.curZone); race.zoneRowCounter=1; neueZone=true; }
-    // Musterposition des Untergrunds: beim Aufbau nach unten wachsend, spaeter nach oben fallend.
-    // Jede Zeile behaelt ihre Zahl – nur so laeuft der Boden nahtlos weiter, wenn oben eine neue
-    // Zeile hereinrutscht (die Zeilen wandern ja im Array, das Muster darf dabei nicht springen).
-    let py;
-    if(initial){ py = race.nextPy = (race.nextPy==null ? 0 : race.nextPy+1); race.topPy=0; }
-    else py = --race.topPy;
+    // Laufende Nummer der Zeile, nach oben fallend. Sie ist der Anker fuer die Bodenebene und
+    // gilt auch beim Aufbau des Bretts – das legt seine Zeilen deshalb ebenfalls von unten nach
+    // oben an (unshift), damit Reihenfolge und Zonenwechsel dieselben sind wie im Lauf.
+    const py = --race.topPy;
     const objs=new Array(RACE_COLS).fill(null);
     if(!initial){
       const rockets = (race.rockets!=null) ? race.rockets : (race.diffKey==='schwer'||race.diffKey==='experte');
@@ -2862,14 +2874,10 @@
       }
       if(raceRnd()<(race.coinProb!=null?race.coinProb:0.13)){ for(let t=0;t<6;t++){ const cx=raceRandInt(RACE_COLS); if(!objs[cx]){ objs[cx]='coin'; break; } } }
     }
-    const row={ zone: race.curZone, objs, py };
-    // Neue Zeilen rutschen oben herein, die zuletzt erzeugte liegt also direkt darunter. Genau
-    // dorthin haengt der Eingangsstreifen der neuen Zone. Beim Aufbau des Bretts ist die
-    // Reihenfolge umgekehrt (die Zeilen werden angehaengt) – dort bleibt die Kante gerade,
-    // sie scrollt ohnehin binnen weniger Takte aus dem Bild.
-    if(neueZone && !initial && race.lastRow) race.lastRow.entry=race.curZone;
-    race.lastRow=row;
-    return row;
+    // Jede Zone bekommt ein eigenes Bodenband, verankert an ihrer untersten (zuerst erzeugten)
+    // Zeile. Der Eingangssaum haengt unter dem Band in die Zone darunter.
+    if(neueZone || !race.bands.length) race.bands.push({ zone:race.curZone, pyAnchor:py, mitSaum:neueZone, el:null, saum:null });
+    return { zone: race.curZone, objs, py };
   }
   function raceCellSize(){ const availW=Math.min(window.innerWidth||400,440)-16; const availH=(window.innerHeight||700)-240; return Math.max(20, Math.min(48, Math.floor(Math.min(availW/RACE_COLS, availH/RACE_ROWS)))); }
   const RACE_GAP=2, RACE_PAD=4;                  // muss zum CSS von .race-grid passen
@@ -2890,9 +2898,14 @@
     const grid=el('div','race-grid'+(race.free?' free':''));
     grid.style.gridTemplateColumns=`repeat(${RACE_COLS}, ${cs}px)`;
     grid.style.gridTemplateRows=`repeat(${totalRows}, ${cs}px)`;
+    // Bodenebene als erstes Kind: sie faehrt mit dem Gitter mit und liegt unter den Kaestchen
+    race.bandH=(RACE_ZONE_ROWS+2)*race.stepPx;
+    const boden=el('div','race-ground'); grid.appendChild(boden); race.groundEl=boden;
+    race.bands.forEach(b=>{ b.el=null; b.saum=null; });   // nach einem Neuaufbau frisch anlegen
     race.cells=[];
     for(let i=0;i<RACE_COLS*totalRows;i++){ const c=el('div','race-cell'); grid.appendChild(c); race.cells.push(c); }
     view.appendChild(grid);
+    raceGroundUpdate();
     // Freie Fahrt: eigene Ebene fuer Hindernisse und Muenzen, die keine Kaestchen mehr kennen
     race.objLayer=null;
     if(race.free){ const layer=el('div','race-objs'); view.appendChild(layer); race.objLayer=layer;
@@ -2913,6 +2926,46 @@
     race.shiftFrac=frac;
     race.gridEl.style.transition = ms ? `transform ${ms}ms linear` : 'none';
     race.gridEl.style.transform=`translateY(${(-(1-frac)*race.stepPx).toFixed(2)}px)`;
+  }
+  // ---- Bodenebene ----
+  // Ein Band je Farbzone statt eines Hintergrundbilds in jedem Kaestchen. Die Baender liegen im
+  // Gitter und fahren mit dessen Transform mit; je Takt aendert sich nur ihr eigener Versatz um
+  // ganze Reihen. Vorher musste die Musterposition bei jedem Takt fuer alle 91 Kaestchen neu
+  // gesetzt werden – das loeste jedes Mal einen Neuanstrich der ganzen Strecke aus und riss bei
+  // hohem Tempo sichtbar Loecher in die Bildrate (gemessen: bis 83 ms je Bild statt 16,7 ms).
+  // Ein Band ist absichtlich hoeher als das Sichtfenster und haengt an seiner untersten Zeile:
+  // dadurch bleibt seine Musterposition fuer immer stehen und nur der Versatz wandert.
+  function raceGroundUpdate(){
+    if(!race||!race.groundEl) return;
+    const step=race.stepPx, HB=race.bandH, W=RACE_COLS*step, H=raceTileH||1;
+    const raus=(RACE_ROWS+1)*step;
+    // Vorwaerts anlegen: ein Band ist absichtlich hoeher als seine Zeilen und ragt unten ueber
+    // das aeltere hinaus. Nur wenn das juengere spaeter im DOM steht, deckt es diesen Ueberstand
+    // ab – sonst laege die sichtbare Zonengrenze zwei Reihen zu hoch.
+    for(let i=0;i<race.bands.length;i++){
+      const b=race.bands[i];
+      if(!b.el){
+        b.el=el('div','rg-band rg-z'+b.zone);
+        b.el.style.left=race.pad+'px'; b.el.style.top=race.pad+'px';
+        b.el.style.width=W+'px'; b.el.style.height=HB+'px';
+        b.el.style.backgroundPosition=`0 ${((((HB-step-b.pyAnchor*step)%H)+H)%H).toFixed(1)}px`;
+        race.groundEl.appendChild(b.el);
+        if(b.mitSaum){                              // ausgefranster Eingang in die Zone darunter
+          b.saum=el('div','rg-saum rg-s'+b.zone);
+          b.saum.style.left=race.pad+'px'; b.saum.style.top=race.pad+'px';
+          b.saum.style.width=W+'px'; b.saum.style.height=Math.ceil(step)+'px';
+          race.groundEl.appendChild(b.saum);
+        }
+      }
+      const unten=(b.pyAnchor-race.topPy+1)*step;   // Unterkante des Bandes im Gitter
+      b.el.style.transform=`translateY(${(unten-HB).toFixed(1)}px)`;
+      if(b.saum) b.saum.style.transform=`translateY(${unten.toFixed(1)}px)`;
+      b.raus = unten-HB>raus;
+    }
+    for(let i=race.bands.length-1;i>=0;i--){        // Abgefahrenes erst danach entfernen
+      const b=race.bands[i];
+      if(b.raus){ b.el.remove(); if(b.saum) b.saum.remove(); race.bands.splice(i,1); }
+    }
   }
   // Wie weit die Welt seit dem letzten Takt gefahren ist (0..1 Feld) – dieselbe Uhr, nach der
   // auch der CSS-Uebergang laeuft. Damit rechnet die Trefferpruefung mit dem, was zu sehen ist.
@@ -2970,19 +3023,9 @@
     if(!race||!race.cells.length) return;
     const totalRows=RACE_ROWS+1, pend=[];
     for(let y=0;y<totalRows;y++){ const row=race.grid[y];
-      const farbe=`rgba(${ZONE_COLORS[row.zone].tint},0.82)`;
-      const posY=-(row.py||0)*race.stepPx;
-      const kennung=row.zone+'/'+(row.entry==null?'-':row.entry);
       for(let x=0;x<RACE_COLS;x++){ const cell=race.cells[y*RACE_COLS+x];
-        if(cell.firstChild) cell.textContent='';    // leere Kaestchen gar nicht erst anfassen
-        // Nur bei echter Aenderung anfassen: hinter jeder Zone stecken mehrere Verlaufslagen,
-        // die sonst bei jedem Takt fuer alle Kaestchen neu gezeichnet wuerden.
-        if(cell._z!==kennung){
-          cell.className='race-cell z'+row.zone+(row.entry==null?'':' e'+row.entry);
-          cell.style.backgroundColor=farbe; cell._z=kennung;
-        }
-        // Der Eingangsstreifen sitzt oben in der Zeile, der Boden folgt seiner Musterposition
-        if(cell._py!==row.py){ cell.style.backgroundPosition=`${-x*race.stepPx}px 0px, ${-x*race.stepPx}px ${posY}px`; cell._py=row.py; }
+        // Die Kaestchen tragen nur noch die Objekte – Farbe und Muster kommen von der Bodenebene.
+        if(cell.firstChild) cell.textContent='';
         const o=row.objs[x];
         if(o==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); cell.appendChild(d); }
         else if(o==='rocket'){ const d=el('div','rocket'), inner=el('div','rk-in');
@@ -3189,6 +3232,7 @@
     // Die Welt ist gerade eingerastet – ab hier zaehlt der neue Takt, sonst rechnet die
     // Trefferpruefung noch mit dem Fortschritt der vorigen Reihe.
     race.frameT0=Date.now();
+    raceGroundUpdate();                            // Baender eine Reihe weiterruecken
     race.score++; race.rowsPassed++;
     if(race.skid>0){ race.carX=clamp(race.carX+race.skidDir,0,RACE_COLS-1); race.skid--; }
     if(race.airborne>0){ race.airborne--; if(race.airborne<=0){ race.airborne=0; race.jumpCd=3; } }
@@ -3409,6 +3453,7 @@
       skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:null,
       // Freie Fahrt: im Online-Duell aus, sonst faehren beide Geraete nach verschiedenen Regeln
       free: raceFreeOpt && opts.seed==null, objs:[], objLayer:null,
+      topPy:1, bands:[], groundEl:null, bandH:0, pad:RACE_PAD, gap:RACE_GAP,
       heldBtn:null, holdVx:0, burstVx:0, burstUntil:0, skidVx:0, skidUntil:0, flipAt:0, flipVx:0,
       frameT0:Date.now(), frameIv:0, frameLast:0, raf:null,
       rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
@@ -3439,8 +3484,9 @@
       });
     }
     race.ov=opts;
-    // eine Zeile mehr als sichtbar: die oberste haengt verdeckt ueber dem Feld und rutscht in Halbschritten herein
-    for(let y=0;y<RACE_ROWS+1;y++) race.grid.push(raceSpawnRow(true));
+    // eine Zeile mehr als sichtbar: die oberste haengt verdeckt ueber dem Feld und rutscht in
+    // Halbschritten herein. Aufbau von unten nach oben (unshift) – genau wie im laufenden Spiel.
+    for(let y=0;y<RACE_ROWS+1;y++) race.grid.unshift(raceSpawnRow(true));
     race.lastCarZone=raceCarRowData().zone;
     buildRaceBoard(); raceRender(); raceRenderStats();
     $('race-overlay').classList.add('hidden');
