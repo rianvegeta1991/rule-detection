@@ -1564,7 +1564,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.33";
+  const APP_VERSION = "1.34";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2918,14 +2918,12 @@
     race.gridEl=grid; race.carEl=car;
     raceApplyShift(0);
   }
-  // frac 0 = Feld gerade eingerastet, 0.5 = die Welt ist ein halbes Feld weitergezogen
-  // frac 0 = gerade eingerastet, 1 = eine volle Reihe weiter. Mit ms laeuft die Fahrt weich
-  // durch (statt in Spruengen); ohne ms rastet sie sofort ein.
-  function raceApplyShift(frac, ms){
+  // frac 0 = Feld gerade eingerastet, 1 = eine volle Reihe weiter. Gesetzt wird der Wert bei
+  // jedem Bild aus der Weltuhr – kein CSS-Uebergang mehr, der bei jedem Takt neu starten muesste.
+  function raceApplyShift(frac){
     if(!race||!race.gridEl) return;
     race.shiftFrac=frac;
-    race.gridEl.style.transition = ms ? `transform ${ms}ms linear` : 'none';
-    race.gridEl.style.transform=`translateY(${(-(1-frac)*race.stepPx).toFixed(2)}px)`;
+    race.gridEl.style.transform=`translateY(${((frac-1)*race.stepPx).toFixed(2)}px)`;
   }
   // ---- Bodenebene ----
   // Ein Band je Farbzone statt eines Hintergrundbilds in jedem Kaestchen. Die Baender liegen im
@@ -2967,9 +2965,9 @@
       if(b.raus){ b.el.remove(); if(b.saum) b.saum.remove(); race.bands.splice(i,1); }
     }
   }
-  // Wie weit die Welt seit dem letzten Takt gefahren ist (0..1 Feld) – dieselbe Uhr, nach der
-  // auch der CSS-Uebergang laeuft. Damit rechnet die Trefferpruefung mit dem, was zu sehen ist.
-  function raceShiftNow(){ if(!race||!race.frameIv) return 0; return clamp((Date.now()-race.frameT0)/race.frameIv, 0, 1); }
+  // Wie weit die Welt seit dem letzten Takt gefahren ist (0..1 Feld). Genau der Wert, der im selben
+  // Bild auch die Strecke verschoben hat – Treffer, Boden und Objekte rechnen also alle damit.
+  function raceShiftNow(){ return race ? (race.shiftFrac||0) : 0; }
   // Sichtbarer Antriebsversatz einer Rakete in Feldern (folgt der laufenden Animation)
   function raceRocketDriftNow(){
     if(!race.rocketThrust) return 0;
@@ -2978,13 +2976,9 @@
     const k=1-(Date.now()-race.rkThrustT0)/race.rkThrustMs;
     return k>0 ? ty-0.5*k : ty;
   }
-  // beim Pausieren dort stehen bleiben, wo die Welt gerade ist
-  function raceFreezeShift(){
-    if(!race||!race.gridEl) return;
-    const cur=getComputedStyle(race.gridEl).transform;
-    race.gridEl.style.transition='none';
-    if(cur && cur!=='none') race.gridEl.style.transform=cur;
-  }
+  // Beim Pausieren bleibt die Welt von selbst stehen: die Weltuhr laeuft nur, solange
+  // raceStep aufgerufen wird. Beim Fortsetzen setzt raceSchedule den Zeitpunkt neu.
+  function raceFreezeShift(){}
   // Raketen gleiten zwischen den Feldern, statt zu springen – aussen der Antrieb (senkrecht), innen
   // der Seitenschritt, damit beide Bewegungen ihre eigene Dauer behalten. Alles rein optisch:
   // gerechnet wird weiter in ganzen Feldern (raceMoveRockets / raceRocketThrust).
@@ -3046,20 +3040,43 @@
   }
   function raceRenderStats(){ $('race-stats').innerHTML=`Punkte <b>${race.score}</b> &middot; M&uuml;nzen <b>${race.coins}</b> &middot; <b>${ZONE_COLORS[raceCarRowData().zone].name}</b>`; raceRenderDuel(); }
   function raceClearTimers(){ if(race){ clearTimeout(race.timer); cancelAnimationFrame(race.raf); race.raf=null; } }
+  // ---- Weltuhr ----
+  // Strecke, Kaestchen, Boden und die freien Objekte haengen an EINER stetig laufenden Position.
+  // Vorher fuhr die Welt per CSS-Uebergang, der bei jedem Takt neu gestartet wurde, waehrend die
+  // Objekte an einer eigenen Uhr hingen. Kam der Takt zu spaet – bei kurzen Reihenzeiten reichen
+  // dafuer wenige Millisekunden – stand die Welt kurz still und die Objekte verschoben sich
+  // sichtbar gegen den Hintergrund. Jetzt gibt es nur noch worldY, und alles liest denselben Wert.
+  function raceAdvance(){
+    const now=performance.now(), iv=raceInterval();
+    const dt=Math.min(now-race.worldT, 4*iv);           // nach einer langen Pause nicht aufholen
+    race.worldT=now;
+    race.worldY+=dt/iv;
+  }
+  function raceStep(){
+    if(!race||!race.alive||!race.mounted) return;
+    raceAdvance();
+    let n=0, weiter=true;
+    while(weiter && race.worldY>=race.rowsDone+1){
+      race.rowsDone++;
+      // Bildstand VOR dem Takt nachziehen: raceTick prueft selbst auf Treffer, und die Zeilen
+      // sind darin schon weitergerueckt. Mit dem alten Stand laege die Pruefung eine Reihe daneben.
+      race.shiftFrac=race.worldY-race.rowsDone;
+      weiter=raceTick();
+      if(++n>=4){ race.rowsDone=Math.floor(race.worldY); break; }
+    }
+    raceApplyShift(race.worldY-race.rowsDone);
+    if(!weiter) return;                                 // Spiel vorbei – Bild steht passend
+    if(race.free) raceFreeStep();
+    else if(!raceCollide()) return;
+    clearTimeout(race.timer);
+    race.timer=setTimeout(raceStep, 120);               // Rueckfall, wenn keine Bilder kommen
+  }
   function raceSchedule(){
     if(!race||!race.alive||!race.mounted) return;
-    const iv=raceInterval();
-    raceApplyShift(0);                                  // frisch eingerastet (ohne Uebergang)
-    void race.gridEl.offsetHeight;                      // Reflow: sonst schluckt der Browser den Startwert
-    // Die Welt faehrt gleichmaessig eine ganze Reihe weiter; nach dem halben Intervall steht sie
-    // genau auf dem halben Feld. Die Spiellogik bleibt unveraendert – gerechnet wird nur in raceTick.
-    raceApplyShift(1, iv);
-    race.frameT0=Date.now(); race.frameIv=iv;            // Uhr, an der die Trefferpruefung haengt
-    race.timer=setTimeout(raceTick, iv);
-    // Jeden Takt neu anwerfen (vorher abbestellen, damit nicht zwei Schleifen laufen): so faengt
-    // sich die Bildschleife selbst wieder ein, falls ein Handle mal ins Leere zeigt.
-    cancelAnimationFrame(race.raf);
-    race.raf=requestAnimationFrame(raceFrame);
+    race.worldT=performance.now();                      // Pausen zaehlen nicht mit
+    raceApplyShift(race.worldY-race.rowsDone);
+    clearTimeout(race.timer); race.timer=setTimeout(raceStep, 120);
+    cancelAnimationFrame(race.raf); race.raf=requestAnimationFrame(raceFrame);
   }
   // Jede Rakete darf pro Durchlauf genau EIN Feld zur Seite – erst alle Positionen sammeln,
   // sonst wandert dieselbe Rakete in der Schleife gleich zweimal weiter.
@@ -3210,17 +3227,16 @@
       const c=raceCarClass(); if(race.carEl.className!==c) race.carEl.className=c;
     }
   }
-  // Trefferpruefung laeuft mit jedem Bild, nicht nur im Takt – sonst haengt sie der Ansicht nach
+  // Ein Bild = ein Schritt der Weltuhr. Alles andere haengt daran.
   function raceFrame(){
     if(!race) return;
     race.raf=null;                                     // immer loeschen, auch beim Aussteigen –
     if(!race.alive||!race.mounted) return;              // sonst haelt ein toter Handle die Schleife an
-    if(race.free) raceFreeStep();
-    else if(!raceCollide()) return;
-    race.raf=requestAnimationFrame(raceFrame);
+    raceStep();
+    if(race && race.alive && race.mounted) race.raf=requestAnimationFrame(raceFrame);
   }
   function raceTick(){
-    if(!race||!race.alive||!race.mounted) return;
+    if(!race||!race.alive||!race.mounted) return false;
     race.tickCount++;
     if(race.free){
       race.grid.pop(); race.grid.unshift(raceSpawnFreeRow());
@@ -3229,9 +3245,6 @@
       if(race.rocketThrust && race.tickCount%2===0) raceRocketThrust();
       race.grid.pop(); race.grid.unshift(raceSpawnRow(false));
     }
-    // Die Welt ist gerade eingerastet – ab hier zaehlt der neue Takt, sonst rechnet die
-    // Trefferpruefung noch mit dem Fortschritt der vorigen Reihe.
-    race.frameT0=Date.now();
     raceGroundUpdate();                            // Baender eine Reihe weiterruecken
     race.score++; race.rowsPassed++;
     if(race.skid>0){ race.carX=clamp(race.carX+race.skidDir,0,RACE_COLS-1); race.skid--; }
@@ -3240,10 +3253,11 @@
     if(race.bHopCd>0) race.bHopCd--;
     const zoneNow=raceCarRowData().zone;
     if(zoneNow!==race.lastCarZone){ if(race.bubble>0){ race.bubble--; if(race.bubble===0) race.bubbleDist=null; } race.lastCarZone=zoneNow; }
-    if(!raceCollide()) return;
-    if(raceCheckDuelWin()) return;
-    raceRender(); raceRenderStats(); raceSchedule();
+    if(!raceCollide()) return false;
+    if(raceCheckDuelWin()) return false;
+    raceRender(); raceRenderStats();
     if(raceDuel && raceDuel.kind==='online') raceOnlinePublish();
+    return true;
   }
   // ---- Steuerung ----
   function raceActiveDist(){ return race.bubble>0 ? race.bubbleDist : race.zoneDistort[raceCarRowData().zone]; }
@@ -3454,8 +3468,9 @@
       // Freie Fahrt: im Online-Duell aus, sonst faehren beide Geraete nach verschiedenen Regeln
       free: raceFreeOpt && opts.seed==null, objs:[], objLayer:null,
       topPy:1, bands:[], groundEl:null, bandH:0, pad:RACE_PAD, gap:RACE_GAP,
+      worldY:0, rowsDone:0, worldT:0, shiftFrac:0,     // Weltuhr: eine Position fuer alles
       heldBtn:null, holdVx:0, burstVx:0, burstUntil:0, skidVx:0, skidUntil:0, flipAt:0, flipVx:0,
-      frameT0:Date.now(), frameIv:0, frameLast:0, raf:null,
+      frameLast:0, raf:null,
       rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
       rng: (opts.seed!=null ? mulberry32(opts.seed>>>0) : null),
       rocketThrust:(opts.thrust!=null?opts.thrust:(diffKey==='experte')), rocketDrift:0,   // Friedhof: Raketen haben Antrieb
