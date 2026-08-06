@@ -1568,7 +1568,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.35";
+  const APP_VERSION = "1.36";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -5260,8 +5260,12 @@
       $('onl-gvariant').innerHTML=''; ONL_VARIANTS[mode].forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=t; $('onl-gvariant').appendChild(o); });
       if(ONL_VARIANTS[mode].some(([v])=>v===cur)) $('onl-gvariant').value=cur;
     }
-    const variant = locked ? ovFromSpec(edUsers[prof]).variant : $('onl-gvariant').value;
-    $('onl-wincond').classList.toggle('hidden', variant==='gerangel');
+    const spec = locked ? ovFromSpec(edUsers[prof]) : null;
+    const variant = locked ? spec.variant : $('onl-gvariant').value;
+    const modus = locked ? spec.mode : $('onl-mode').value;
+    // Die Siegbedingung gibt es nur, wo ein Ziel zu erreichen ist. Im Gerangel zaehlen Punkte,
+    // im Racing gefahrene Reihen – dort waere die Wahl wirkungslos.
+    $('onl-wincond').classList.toggle('hidden', variant==='gerangel' || modus==='racing');
   }
   function onlPopulateProfiles(){
     const s=$('onl-profile'); const names=Object.keys(edUsers=edUsersLoad());
