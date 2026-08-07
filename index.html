@@ -1744,7 +1744,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.38";
+  const APP_VERSION = "1.39";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2632,7 +2632,8 @@
   // Eigene, fröhliche Hintergrundmelodie (F-Dur, entspannt – im Geist von Wii Sports, aber originär).
   const MUSIC_TEMPO=112;
   const N={C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392.00,A4:440.00,Bb4:466.16,C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99,
-           F3:174.61,G3:196.00,A3:220.00,Bb3:233.08,C4b:261.63,D3:146.83,C3:130.81,E3:164.81};
+           F3:174.61,G3:196.00,A3:220.00,Bb3:233.08,C4b:261.63,D3:146.83,C3:130.81,E3:164.81,
+           F2:87.31,Ab2:103.83,Bb2:116.54,Db3:138.59,Eb3:155.56,Ab4:415.30,Eb5:622.25};
   const MUSIC_MELODY=[  // [Frequenz|0=Pause, Schläge]
     [N.A4,0.5],[N.C5,0.5],[N.F5,1],[N.A4,0.5],[N.G4,0.5],[N.F4,1],
     [N.A4,0.5],[N.D5,0.5],[N.A4,1],[N.F4,0.5],[N.E4,0.5],[N.D4,1],
@@ -2662,21 +2663,33 @@
             [N.A4,1],[N.C5,0.5],[N.Bb4,0.5],[N.A4,1],
             [N.G4,1],[N.F4,0.5],[N.E4,0.5],[N.D4,1] ],
       bass:[ [N.D3,2],[N.A3,2],[N.Bb3,2],[N.F3,2],[N.G3,2],[N.A3,2] ] },
-    // Strecke: schnell und treibend, durchgehende Achtel
-    racing:{ tempo:150, melTyp:'square', bassTyp:'sine', melVol:0.12, bassVol:0.22,
-      mel:[ [N.F4,0.5],[N.A4,0.5],[N.C5,0.5],[N.A4,0.5],[N.Bb4,0.5],[N.D5,0.5],[N.C5,1],
-            [N.G4,0.5],[N.Bb4,0.5],[N.D5,0.5],[N.Bb4,0.5],[N.C5,0.5],[N.E5,0.5],[N.F5,1],
-            [N.F5,0.5],[N.E5,0.5],[N.D5,0.5],[N.C5,0.5],[N.Bb4,0.5],[N.A4,0.5],[N.G4,1],
-            [N.A4,0.5],[N.C5,0.5],[N.F5,0.5],[N.C5,0.5],[N.A4,0.5],[N.G4,0.5],[N.F4,1] ],
-      bass:[ [N.F3,2],[N.F3,2],[N.Bb3,2],[N.Bb3,2],[N.C4,2],[N.C4,2],[N.F3,2],[N.G3,2] ] }
+    // Strecke: f-Moll-Pentatonik, synkopiert und mit Luft dazwischen. Der Bass stampft in
+    // Achteln, die Leadstimme sitzt auf Saegezahn, und zweimal je Schleife zieht ein
+    // Laser-Sweep durch. Bewusst nicht auf jedem Achtel eine Melodienote – das war das Nervige.
+    racing:{ tempo:150, melTyp:'sawtooth', bassTyp:'square', melVol:0.10, bassVol:0.15,
+      zapTyp:'sawtooth', zapVol:0.075,
+      mel:[ [N.F5,0.5],[N.Eb5,0.5],[N.C5,1],[0,0.5],[N.Bb4,0.5],[N.C5,1],
+            [N.Ab4,0.5],[N.C5,0.5],[N.Eb5,1],[N.C5,0.5],[N.Bb4,0.5],[N.Ab4,1],
+            [N.F5,0.5],[N.F5,0.5],[N.Eb5,0.5],[N.C5,0.5],[N.Bb4,1],[0,1],
+            [N.Eb5,0.5,1244.5],[0,0.5],[N.C5,0.5],[N.Bb4,0.5],[N.F4,1],[0,1] ],
+      bass:[ [N.F2,0.5],[N.F2,0.5],[N.F2,0.5],[N.Ab2,0.5],[N.F2,0.5],[N.F2,0.5],[N.C3,0.5],[N.Bb2,0.5],
+             [N.Ab2,0.5],[N.Ab2,0.5],[N.Ab2,0.5],[N.C3,0.5],[N.Ab2,0.5],[N.Ab2,0.5],[N.Eb3,0.5],[N.C3,0.5],
+             [N.Db3,0.5],[N.Db3,0.5],[N.Db3,0.5],[N.F2,0.5],[N.Db3,0.5],[N.Db3,0.5],[N.Ab2,0.5],[N.F2,0.5],
+             [N.C3,0.5],[N.C3,0.5],[N.Bb2,0.5],[N.C3,0.5],[N.F2,0.5],[N.F2,0.5],[N.F2,0.5],[N.C3,0.5] ],
+      zap:[ [1600,0.3,240],[0,7.7],[1150,0.3,200],[0,7.7] ] }
   };
   let musicTrack='menu';
   function buildMusicEvents(){
     const t=MUSIC_TRACKS[musicTrack]||MUSIC_TRACKS.menu;
-    const spb=60/t.tempo; const ev=[]; let tb=0;
-    t.mel.forEach(([f,b])=>{ if(f) ev.push({t:tb*spb, f, dur:b*spb*0.9, type:t.melTyp, vol:t.melVol}); tb+=b; });
-    const loopBeats=tb; tb=0;
-    t.bass.forEach(([f,b])=>{ if(f) ev.push({t:tb*spb, f, dur:b*spb*0.95, type:t.bassTyp, vol:t.bassVol}); tb+=b; });
+    const spb=60/t.tempo; const ev=[];
+    // Eine Note ist [Frequenz|0=Pause, Schlaege] – optional folgt ein Ziel, auf das die Tonhoehe
+    // gleitet. Damit lassen sich Sirenen und Laser-Sweeps schreiben.
+    const lege=(liste, typ, vol, kurz)=>{ let tb=0;
+      (liste||[]).forEach(([f,b,gleitZu])=>{ if(f) ev.push({t:tb*spb, f, dur:b*spb*kurz, type:typ, vol, slide:gleitZu||null}); tb+=b; });
+      return tb; };
+    const loopBeats=lege(t.mel, t.melTyp, t.melVol, 0.9);
+    lege(t.bass, t.bassTyp, t.bassVol, 0.95);
+    if(t.zap) lege(t.zap, t.zapTyp||'sawtooth', t.zapVol||0.09, 1);
     ev.sort((a,b)=>a.t-b.t);
     return { ev, loopLen:loopBeats*spb };
   }
@@ -2693,7 +2706,7 @@
       if(musicIdx>=musicData.ev.length){ musicIdx=0; musicLoopStart+=musicData.loopLen; }
       const e=musicData.ev[musicIdx]; const when=musicLoopStart+e.t;
       if(when > audioCtx.currentTime + ahead) break;
-      tone(e.f, e.dur, e.type, when, e.vol, null, musicGain);
+      tone(e.f, e.dur, e.type, when, e.vol, e.slide, musicGain);
       musicIdx++;
     }
   }
