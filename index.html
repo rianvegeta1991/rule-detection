@@ -101,6 +101,16 @@
   .mc-inner{position:absolute; left:50%; top:50%; pointer-events:none; transform-origin:center center;}
   .mc-inner .race-grid{box-shadow:none;}
   /* "Start" ueber dem Vorschaubild – nur auf der zentrierten Kachel, im 3-s-Takt ein- und ausblendend */
+  /* Racing-Vorschau: die Strecke laeuft endlos durch. Das Raster ist doppelt so hoch wie das
+     Sichtfenster und wiederholt sich, deshalb ist der Sprung am Ende der Schleife unsichtbar. */
+  .mc-race{position:relative; overflow:hidden; border-radius:8px;}
+  .mc-race .race-grid{position:absolute; left:0; top:0; margin:0; border:none; box-shadow:none;
+    animation:mcScroll 3.4s linear infinite; will-change:transform;}
+  @keyframes mcScroll{ from{transform:translateY(calc(var(--mc-lauf) * -1));} to{transform:translateY(0);} }
+  .mc-race .mc-car{position:absolute; z-index:3; display:flex; align-items:center; justify-content:center;
+    animation:mcSway 2.6s ease-in-out infinite alternate;}
+  .mc-race .mc-car svg{width:88%; height:88%; display:block; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.6));}
+  @keyframes mcSway{ from{transform:translateX(-26px) rotate(-7deg);} to{transform:translateX(26px) rotate(7deg);} }
   .mc-start{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); z-index:4; text-align:center;
     font-family:'Palatino Linotype','Book Antiqua',Georgia,serif; font-size:2.7rem; font-weight:700; letter-spacing:0.1em;
     color:#fff; text-shadow:0 2px 10px rgba(0,0,0,0.9), 0 0 26px rgba(var(--accent-rgb),0.95);
@@ -770,6 +780,14 @@
     </div>
   </div>
 
+  <div id="race-variant-block" class="hidden">
+    <div class="tab-caption">Variante</div>
+    <div class="mode-tabs" id="race-variant-tabs">
+      <button class="mode-tab active" data-rvariant="grid">K&auml;stchen</button>
+      <button class="mode-tab" data-rvariant="free">Freie Fahrt</button>
+    </div>
+  </div>
+
   <div id="winmode-block" class="hidden">
     <div class="tab-caption">Siegbedingung im Duell</div>
     <div class="mode-tabs" id="winmode-tabs">
@@ -1173,10 +1191,6 @@
     <input type="range" id="opt-sfx" min="0" max="100" step="5" value="100" style="width:100%;">
     <label class="small" style="margin:12px 0 2px;">&#127925; Hintergrundmusik: <b id="music-val">55%</b></label>
     <input type="range" id="opt-music" min="0" max="100" step="5" value="55" style="width:100%;">
-    <label class="small" style="margin:18px 0 0; display:flex; align-items:center; gap:9px; cursor:pointer;">
-      <input type="checkbox" id="opt-racefree" style="width:17px; height:17px; accent-color:var(--gold); flex:0 0 auto;">
-      <span>&#127950;&#65039; Racing: freie Fahrt</span>
-    </label>
     <button class="action" id="sound-test" style="width:100%; margin-top:14px;">&#128264; Ton testen</button>
     <button class="action" id="open-guide" style="width:100%; margin-top:14px;">&#128218; Anleitung</button>
   </div>
@@ -1205,7 +1219,7 @@
       <summary>Racing-Modus</summary>
       <div class="intro" style="margin-top:8px;">
         Dein Auto f&auml;hrt am unteren Rand, die Strecke kommt dir entgegen. <b>&#9664; / &#9654;</b> lenken, <b>A</b> hebt das Auto 2,5 Felder ab (danach 3 Felder Pause), <b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei &ndash; auch wenn du die Zone wechselst. Bomben und Raketen bedeuten das Aus, M&uuml;nzen bringen Punkte. Wie im Feld- und Kreis-Modus verzerren die <b>Farbzonen</b> deine Eingaben, und zwar verborgen: Herausfinden ist die eigentliche Aufgabe. Getroffen wird erst, wenn sich Auto und Hindernis deutlich &uuml;berdecken &ndash; ein Streifen am Rand geht noch gut.<br><br>
-        <b>Freie Fahrt</b> (in den Einstellungen): Damit f&auml;llt die K&auml;stchenbindung weg. Das Auto f&auml;hrt seitlich, <b>solange du die Taste gedr&uuml;ckt h&auml;ltst</b>, und Hindernisse, M&uuml;nzen und Raketen liegen frei auf der Strecke statt in Feldern &ndash; Raketen suchen sich dabei immer wieder neue Bahnen. Die Regeln zum Seitw&auml;rtsfahren wirken hier nicht mehr auf die Feldzahl, sondern auf die <b>Geschwindigkeit</b>: Wo sonst „zwei Felder" st&uuml;nde, f&auml;hrt das Auto doppelt so schnell. Im Online-Duell bleibt die freie Fahrt aus, damit beide Ger&auml;te nach denselben Regeln fahren.
+        <b>Freie Fahrt</b> (Variante im Hauptmen&uuml;): Damit f&auml;llt die K&auml;stchenbindung weg. Das Auto f&auml;hrt seitlich, <b>solange du die Taste gedr&uuml;ckt h&auml;ltst</b>, und Hindernisse, M&uuml;nzen und Raketen liegen frei auf der Strecke statt in Feldern &ndash; Raketen suchen sich dabei immer wieder neue Bahnen. Die Regeln zum Seitw&auml;rtsfahren wirken hier nicht mehr auf die Feldzahl, sondern auf die <b>Geschwindigkeit</b>: Wo sonst „zwei Felder" st&uuml;nde, f&auml;hrt das Auto doppelt so schnell. Im Online-Duell bleibt die freie Fahrt aus, damit beide Ger&auml;te nach denselben Regeln fahren.
       </div>
     </details>
     <details class="ed-adv">
@@ -1465,18 +1479,34 @@
       inner.style.transform=`translate(-50%,-50%) scale(${k.toFixed(3)})`;
     }
   }
+  // Die Vorschau zeigt die gerade gewaehlte Variante und spielt sich selbst: im Feld laufen echte
+  // Zuege durch dieselbe Funktion wie im Spiel, der Kreis dreht seine Ringe, die Strecke scrollt.
+  // Angetrieben wird immer nur die zentrierte Kachel – die anderen stehen still.
+  const previewDemos=[];
   function buildModePreview(host, mode){
     if(!host) return;
+    const alt=previewDemos.findIndex(d=>d.host===host);
+    if(alt>=0) previewDemos.splice(alt,1);
     host.innerHTML='';
     const inner=el('div','mc-inner');
     host.appendChild(inner);
+    let demo=null;
     try{
       if(mode==='grid'){
+        const vari=gridVariant==='spurensuche'?'spurensuche':'gerangel';
         seedRng(PREVIEW_SEED);
         let shared=null;
-        try{ shared=buildGridShared('mittel','gerangel',false,{}); } finally{ unseedRng(); }
+        try{ shared=buildGridShared('mittel',vari,false,{}); } finally{ unseedRng(); }
         const b=createGridBoard(inner, shared, 22, [{startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:''}]);
         renderGridBoard(b);
+        // Echte Zuege: dieselbe Funktion wie im Spiel, nur ohne Ton
+        demo={ takt:1, schritt(){
+          const f=b.figs[0];
+          if(f.done){ renderGridBoard(b); return false; }      // Ziel erreicht -> neu aufbauen
+          sfxStumm++;
+          try{ gridBoardSubmit(b, 0, randInt(4)); } finally{ sfxStumm--; }
+          return true;
+        }};
       } else if(mode==='circle'){
         seedRng(PREVIEW_SEED+7);
         let cfg=null;
@@ -1488,34 +1518,68 @@
         // in der Vorschau darf das SVG seine natuerliche Groesse behalten – sonst misst previewFit falsch
         const svg=holder.querySelector('svg'); if(svg) svg.style.maxWidth='none';
         renderDetectiveCenter(holder, 0, '', null, 0.72);
+        // Ringe drehen sich, die Figur wandert – wie nach einer Eingabe im Spiel
+        demo={ takt:1, schritt(){
+          cs.rings.forEach((r,i)=>{ r.offsetVisual=(r.offsetVisual||0) + (i%2?-1:1)*(360/r.fieldCount); });
+          const ring=cs.rings[cs.ringIdx];
+          cs.index=((cs.index + (Math.random()<0.5?1:2)) % ring.fieldCount + ring.fieldCount) % ring.fieldCount;
+          applyRingTransforms(cs); positionMarker(cs);
+          return true;
+        }};
       } else {
-        // Racing: dieselben Klassen und Bausteine wie im laufenden Spiel
-        const cols=RACE_COLS, rows=5, cell=26;
-        const grid=el('div','race-grid');
+        // Racing: dieselben Bausteine wie im Spiel. Die Strecke scrollt endlos durch (CSS),
+        // die Kaestchenraster faellt in der freien Fahrt weg.
+        const frei=!!raceFreeOpt;
+        const cols=RACE_COLS, sicht=5, cell=26, schritt=cell+(frei?0:RACE_GAP);
+        const grid=el('div','race-grid'+(frei?' free':''));
         grid.style.gridTemplateColumns=`repeat(${cols}, ${cell}px)`;
-        grid.style.gridTemplateRows=`repeat(${rows}, ${cell}px)`;
+        grid.style.gridTemplateRows=`repeat(${sicht*2}, ${cell}px)`;
+        if(frei){ grid.style.gap='0'; grid.style.padding='0'; }
         const objs={ '0,5':'coin', '1,1':'rocket', '2,4':'bomb', '3,2':'coin', '3,6':'bomb' };
-        for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
-          const z = y<3 ? 1 : 0;                       // zwei Farbzonen mit sichtbarer Grenze
-          const c=el('div','race-cell z'+z);           // mit Bodenmuster, wie im Spiel
+        for(let y=0;y<sicht*2;y++) for(let x=0;x<cols;x++){
+          const yy=y%sicht;                              // zweite Haelfte wiederholt die erste -> nahtlose Schleife
+          const z = yy<3 ? 1 : 0;                        // zwei Farbzonen mit sichtbarer Grenze
+          const c=el('div','race-cell z'+z);             // mit Bodenmuster, wie im Spiel
           c.style.backgroundColor=`rgba(${ZONE_COLORS[z].tint},0.82)`;
-          c.style.backgroundPosition=`${-x*(cell+RACE_GAP)}px ${-y*(cell+RACE_GAP)}px`;
-          const t=objs[y+','+x];
+          c.style.backgroundPosition=`${-x*schritt}px ${-yy*schritt}px`;
+          const t=objs[yy+','+x];
           if(t==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); c.appendChild(d); }
           else if(t==='rocket'){ const d=el('div','rocket'); d.innerHTML=rocketSvg(); c.appendChild(d); }
           else if(t==='coin'){ c.appendChild(el('div','coin')); }
-          if(y===rows-2 && x===3){ const car=el('div','car'); car.innerHTML=carSvg(); c.appendChild(car); }
           grid.appendChild(c);
         }
-        inner.appendChild(grid);
+        const bahn=el('div','mc-race');                  // Sichtfenster: schneidet die zweite Haelfte ab
+        bahn.style.width=(cols*cell+(frei?0:(cols-1)*RACE_GAP))+'px';
+        bahn.style.height=(sicht*cell+(frei?0:(sicht-1)*RACE_GAP))+'px';
+        grid.style.setProperty('--mc-lauf', (sicht*schritt)+'px');
+        bahn.appendChild(grid);
+        const auto=el('div','mc-car'); auto.innerHTML=carSvg();
+        auto.style.width=cell+'px'; auto.style.height=cell+'px';
+        auto.style.left=(3*schritt)+'px'; auto.style.top=((sicht-2)*schritt)+'px';
+        bahn.appendChild(auto);
+        inner.appendChild(bahn);
+        demo=null;                                       // laeuft ueber CSS, kein Takt noetig
       }
     }catch(e){ console.warn('Vorschau fehlgeschlagen:', mode, e); }
     // "Start" liegt ueber dem Vorschaubild – blendet langsam auf und wieder weg (3-s-Takt)
     const badge=el('div','mc-start'); badge.textContent='Start'; host.appendChild(badge);
+    if(demo){ demo.host=host; demo.mode=mode; previewDemos.push(demo); }
     requestAnimationFrame(()=>previewFit(host, inner, mode));
     setTimeout(()=>previewFit(host, inner, mode), 150);
     window.addEventListener('resize', ()=>previewFit(host, inner, mode));
   }
+  // Ein Takt fuer alle Vorschauen: bewegt wird nur die zentrierte Kachel, und nur solange der
+  // Startbildschirm zu sehen ist. Laeuft ein Demo aus (Ziel erreicht), wird es neu aufgebaut.
+  setInterval(()=>{
+    if($('start-screen').classList.contains('hidden')) return;
+    previewDemos.slice().forEach(d=>{
+      const karte=d.host.closest('.mode-card');
+      if(!karte || !karte.classList.contains('active')) return;
+      let weiter=true;
+      try{ weiter=d.schritt(); }catch(e){ weiter=false; }
+      if(!weiter) buildModePreview(d.host, d.mode);
+    });
+  }, 1100);
 
   const STEP_POOLS = {
     leicht: ['normal','reverse'],
@@ -1568,7 +1632,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.36";
+  const APP_VERSION = "1.37";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2438,7 +2502,10 @@
     const g=audioCtx.createGain(); g.gain.setValueAtTime(vol||0.6,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
     src.connect(lp); lp.connect(g); g.connect(sfxGain||masterGain); src.start(t0); src.stop(t0+dur+0.03);
   }
+  // Die Modus-Vorschauen spielen echte Zuege – dabei darf der Startbildschirm nicht piepen.
+  let sfxStumm=0;
   function sfx(name){
+    if(sfxStumm) return;
     if(!sfxOn || !audioResume()) return; const t=audioCtx.currentTime;
     switch(name){
       case 'coin': tone(1046,0.09,'square',t,0.22); tone(1568,0.13,'square',t+0.08,0.2); break;
@@ -2572,6 +2639,8 @@
   const RACE_ZONES={ leicht:2, mittel:3, schwer:4, experte:4 };
   const RACE_BOMB={ leicht:0.10, mittel:0.15, schwer:0.20, experte:0.28 };
   const RACE_DIST_POOL=['swapLR','double','repeatInvert','delay','swapActDir','swapAB','actionPool'];
+  // Nur in der freien Fahrt sinnvoll: im Kaestchen-Modus haelt ein Tipp ohnehin nach einem Feld an.
+  const RACE_DIST_FREE_ONLY=['brake'];
   const RACE_DIST_LABEL={
     none:'Neutral – die Tasten tun genau das, was draufsteht.',
     swapLR:'Links und Rechts sind vertauscht.',
@@ -2580,11 +2649,13 @@
     delay:'Deine Richtungswahl wird um eine Eingabe verzögert ausgeführt.',
     swapActDir:'Aktions- und Richtungstasten sind vertauscht (← wirkt wie A, → wie B).',
     swapAB:'Die Aktionstasten A und B sind untereinander vertauscht.',
-    actionPool:'Beide Aktionen sind ausgetauscht: A schiebt das Auto 2 Felder in die zuletzt gewählte Richtung, B lässt es schlingern – 3 Felder lang unsteuerbar.'
+    actionPool:'Beide Aktionen sind ausgetauscht: A schiebt das Auto 2 Felder in die zuletzt gewählte Richtung, B lässt es schlingern – 3 Felder lang unsteuerbar.',
+    brake:'Das Auto stoppt nach kurzer Zeit wieder &ndash; auch wenn du die Taste gedr&uuml;ckt h&auml;ltst.'
   };
   // In der freien Fahrt zaehlt die Seitengeschwindigkeit, nicht die Feldzahl
   const RACE_DIST_LABEL_FREE={
     double:'Jede Richtung schiebt das Auto mit doppelter Seitengeschwindigkeit.',
+    brake:'Das Auto stoppt nach kurzer Zeit wieder, auch bei gedr&uuml;ckter Taste &ndash; weiter als ein Feld kommt es damit nicht.',
     repeatInvert:'Dieselbe Richtung zweimal hintereinander kehrt sich um &ndash; h&auml;ltst du die Taste, dreht das Auto nach einer halben Sekunde von selbst.',
     actionPool:'Beide Aktionen sind ausgetauscht: A schiebt das Auto mit doppelter Geschwindigkeit in die zuletzt gewählte Richtung, B lässt es schlingern – drei Reihen lang unsteuerbar.'
   };
@@ -2594,7 +2665,7 @@
   const RACE_DIST_SHORT={
     swapLR:'Links/Rechts vertauscht', double:'Doppelschritt', repeatInvert:'Wiederholung kehrt um',
     delay:'Richtung verzögert', swapActDir:'Aktion/Richtung vertauscht', swapAB:'A und B vertauscht',
-    actionPool:'Aktions-Pool (A=Hop, B=Schlingern)'
+    actionPool:'Aktions-Pool (A=Hop, B=Schlingern)', brake:'Bremst nach einem Feld (nur freie Fahrt)'
   };
   let race=null;
   // Duell-Kontext: lokal (nacheinander auf einem Geraet) oder online (beide gleichzeitig)
@@ -2846,8 +2917,9 @@
 
   // Genau eine Zone ist neutral, die uebrigen bekommen je eine verborgene Verzerrung. Welche
   // Farbe die neutrale ist, wird jede Runde neu ausgewuerfelt – sonst waere sie gratis verraten.
-  function raceAssignDistorts(n){
-    const pool=shuffle(RACE_DIST_POOL.slice());
+  function raceDistPool(free){ return free ? RACE_DIST_POOL.concat(RACE_DIST_FREE_ONLY) : RACE_DIST_POOL.slice(); }
+  function raceAssignDistorts(n, free){
+    const pool=shuffle(raceDistPool(free));
     const neutral=randInt(n);
     const out=[]; let p=0;
     for(let i=0;i<n;i++) out.push(i===neutral ? 'none' : pool[p++]);
@@ -3141,7 +3213,10 @@
         }
         if(o==='coin'){
           if(raceHit(ox,oy,RACE_HIT_COIN)){ row.objs[x]=null; race.coins++; race.score+=5; sfx('coin'); eingesammelt=true; }
-        } else if(race.airborne===0 && raceHit(ox,oy,RACE_HIT_HAZ)){ raceGameOver(); return false; }
+        } else if(race.airborne===0 && raceHit(ox,oy,RACE_HIT_HAZ)){
+          row.objs[x]=null;                        // zerlegt: die Explosion tritt an seine Stelle
+          raceGameOver(); return false;
+        }
       }
     }
     if(eingesammelt){ raceRender(); raceRenderStats(); }
@@ -3153,7 +3228,10 @@
       const o=race.objs[i];
       if(o.type==='coin'){
         if(raceHit(o.x,o.y,RACE_HIT_COIN)){ if(o.el) o.el.remove(); race.objs.splice(i,1); race.coins++; race.score+=5; sfx('coin'); raceRenderStats(); }
-      } else if(race.airborne===0 && raceHit(o.x,o.y,RACE_HIT_HAZ)){ raceGameOver(); return false; }
+      } else if(race.airborne===0 && raceHit(o.x,o.y,RACE_HIT_HAZ)){
+        if(o.el) o.el.remove(); race.objs.splice(i,1);   // zerlegt: die Explosion tritt an seine Stelle
+        raceGameOver(); return false;
+      }
     }
     return true;
   }
@@ -3190,6 +3268,8 @@
     if(race.skidUntil && now>=race.skidUntil){ race.skidUntil=0; race.skidVx=0; }
     // Fahrtrichtung dreht bei gehaltener Taste von selbst um ("Wiederholung kehrt um")
     if(race.flipAt && now>=race.flipAt){ race.holdVx=race.flipVx; race.lastDir=race.flipVx<0?-1:1; race.flipAt=0; }
+    // "Bremst nach kurzer Zeit": nach einem Feld ist Schluss, auch wenn die Taste noch haelt
+    if(race.holdBis && now>=race.holdBis){ race.holdVx=0; race.holdBis=0; }
     const vx=raceFreeVx(now);
     if(vx) race.carX=clamp(race.carX+vx*dt/1000, 0, RACE_COLS-1);
     // Objekte: senkrecht am Takt aufgehaengt (driftet nicht weg), seitlich frei integriert
@@ -3302,7 +3382,9 @@
     if(race.skidUntil) return;
     const dir=cells<0?-1:1;
     race.heldBtn=btn; race.holdVx=dir*RACE_VX_BASE*Math.abs(cells); race.lastDir=dir;
-    race.flipAt=0;
+    race.flipAt=0; race.holdBis=0;
+    // "Bremst nach kurzer Zeit": die Fahrt endet nach genau einem Feld, egal wie lange gehalten wird.
+    if(dist==='brake') race.holdBis=Date.now()+1000/Math.abs(race.holdVx);
     // Halten IST eine Wiederholung derselben Richtung – also dreht das Auto nach RACE_FLIP_MS
     // von selbst um. Hat der Druck schon die gedrehte Richtung ergeben (zweites Halten derselben
     // Taste), steht sie bereits richtig und es gibt nichts mehr zu drehen.
@@ -3314,7 +3396,7 @@
   }
   function raceRelease(btn){
     if(!race||!race.free) return;
-    if(race.heldBtn===btn){ race.heldBtn=null; race.holdVx=0; race.flipAt=0; }
+    if(race.heldBtn===btn){ race.heldBtn=null; race.holdVx=0; race.flipAt=0; race.holdBis=0; }
   }
   // kurzer Stoss (Hop) – der einzige zeitlich begrenzte Seitwaertsimpuls
   function raceBurst(cells){
@@ -3473,7 +3555,7 @@
       free: raceFreeOpt && opts.seed==null, objs:[], objLayer:null,
       topPy:1, bands:[], groundEl:null, bandH:0, pad:RACE_PAD, gap:RACE_GAP,
       worldY:0, rowsDone:0, worldT:0, shiftFrac:0,     // Weltuhr: eine Position fuer alles
-      heldBtn:null, holdVx:0, burstVx:0, burstUntil:0, skidVx:0, skidUntil:0, flipAt:0, flipVx:0,
+      heldBtn:null, holdVx:0, burstVx:0, burstUntil:0, skidVx:0, skidUntil:0, flipAt:0, flipVx:0, holdBis:0,
       frameLast:0, raf:null,
       rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
       rng: (opts.seed!=null ? mulberry32(opts.seed>>>0) : null),
@@ -3488,12 +3570,12 @@
       race.zoneDistort=[]; let p=0;
       for(let i=0;i<zoneCount;i++) race.zoneDistort.push(i===neutral ? 'none' : pool[p++]);
       race.curZone=Math.floor(r()*zoneCount);
-    } else { race.zoneDistort=raceAssignDistorts(zoneCount); race.curZone=randInt(zoneCount); }
+    } else { race.zoneDistort=raceAssignDistorts(zoneCount, race.free); race.curZone=randInt(zoneCount); }
     // feste Zonenregeln aus dem Editor ('random' bleibt zufaellig – und doppelt sich nicht mit einer festen)
     if(opts.distorts && opts.distorts.length){
       const fixed=opts.distorts.map(v=>(v&&v!=='random')?v:null);
       const used=new Set(fixed.filter(Boolean));
-      const rest=shuffle(RACE_DIST_POOL.filter(k=>!used.has(k)));
+      const rest=shuffle(raceDistPool(race.free).filter(k=>!used.has(k)));
       let pi=0;
       race.zoneDistort=race.zoneDistort.map((d,i)=>{
         if(fixed[i]) return fixed[i];
@@ -4941,11 +5023,18 @@
     $('player-block').classList.remove('hidden');            // Racing kann jetzt auch im Duell gespielt werden
     $('variant-block').classList.toggle('hidden', currentMode!=='grid');
     $('circle-variant-block').classList.toggle('hidden', !(currentMode==='circle' && playerCount===2));
+    $('race-variant-block').classList.toggle('hidden', !racing);
     const gerangel = currentMode==='grid' && gridVariant==='gerangel';
     const circGer = currentMode==='circle' && circleVariant==='gerangel';
     $('winmode-block').classList.toggle('hidden', racing || playerCount!==2 || gerangel || circGer);
     $('open-online').classList.remove('hidden');
     const dc=$('diff-caption'); if(dc) dc.textContent = racing ? 'Strecke' : 'Schwierigkeit';
+  }
+  // Die Vorschau zeigt die gewaehlte Variante – nach einem Wechsel neu aufbauen.
+  function refreshPreviews(){
+    document.querySelectorAll('#mode-carousel .mode-card').forEach(c=>{
+      buildModePreview(c.querySelector('.mc-preview'), c.dataset.mode);
+    });
   }
 
   // Welche Schwierigkeit gerade im unteren Karussell zentriert ist (gesetzt beim Wischen dort)
@@ -4979,7 +5068,7 @@
     btn.addEventListener('click',()=>{
       gridVariant=btn.dataset.variant; localStorage.setItem('regel-detektiv-variant',gridVariant);
       document.querySelectorAll('#variant-tabs .mode-tab').forEach(b=>b.classList.toggle('active',b===btn));
-      updateMenuVisibility();
+      updateMenuVisibility(); refreshPreviews();
     });
   });
   document.querySelectorAll('#variant-tabs .mode-tab').forEach(b=>b.classList.toggle('active', b.dataset.variant===gridVariant));
@@ -4990,6 +5079,15 @@
       updateMenuVisibility();
     });
   });
+  document.querySelectorAll('#race-variant-tabs .mode-tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      raceFreeOpt = btn.dataset.rvariant==='free';
+      localStorage.setItem(RACE_FREE_KEY, raceFreeOpt?'1':'0');
+      document.querySelectorAll('#race-variant-tabs .mode-tab').forEach(b=>b.classList.toggle('active',b===btn));
+      updateMenuVisibility(); refreshPreviews();
+    });
+  });
+  document.querySelectorAll('#race-variant-tabs .mode-tab').forEach(b=>b.classList.toggle('active', (b.dataset.rvariant==='free')===raceFreeOpt));
   document.querySelectorAll('#player-tabs .mode-tab').forEach(btn=>{
     btn.addEventListener('click',()=>{
       playerCount=parseInt(btn.dataset.players,10);
@@ -5388,12 +5486,6 @@
   }
   document.querySelectorAll('.speed-slider').forEach(s=>{ s.value=animSpeed; s.addEventListener('input',()=>setSpeed(parseFloat(s.value))); });
   setSpeed(animSpeed);
-
-  // Freie Fahrt im Racing-Modus (greift ab der naechsten Partie)
-  (function(){ const box=$('opt-racefree'); if(!box) return;
-    box.checked=raceFreeOpt;
-    box.addEventListener('change',()=>{ raceFreeOpt=box.checked; localStorage.setItem(RACE_FREE_KEY, raceFreeOpt?'1':'0'); });
-  })();
 
   // ===================== KEYBOARD =====================
   let zeroHeld=false;
