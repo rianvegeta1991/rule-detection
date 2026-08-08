@@ -662,6 +662,7 @@
     background:rgba(var(--pose,148,163,184),0.14);}
   .zk-out{margin-top:7px; text-align:center; font-size:0.82rem; font-weight:700;}
   .zk-out.win{color:var(--gold);} .zk-out.hop{color:var(--good);} .zk-out.sabo{color:var(--bad);}
+  .zk-gratis{color:#f9a8d4; font-size:0.74rem; font-weight:700; white-space:nowrap;}
   .zk-leer{color:var(--muted); text-align:center; padding:18px 0;}
 
   /* multiplayer */
@@ -1295,7 +1296,7 @@
       <div class="intro" style="margin-top:8px;">
         Deine Figur steht auf konzentrischen Ringen. W&auml;hle pro Zug eine Zahl: die <b>Figur</b> bewegt sich genau um diese Schrittzahl &ndash; unabh&auml;ngig vom Ring, auf dem sie steht. Eine <b>Verzerrung</b> dieser Bewegung gibt es erst ab dem <b>Nachtleben</b>. Zus&auml;tzlich dreht sich <b>jeder Ring</b> auf deine Eingabe nach seiner eigenen Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug). Ganz innen liegt ein d&uuml;nner <b>Tor-Ring</b> mit nur einem einzigen &starf; &ndash; erreichst du es, geht es direkt ins Zentrum zum <b>Detektiv</b> (Sherlock): Mit Taste W bzw. &uarr; (oder Klick) wechselt er zwischen drei Posen. Pose 1 ist neutral, Pose 2 und 3 aktivieren je eine geheime Zusatzregel. Im <b>Duell</b> kannst du „Gerangel" w&auml;hlen: Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd, mit der zus&auml;tzlichen Pose <b>Sabotage</b>, die die <b>gegnerische Figur</b> zwangsweise verschiebt.
         <br><br>
-        <b>&#9829; Herzen:</b> Du startest mit <b>7</b> Herzen. Jeder Zug kostet <b>eines</b> &ndash; auch ein Nullschritt, denn auch der dreht die Ringe weiter. Auf ein &starf; gezogen zu werden kostet <b>nichts</b> extra. Auf jedem Ring liegen <b>Herzfelder</b> (&#9829;): ein Ring unter 9 Feldern hat eines, unter 19 Feldern zwei, gr&ouml;&szlig;ere drei. L&auml;ufst du darauf, gibt es <b>+2</b> Herzen; das Herz taucht danach in der gegen&uuml;berliegenden Kreish&auml;lfte wieder auf. Sind die Herzen leer, ist die Runde vorbei. Im <b>Duell</b> gewinnt dann, wer am weitesten innen steht &ndash; bei gleichem Ring unentschieden.
+        <b>&#9829; Herzen:</b> Du startest mit <b>7</b> Herzen. Jeder Zug kostet <b>eines</b> &ndash; auch ein Nullschritt, denn auch der dreht die Ringe weiter. Ein Zug, der dich auf ein &starf; zieht, ist <b>ganz frei</b>: das Herz bekommst du zur&uuml;ck. Wer die Ringe durchschaut, kommt so ohne einen einzigen Verlust nach innen. Auf jedem Ring liegen <b>Herzfelder</b> (&#9829;): ein Ring unter 9 Feldern hat eines, unter 19 Feldern zwei, gr&ouml;&szlig;ere drei. L&auml;ufst du darauf, gibt es <b>+2</b> Herzen; das Herz taucht danach in der gegen&uuml;berliegenden Kreish&auml;lfte wieder auf. Sind die Herzen leer, ist die Runde vorbei. Im <b>Duell</b> gewinnt dann, wer am weitesten innen steht &ndash; bei gleichem Ring unentschieden.
       </div>
     </details>
     <details class="ed-adv">
@@ -1836,7 +1837,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.41";
+  const APP_VERSION = "1.42";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2363,8 +2364,9 @@
     return { theme, diffKey, specs, outerIdx, startIndex, poseEffects, figRule };
   }
   // ---- Herzen: der Schrittvorrat der Katze ----
-  // Jede Bewegung kostet ein Herz. Auf ein Sternenfeld gezogen zu werden kostet nichts – das ist
-  // kein eigener Schritt, sondern die Folge davon. Herzfelder geben zwei zurueck (netto +1).
+  // Jede Bewegung kostet ein Herz – ausser der Zug endet auf einem Sternenfeld: so ein Zug ist
+  // ganz frei (das Herz wird zurueckgebucht), man kann also theoretisch ohne einen einzigen
+  // Verlust bis ins Zentrum. Herzfelder geben zwei zurueck (netto +1).
   const CIRCLE_HEARTS_START=7;
   function heartCount(fieldCount){ return fieldCount<9 ? 1 : (fieldCount<19 ? 2 : 3); }
   // Herzfelder moeglichst gleichmaessig verteilen, nie auf Sternenfeldern oder Startfeldern.
@@ -2609,8 +2611,8 @@
     if(!cs.mounted) return false;
     cs.markerOverride=null;
     cs.index=((cs.index+figActual)%ring.fieldCount+ring.fieldCount)%ring.fieldCount;
-    // Jeder Zug kostet ein Herz – auch ein Nullschritt, denn auch der dreht die Ringe weiter
-    // und kann dich ueber ein Sternenfeld nach innen ziehen. Nur das Ziehen selbst ist gratis.
+    // Jeder Zug kostet erst einmal ein Herz – auch ein Nullschritt, denn auch der dreht die Ringe
+    // weiter. Endet der Zug auf einem Sternenfeld, gibt es das Herz unten wieder zurueck.
     if(cs.hearts!=null) cs.hearts--;
     updateHighlight(cs); positionMarker(cs);
 
@@ -2643,11 +2645,15 @@
       }
     }
 
+    // Ein Zug, der die Katze auf ein Sternenfeld zieht, ist frei: das oben abgezogene Herz kommt
+    // zurueck. So kann man theoretisch ohne einen einzigen Verlust nach innen wandern.
+    const gratis = hopInfo!==null;
+    if(gratis && cs.hearts!=null) cs.hearts++;
     // Herzfeld eingesammelt? Gilt auch, wenn die Katze ueber ein Sternenfeld dorthin gezogen wurde.
     const herzGeholt = grabHeart(cs, cs);
     cs.log.unshift({ move:cs.moves, choice, mode, pose:cs.gandalfPose+1, figActual, rotActuals:rotActuals.slice(),
                      ring:ringVor, von:feldVor, nach:((feldVor+figActual)%ring.fieldCount+ring.fieldCount)%ring.fieldCount,
-                     felder:ring.fieldCount, hearts:cs.hearts, heart:herzGeholt, outcome: won?'center':hopInfo });
+                     felder:ring.fieldCount, hearts:cs.hearts, heart:herzGeholt, frei:gratis, outcome: won?'center':hopInfo });
     if(cs.log.length>9) cs.log.pop();
 
     if(won){
@@ -2762,7 +2768,8 @@
     h+='</div>';
     if(e.sabotage){ let t=`Sabotage &rarr; Gegner ${fmtDelta(e.sabotage.amount)}`; if(e.sabotage.hop) t+=` (Ebene ${e.sabotage.hop.from}&rarr;${e.sabotage.hop.to})`; h+=`<div class="zk-out sabo">${t}</div>`; }
     if(e.outcome==='center') h+='<div class="zk-out win">&rarr; ins Zentrum!</div>';
-    else if(e.outcome) h+=`<div class="zk-out hop">&rarr; Sprung Ring ${e.outcome.from+1}&rarr;${e.outcome.to+1}${e.outcome.randomTie?' (Zufall)':''}</div>`;
+    else if(e.outcome) h+=`<div class="zk-out hop">&rarr; Sprung Ring ${e.outcome.from+1}&rarr;${e.outcome.to+1}${e.outcome.randomTie?' (Zufall)':''}`
+      + (e.frei?' <span class="zk-gratis">&#9829; kostenlos</span>':'') + '</div>';
     return h+'</div>';
   }
   function openLog(get){ logView={ get, folgen:true, idx:0, zug:null }; logDraw(); $('log-modal').classList.remove('hidden'); }
@@ -4411,7 +4418,7 @@
     if(!gs.mounted) return false;
     pl.markerOverride=null;
     pl.index=((pl.index+figActual)%ring.fieldCount+ring.fieldCount)%ring.fieldCount;
-    // Jeder Zug kostet ein Herz – siehe circleStep. Nur das Ziehen auf ein Sternenfeld ist gratis.
+    // Jeder Zug kostet erst einmal ein Herz – endet er auf einem Sternenfeld, kommt es zurueck (siehe circleStep).
     if(pl.hearts!=null) pl.hearts--;
     positionMarkerG(gs,pl);
     const startOffsets=gs.rings.map(r=>r.offset);
@@ -4472,11 +4479,14 @@
         opp.markerOverride=null; opp.done=true; opp.doneAtMove=opp.moves; oppWon=true;
       }
     }
+    // Auf ein Sternenfeld gezogen zu werden ist frei – das abgezogene Herz kommt zurueck.
+    const gratis = hopInfo!==null;
+    if(gratis && pl.hearts!=null) pl.hearts++;
     const herzGeholt = won ? false : grabHeart(gs, pl);
     if(isSabo && !oppWon && !opp.done) grabHeart(gs, opp);   // auch die verschobene Katze darf zugreifen
     pl.log.unshift({ move:pl.moves, choice, mode:'both', pose:pl.gandalfPose+1, poseName:gs.poseNames[pl.gandalfPose], figActual, rotActuals:rotActuals.slice(),
                      ring:ringVor, von:feldVor, nach:((feldVor+figActual)%ring.fieldCount+ring.fieldCount)%ring.fieldCount, felder:ring.fieldCount,
-                     sabotage:saboInfo, hearts:pl.hearts, heart:herzGeholt, outcome: won?'center':hopInfo });
+                     sabotage:saboInfo, hearts:pl.hearts, heart:herzGeholt, frei:gratis, outcome: won?'center':hopInfo });
     if(pl.log.length>9) pl.log.pop();
     if(won){
       const rw=360/gs.rings[0].fieldCount, ang=(pl.index+0.5)*rw+gs.rings[0].offset;
