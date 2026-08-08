@@ -412,6 +412,25 @@
   .m-erschoepft{opacity:0.35; filter:grayscale(1);}
   .herz-anzeige{display:inline-flex; align-items:center; gap:3px; color:#f9a8d4; font-weight:700;}
   .herz-anzeige.knapp{color:#fca5a5; animation:pulse 0.8s infinite alternate;}
+  /* Grosse Lebensanzeige: sitzt im Kreis-Modus zwischen Brett und Steuerung, wo der Blick ohnehin ist */
+  .leben-bar{display:flex; align-items:center; gap:9px; width:100%; max-width:440px; margin:0 auto; flex:0 0 auto;
+    padding:6px 12px; border-radius:14px; box-sizing:border-box;
+    background:linear-gradient(180deg, rgba(157,23,77,0.34), rgba(11,18,32,0.8));
+    border:1px solid rgba(244,114,182,0.55); box-shadow:0 3px 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.07);}
+  .leben-bar .lb-ic{font-size:1.55rem; line-height:1; color:#f472b6; filter:drop-shadow(0 0 7px rgba(244,114,182,0.9));}
+  .leben-bar .lb-num{font-size:1.85rem; font-weight:800; line-height:1; color:#fbcfe8; font-variant-numeric:tabular-nums;}
+  .leben-bar .lb-cap{font-size:0.6rem; letter-spacing:0.16em; text-transform:uppercase; color:#f9a8d4; opacity:0.9;}
+  .leben-bar .lb-pips{display:flex; flex-wrap:wrap; gap:3px; justify-content:flex-end; align-items:center; flex:1 1 auto; min-width:0;}
+  .lb-pip{width:11px; height:15px; border-radius:3px; background:#f472b6; box-shadow:0 0 5px rgba(244,114,182,0.75);}
+  .lb-pip.plus{background:var(--gold); box-shadow:0 0 5px rgba(250,204,21,0.8);}
+  .lb-mehr{font-size:0.7rem; font-weight:700; color:var(--gold);}
+  .leben-bar.knapp{border-color:var(--bad); animation:pulse 0.8s infinite alternate;}
+  .leben-bar.knapp .lb-ic, .leben-bar.knapp .lb-num{color:#fca5a5;}
+  .leben-bar.knapp .lb-pip{background:#f87171; box-shadow:0 0 6px rgba(248,113,113,0.9);}
+  /* In den Duell-Spalten ist weniger Platz – dort nur Herz und Zahl */
+  .leben-bar.kompakt{gap:6px; padding:4px 9px;}
+  .leben-bar.kompakt .lb-ic{font-size:1.2rem;} .leben-bar.kompakt .lb-num{font-size:1.35rem;}
+  .leben-bar.kompakt .lb-cap{display:none;} .leben-bar.kompakt .lb-pip{width:8px; height:12px;}
   /* Protokoll: neun Zuege passen nicht mehr auf einen Blick – also scrollen lassen */
   .log-scroll{max-height:62vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;}
   .ring-field.wall{fill:#0b1220; stroke:rgba(148,163,184,0.14); pointer-events:none;}
@@ -605,6 +624,45 @@
   .log-chip.zero{opacity:0.45;}
   .log-out{margin-top:5px; font-size:0.78rem; font-weight:600;}
   .log-out.win{color:var(--gold);} .log-out.hop{color:var(--good);}
+
+  /* Zug-Protokoll als Blätterbuch: eine Zugkarte je Seite, dafür mit dem ganzen Kreis darauf */
+  .log-pager{display:flex; align-items:center; gap:10px; margin:0 0 8px;}
+  .log-pager button{flex:0 0 auto; min-width:52px; min-height:44px; padding:6px 12px; font-size:1.05rem; font-weight:700;
+    background:#334155; color:var(--text); border:1px solid #475569; border-radius:10px; font-family:inherit; cursor:pointer;}
+  .log-pager button:disabled{opacity:0.35; cursor:not-allowed;}
+  .log-pager button:active:not(:disabled){transform:scale(0.94);}
+  .log-pager .lp-info{flex:1 1 auto; text-align:center; line-height:1.25; min-width:0;}
+  .log-pager .lp-titel{font-weight:700; font-size:1rem; display:block;}
+  .log-pager .lp-sub{font-size:0.7rem; color:var(--muted);}
+  .log-dots{display:flex; justify-content:center; gap:6px; margin-top:10px; flex-wrap:wrap;}
+  .log-dots button{width:12px; height:12px; padding:0; border-radius:50%; border:1px solid var(--cell-border);
+    background:#1e293b; cursor:pointer;}
+  .log-dots button.aktiv{background:var(--accent); border-color:var(--accent); box-shadow:0 0 6px rgba(var(--accent-rgb),0.8);}
+  .zug-karte{margin-bottom:4px;}
+  .zk-kopf{display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center;}
+  .zk-ringe{position:relative; width:100%; max-width:330px; aspect-ratio:1/1; margin:10px auto 6px;}
+  .zk-ring{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); border-radius:50%;
+    border-style:solid; border-color:rgba(148,163,184,0.26); box-sizing:border-box;}
+  .zk-ring.dreht{border-color:rgba(251,191,36,0.5);}
+  .zk-ring.katzenring{box-shadow:0 0 0 2px rgba(56,189,248,0.85), 0 0 14px rgba(56,189,248,0.3);}
+  .zk-mitte{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:19%; height:19%;
+    border-radius:50%; display:flex; align-items:center; justify-content:center; line-height:0;
+    background:radial-gradient(circle, rgba(var(--pose,250,204,21),0.95) 0%, rgba(var(--pose,250,204,21),0.4) 62%, transparent 82%);}
+  .zk-mitte svg{filter:drop-shadow(0 2px 4px rgba(0,0,0,0.55));}
+  .zk-chip{position:absolute; transform:translate(-50%,-50%); display:inline-flex; align-items:center; gap:3px; line-height:1.15;
+    background:#0b1220; border:1px solid var(--cell-border); border-radius:6px; padding:1px 5px; white-space:nowrap;}
+  .zk-chip .k{color:var(--muted); font-size:0.58rem; text-transform:uppercase; letter-spacing:0.03em;}
+  .zk-chip b{font-size:0.78rem; font-weight:800; color:#fbbf24; font-variant-numeric:tabular-nums;}
+  .zk-chip.zero{opacity:0.42;} .zk-chip.zero b{color:var(--muted);}
+  .zk-chip.katze{border-color:#38bdf8; background:#0b1a26;}
+  .zk-chip.katze b{color:#7dd3fc;} .zk-chip.katze .ic{font-size:0.9rem;}
+  .zk-fuss{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; align-items:center;}
+  .zk-pose{display:inline-flex; align-items:center; gap:5px; font-size:0.76rem; font-weight:700;
+    border:1px solid rgba(var(--pose,148,163,184),0.8); border-radius:6px; padding:2px 8px;
+    background:rgba(var(--pose,148,163,184),0.14);}
+  .zk-out{margin-top:7px; text-align:center; font-size:0.82rem; font-weight:700;}
+  .zk-out.win{color:var(--gold);} .zk-out.hop{color:var(--good);} .zk-out.sabo{color:var(--bad);}
+  .zk-leer{color:var(--muted); text-align:center; padding:18px 0;}
 
   /* multiplayer */
   .mp-screen{max-width:1160px; width:100%;}
@@ -930,7 +988,6 @@
 <div id="sp-circle" class="game-screen hidden">
   <div class="game-head">
     <div class="stats-row">
-      <span class="herz-anzeige" id="spc-hearts-wrap">&#9829;&nbsp;<b id="spc-hearts">7</b></span>
       <span>Z&uuml;ge <b id="spc-moves">0</b></span>
       <span>Ring <b id="spc-ring">–</b></span>
       <span>Feld <b id="spc-field">–</b></span>
@@ -948,6 +1005,11 @@
       <div class="overlay-msg" id="spc-overlay-msg"></div>
       <div class="footer-row" style="justify-content:center;" id="spc-overlay-actions"></div>
     </div>
+  </div>
+  <!-- Leben direkt zwischen Brett und Steuerung: dort schaut man beim Ziehen ohnehin hin -->
+  <div class="leben-bar" id="spc-leben">
+    <span class="lb-ic">&#9829;</span><b class="lb-num" id="spc-hearts">7</b><span class="lb-cap">Leben</span>
+    <span class="lb-pips"></span>
   </div>
   <div class="control-area">
     <div class="btn-row big" id="circle-steps">
@@ -1005,8 +1067,9 @@
   </div>
   <div class="mp-wrap">
     <div class="mp-col">
-      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpc-m1">0</b> <span class="herz-anzeige" id="mpc-h1">&#9829;&nbsp;<b>7</b></span> <span class="mp-status" id="mpc-s1"></span></div>
+      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpc-m1">0</b> <span class="mp-status" id="mpc-s1"></span></div>
       <div id="mpc-host1" class="circle-host"></div>
+      <div class="leben-bar kompakt" id="mpc-leben1"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
       <div class="mp-steps p1" data-p="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
         <button class="pose" data-pose>Pose</button>
@@ -1014,8 +1077,9 @@
       <div class="mp-log clog" id="mpc-log1" style="font-size:0.76rem;"></div>
     </div>
     <div class="mp-col">
-      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpc-m2">0</b> <span class="herz-anzeige" id="mpc-h2">&#9829;&nbsp;<b>7</b></span> <span class="mp-status" id="mpc-s2"></span></div>
+      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpc-m2">0</b> <span class="mp-status" id="mpc-s2"></span></div>
       <div id="mpc-host2" class="circle-host"></div>
+      <div class="leben-bar kompakt" id="mpc-leben2"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
       <div class="mp-steps p2" data-p="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
         <button class="pose" data-pose>Pose</button>
@@ -1040,8 +1104,9 @@
   <div id="mpcg-turn" class="banner p1" style="margin-bottom:8px; text-align:center; font-weight:700;"></div>
   <div class="mp-wrap" style="align-items:flex-start;">
     <div class="mp-col" style="max-width:240px;">
-      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="herz-anzeige" id="mpcg-h1">&#9829;&nbsp;<b>7</b></span> <span class="mp-status" id="mpcg-s1"></span></div>
+      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="mp-status" id="mpcg-s1"></span></div>
       <div id="mpcg-det1"></div>
+      <div class="leben-bar kompakt" id="mpcg-leben1"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
       <div class="mp-steps p1" data-cg="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
       </div>
@@ -1049,8 +1114,9 @@
     </div>
     <div id="mpcg-host" class="circle-host"></div>
     <div class="mp-col" style="max-width:240px;">
-      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpcg-m2">0</b> <span class="herz-anzeige" id="mpcg-h2">&#9829;&nbsp;<b>7</b></span> <span class="mp-status" id="mpcg-s2"></span></div>
+      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpcg-m2">0</b> <span class="mp-status" id="mpcg-s2"></span></div>
       <div id="mpcg-det2"></div>
+      <div class="leben-bar kompakt" id="mpcg-leben2"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
       <div class="mp-steps p2" data-cg="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
       </div>
@@ -1126,6 +1192,7 @@
       <div class="mp-col" style="max-width:260px;">
         <div class="mp-head" id="onl-me-head"></div>
         <div id="onl-det"></div>
+        <div class="leben-bar kompakt hidden" id="onl-leben"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
         <div class="mp-steps" id="onl-steps">
           <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
         </div>
@@ -1169,6 +1236,9 @@
     <div id="onl-csolo-wrap" class="hidden onl-solo">
       <div id="onl-csolo-head" class="onl-solo-head"></div>
       <div class="board-wrap"><div id="onl-csolo-host" class="circle-host"></div></div>
+      <div class="leben-bar" id="onl-csolo-leben">
+        <span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-cap">Leben</span><span class="lb-pips"></span>
+      </div>
       <div class="onl-solo-ctrl">
         <button class="onl-mini" id="onl-csolo-mini" title="Gegner &ndash; tippen zum Vergr&ouml;&szlig;ern"></button>
         <div class="mp-steps" id="onl-csolo-steps" style="flex:1 1 auto; max-width:none;">
@@ -1308,7 +1378,14 @@
       <h2>Zug-Protokoll</h2>
       <button class="modal-close" id="log-close" aria-label="Schlie&szlig;en">&times;</button>
     </div>
+    <!-- Eine Zugkarte je Seite; geblättert wird über Pfeile, Punkte oder die Pfeiltasten -->
+    <div class="log-pager" id="log-pager">
+      <button id="log-prev" aria-label="&Auml;lterer Zug">&#8249;</button>
+      <div class="lp-info"><span class="lp-titel" id="log-titel">&ndash;</span><span class="lp-sub" id="log-sub"></span></div>
+      <button id="log-next" aria-label="Neuerer Zug">&#8250;</button>
+    </div>
     <div id="log-body" class="log-scroll"></div>
+    <div class="log-dots" id="log-dots"></div>
   </div>
 </div>
 
@@ -1759,7 +1836,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.40";
+  const APP_VERSION = "1.41";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2307,13 +2384,23 @@
     }
     return out.sort((a,b)=>a-b);
   }
-  // Ein aufgesammeltes Herz taucht in der gegenueberliegenden Kreishaelfte wieder auf
-  // Herzanzeige im Kopf: Zahl setzen, ab 2 Herzen rot pulsieren lassen.
-  function setHerzAnzeige(wrap, n, zahlEl){
-    if(!wrap) return;
-    const b = zahlEl || wrap.querySelector('b');
-    if(b) b.textContent = (n==null?'–':n);
-    wrap.classList.toggle('knapp', n!=null && n<=2);
+  // Grosse Lebensanzeige zwischen Brett und Steuerung: Zahl plus Segmentbalken.
+  // Mehr Herzen als der Startvorrat werden golden angehaengt, sehr viele als "+n" gebuendelt.
+  const LEBEN_PIPS_MAX=12;
+  function setLebenBar(bar, n){
+    if(!bar) return;
+    bar.classList.toggle('hidden', n==null);
+    if(n==null) return;
+    bar.classList.toggle('knapp', n<=2);
+    const num=bar.querySelector('.lb-num'); if(num) num.textContent=n;
+    const pips=bar.querySelector('.lb-pips');
+    if(pips){
+      const zeig=Math.min(n, LEBEN_PIPS_MAX);
+      let h='';
+      for(let i=0;i<zeig;i++) h+='<span class="lb-pip'+(i>=CIRCLE_HEARTS_START?' plus':'')+'"></span>';
+      if(n>LEBEN_PIPS_MAX) h+='<span class="lb-mehr">+'+(n-LEBEN_PIPS_MAX)+'</span>';
+      pips.innerHTML=h;
+    }
   }
   // Herz einsammeln. `st` traegt die Ringe/Darstellung, `fig` die Position + den Herzvorrat –
   // im Einzelspieler ist beides dasselbe Objekt, im Gerangel sind es Zustand und Spieler.
@@ -2493,6 +2580,7 @@
   async function circleStep(cs, choice, mode){
     cs.animating=true;
     const ring=cs.rings[cs.ringIdx];
+    const ringVor=cs.ringIdx, feldVor=cs.index;   // fuers Protokoll: wo die Katze losgelaufen ist
     let figActual = mode==='rotate' ? 0 : stepTransform(cs.figRule,choice);
     let rotActuals = cs.rings.map(r=>rotTransform(r.rotRule,choice));
     if(mode==='move') rotActuals=rotActuals.map(()=>0);
@@ -2558,7 +2646,8 @@
     // Herzfeld eingesammelt? Gilt auch, wenn die Katze ueber ein Sternenfeld dorthin gezogen wurde.
     const herzGeholt = grabHeart(cs, cs);
     cs.log.unshift({ move:cs.moves, choice, mode, pose:cs.gandalfPose+1, figActual, rotActuals:rotActuals.slice(),
-                     hearts:cs.hearts, heart:herzGeholt, outcome: won?'center':hopInfo });
+                     ring:ringVor, von:feldVor, nach:((feldVor+figActual)%ring.fieldCount+ring.fieldCount)%ring.fieldCount,
+                     felder:ring.fieldCount, hearts:cs.hearts, heart:herzGeholt, outcome: won?'center':hopInfo });
     if(cs.log.length>9) cs.log.pop();
 
     if(won){
@@ -2623,18 +2712,100 @@
   $('reveal-modal').addEventListener('click', e=>{ if(e.target===$('reveal-modal')) closeReveal(); });
 
   // ===================== ZUG-PROTOKOLL-POPUP =====================
-  function openLog(html){ $('log-body').innerHTML=html; $('log-modal').classList.remove('hidden'); }
-  function closeLog(){ $('log-modal').classList.add('hidden'); }
+  // Statt neun gequetschter Zeilen zeigt das Protokoll einen Zug am Stück: alle Ringe als
+  // konzentrische Kreise mit ihrer Drehung dieses Zuges, die Katze auf ihrem Ring und die
+  // gewählte Pose in der Mitte. Geblättert wird durch die letzten neun Züge (mehr hebt das Log
+  // nicht auf). `get()` liefert eine oder zwei Gruppen {label, cls, log} – log[0] ist der neueste.
+  let logView=null;   // { get, folgen:bool, idx:Zahl, zug:Zugnummer|null }
+
+  // Das Ringbild eines Zuges. Radien in Prozent der Kartenbreite, damit es mitskaliert.
+  function zugKarteRinge(e){
+    const n=(e.rotActuals||[]).length;
+    if(!n) return '';
+    const rIn=15, rOut=38;
+    const rad=i=> n<2 ? 26 : rIn+(rOut-rIn)*i/(n-1);
+    const bw = n>=6?4 : (n>=5?5:7);
+    const punkt=(r,grad)=>{ const a=grad*Math.PI/180; return { x:(50+r*Math.cos(a)).toFixed(2), y:(50+r*Math.sin(a)).toFixed(2) }; };
+    let h='<div class="zk-ringe">';
+    for(let i=n-1;i>=0;i--){
+      const d=(rad(i)*2).toFixed(2);
+      const cls='zk-ring'+(e.rotActuals[i]?' dreht':'')+(e.ring===i?' katzenring':'');
+      h+=`<div class="${cls}" style="width:${d}%; height:${d}%; border-width:${bw}px;"></div>`;
+    }
+    h+=`<div class="zk-mitte pose-c${(e.pose||1)-1}">${detectiveSvg((e.pose||1)-1, 38)}</div>`;
+    // Die Zahlen sitzen abwechselnd oben und unten auf ihrem Ring: so bleibt zwischen zwei Chips
+    // derselben Seite immer der doppelte Ringabstand – auch bei sechs Ringen ueberlappt nichts.
+    for(let i=0;i<n;i++){
+      const p=punkt(rad(i), i%2 ? 90 : -90);
+      h+=`<div class="zk-chip${e.rotActuals[i]?'':' zero'}" style="left:${p.x}%; top:${p.y}%;">`
+        +`<span class="k">R${i+1}</span><b>${fmtDelta(e.rotActuals[i])}</b></div>`;
+    }
+    if(e.ring!=null && e.ring<n){
+      const p=punkt(rad(e.ring), 0);                    // die Katze rechts – dort steht keine Ringzahl
+      h+=`<div class="zk-chip katze" style="left:${p.x}%; top:${p.y}%;"><span class="ic">&#128008;</span><b>${fmtDelta(e.figActual)}</b></div>`;
+    }
+    return h+'</div>';
+  }
+  function zugKarte(e){
+    if(!e) return '<div class="zk-leer">Kein Zug.</div>';
+    const p=(e.pose||1)-1;
+    let h='<div class="zug-karte"><div class="zk-kopf">'
+      + `<span class="log-move">Zug ${e.move}</span>`
+      + logChip('Auswahl', fmtDelta(e.choice), 'choice');
+    if(e.hearts!=null) h+=logChip('&#9829;', e.hearts+(e.heart?' (+2)':''), e.heart?'rot':'zero');
+    if(e.mode==='move') h+='<span class="log-mode">nur Figur</span>';
+    else if(e.mode==='rotate') h+='<span class="log-mode">nur Rotation</span>';
+    h+='</div>'+zugKarteRinge(e)+'<div class="zk-fuss">'
+      + `<span class="zk-pose pose-c${p}"><span class="pose-dot"></span>${e.poseName||('Pose '+(p+1))}</span>`;
+    if(e.von!=null) h+=logChip('Katze', `Ring ${(e.ring||0)+1} &middot; Feld ${e.von+1} &rarr; ${e.nach+1}`, 'fig');
+    else h+=logChip('Katze', fmtDelta(e.figActual), 'fig');
+    h+='</div>';
+    if(e.sabotage){ let t=`Sabotage &rarr; Gegner ${fmtDelta(e.sabotage.amount)}`; if(e.sabotage.hop) t+=` (Ebene ${e.sabotage.hop.from}&rarr;${e.sabotage.hop.to})`; h+=`<div class="zk-out sabo">${t}</div>`; }
+    if(e.outcome==='center') h+='<div class="zk-out win">&rarr; ins Zentrum!</div>';
+    else if(e.outcome) h+=`<div class="zk-out hop">&rarr; Sprung Ring ${e.outcome.from+1}&rarr;${e.outcome.to+1}${e.outcome.randomTie?' (Zufall)':''}</div>`;
+    return h+'</div>';
+  }
+  function openLog(get){ logView={ get, folgen:true, idx:0, zug:null }; logDraw(); $('log-modal').classList.remove('hidden'); }
+  function closeLog(){ $('log-modal').classList.add('hidden'); logView=null; }
+  function logRefresh(){ if(logView && !$('log-modal').classList.contains('hidden')) logDraw(); }
+  function logDraw(){
+    if(!logView) return;
+    const gruppen=(logView.get()||[]).filter(Boolean);
+    const leit=(gruppen[0]&&gruppen[0].log)||[];
+    const anzahl=gruppen.reduce((m,g)=>Math.max(m,(g.log||[]).length),0);
+    const body=$('log-body'), pager=$('log-pager'), dots=$('log-dots');
+    if(!anzahl){
+      body.innerHTML='<div class="zk-leer">Noch keine Z&uuml;ge.</div>';
+      pager.classList.add('hidden'); dots.innerHTML=''; return;
+    }
+    // Wer den neuesten Zug ansieht, bleibt beim neuesten; wer blättert, bleibt an SEINEM Zug
+    // kleben – auch wenn ein neuer Zug die Liste weiterschiebt.
+    let idx = logView.folgen ? 0 : (logView.idx||0);
+    if(!logView.folgen && logView.zug!=null){ const i=leit.findIndex(x=>x && x.move===logView.zug); if(i>=0) idx=i; }
+    idx=Math.max(0, Math.min(anzahl-1, idx));
+    logView.idx=idx; logView.zug = leit[idx] ? leit[idx].move : null;
+    pager.classList.remove('hidden');
+    body.innerHTML = gruppen.map(g=>{
+      const kopf = g.label ? `<div class="mp-head ${g.cls||''}" style="margin-bottom:6px;">${g.label}</div>` : '';
+      return kopf + zugKarte((g.log||[])[idx]);
+    }).join('<div style="height:14px"></div>');
+    $('log-titel').textContent = leit[idx] ? ('Zug '+leit[idx].move) : ('Zug '+(anzahl-idx));
+    $('log-sub').textContent = idx===0 ? 'neuester Zug' : (idx===1 ? 'ein Zug zurück' : idx+' Züge zurück');
+    $('log-prev').disabled = idx>=anzahl-1;
+    $('log-next').disabled = idx<=0;
+    let dh='';
+    for(let k=anzahl-1;k>=0;k--){    // links der älteste, rechts der neueste
+      const nr=leit[k]?('Zug '+leit[k].move):('Zug '+(anzahl-k));
+      dh+=`<button data-i="${k}" class="${k===idx?'aktiv':''}" title="${nr}" aria-label="${nr}"></button>`;
+    }
+    dots.innerHTML=dh;
+  }
+  function logGehe(ziel){ if(!logView) return; logView.folgen = ziel<=0; logView.idx=ziel; logView.zug=null; logDraw(); }
   $('log-close').addEventListener('click', closeLog);
   $('log-modal').addEventListener('click', e=>{ if(e.target===$('log-modal')) closeLog(); });
-  // Baut das Log-HTML für einen oder zwei Spieler (renderFn schreibt in einen Container).
-  function logHtml(renderFn, entriesOrPairs){
-    const box=document.createElement('div');
-    if(Array.isArray(entriesOrPairs) && entriesOrPairs.length && entriesOrPairs[0] && entriesOrPairs[0].label!==undefined){
-      entriesOrPairs.forEach(pair=>{ const h=document.createElement('div'); const t=document.createElement('div'); t.className='mp-head '+pair.cls; t.style.marginBottom='6px'; t.textContent=pair.label; const c=document.createElement('div'); renderFn(c, pair.log); box.appendChild(t); box.appendChild(c); if(pair!==entriesOrPairs[entriesOrPairs.length-1]){ const sp=document.createElement('div'); sp.style.height='12px'; box.appendChild(sp); } });
-    } else { renderFn(box, entriesOrPairs); }
-    return box.innerHTML;
-  }
+  $('log-prev').addEventListener('click', ()=>logGehe((logView?logView.idx:0)+1));
+  $('log-next').addEventListener('click', ()=>logGehe((logView?logView.idx:0)-1));
+  $('log-dots').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) logGehe(parseInt(b.dataset.i,10)); });
 
   // ===================== EINSTELLUNGEN / ANLEITUNG =====================
   function openSettings(){
@@ -3980,10 +4151,10 @@
   function spcRender(){
     const cs=spcState; circleMarkerFlash(cs);
     $('spc-moves').textContent=cs.moves;
-    setHerzAnzeige($('spc-hearts-wrap'), cs.hearts, $('spc-hearts'));
+    setLebenBar($('spc-leben'), cs.hearts);
     $('spc-ring').textContent = cs.phase==='won'?'Zentrum':(cs.ringIdx+1)+' / '+cs.rings.length;
     $('spc-field').textContent = cs.phase==='won'?'–':(cs.index+1);
-    if(!$('log-modal').classList.contains('hidden')) openLog(logHtml(renderLog, cs.log)); // offenes Protokoll live nachziehen
+    logRefresh();                                    // offenes Protokoll live nachziehen
     document.querySelectorAll('#circle-steps button').forEach(b=>b.disabled=cs.phase!=='playing'||cs.animating);
     const ov=$('spc-overlay');
     if(cs.phase==='won'){
@@ -4067,7 +4238,7 @@
     [0,1].forEach(i=>{
       const s=$((isGrid?'mpg-s':'mpc-s')+(i+1));
       const p=mp.players[i]; const doneAt=p.cs?p.cs.doneAtMove:p.board.figs[0].doneAtMove;
-      if(p.cs) setHerzAnzeige($('mpc-h'+(i+1)), p.cs.hearts);
+      if(p.cs) setLebenBar($('mpc-leben'+(i+1)), p.cs.hearts);
       if(p.cs && p.cs.heartsLeer){ s.textContent='✗ keine Herzen mehr'; s.classList.add('done'); }
       else if(mpDone(i)&&doneAt){ s.textContent=`✓ fertig (${doneAt} Z.)`; s.classList.add('done'); }
       else { s.textContent=''; s.classList.remove('done'); }
@@ -4176,6 +4347,7 @@
     if(!cs.mounted) return;
     circleMarkerFlash(cs);
     renderLog($('mpc-log'+(idx+1)), cs.log);
+    logRefresh();
     mpUpdateHeads();
     if(won) mpOnFinish(idx);
     else if(cs.phase==='out') mpOnFinish(idx, 'out');
@@ -4217,6 +4389,7 @@
     const pl=gs.players[pi], opp=gs.players[1-pi];
     gs.animating=true;
     const ring=gs.rings[pl.ringIdx];
+    const ringVor=pl.ringIdx, feldVor=pl.index;   // fuers Protokoll: wo die Katze losgelaufen ist
     let figActual = stepTransform(gs.figRule, choice);
     let rotActuals = gs.rings.map(r=>rotTransform(r.rotRule, choice));
     pl.lastFlash = (figActual===choice?'good':'bad');
@@ -4301,7 +4474,9 @@
     }
     const herzGeholt = won ? false : grabHeart(gs, pl);
     if(isSabo && !oppWon && !opp.done) grabHeart(gs, opp);   // auch die verschobene Katze darf zugreifen
-    pl.log.unshift({ move:pl.moves, choice, mode:'both', pose:pl.gandalfPose+1, poseName:gs.poseNames[pl.gandalfPose], figActual, rotActuals:rotActuals.slice(), sabotage:saboInfo, hearts:pl.hearts, heart:herzGeholt, outcome: won?'center':hopInfo });
+    pl.log.unshift({ move:pl.moves, choice, mode:'both', pose:pl.gandalfPose+1, poseName:gs.poseNames[pl.gandalfPose], figActual, rotActuals:rotActuals.slice(),
+                     ring:ringVor, von:feldVor, nach:((feldVor+figActual)%ring.fieldCount+ring.fieldCount)%ring.fieldCount, felder:ring.fieldCount,
+                     sabotage:saboInfo, hearts:pl.hearts, heart:herzGeholt, outcome: won?'center':hopInfo });
     if(pl.log.length>9) pl.log.pop();
     if(won){
       const rw=360/gs.rings[0].fieldCount, ang=(pl.index+0.5)*rw+gs.rings[0].offset;
@@ -4338,7 +4513,7 @@
     const gs=mp.gs;
     $('mpcg-m1').textContent=gs.players[0].moves; $('mpcg-m2').textContent=gs.players[1].moves;
     [0,1].forEach(i=>{ const s=$('mpcg-s'+(i+1)); const pl=gs.players[i];
-      setHerzAnzeige($('mpcg-h'+(i+1)), pl.hearts);
+      setLebenBar($('mpcg-leben'+(i+1)), pl.hearts);
       if(pl.heartsLeer){ s.textContent='✗ keine Herzen mehr'; s.classList.add('done'); }
       else if(pl.done){ s.textContent=`✓ im Zentrum (${pl.doneAtMove} Z.)`; s.classList.add('done'); }
       else { s.textContent=''; s.classList.remove('done'); } });
@@ -4388,6 +4563,7 @@
     if(!gs.mounted) return;
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]); updateHighlightG(gs);
     renderGerLog($('mpcg-log'+(pi+1)), pl.log);
+    logRefresh();
     if(winner!=null){ mp.finished=true; mp.winner=winner; mpcgUpdate(); mpcgShowResult(); return; }
     if(gs.players[0].done && gs.players[1].done){
       // Beiden sind die Herzen ausgegangen: wer weiter innen steht, gewinnt.
@@ -4855,10 +5031,13 @@
     const wc = onl.winCond==='fewest'?'Wenigste Züge':'Schnellster';
     // Herzen nur im Kreis – im Feld gibt es sie nicht
     const herz=(n)=> (onl.mode!=='circle'||n==null||n<0) ? '' : ` <span class="herz-anzeige${n<=2?' knapp':''}">&#9829;&nbsp;<b>${n}</b></span>`;
-    const meHerz = onl.cs?onl.cs.hearts:null, oppHerz = (opp.hearts==null?null:opp.hearts);
+    const oppHerz = (opp.hearts==null?null:opp.hearts);
     const meOut = !!(onl.cs&&onl.cs.phase==='out'), oppOut=!!opp.out;
-    if(head) head.innerHTML=`<span style="color:var(--${meCol})">Du &middot; Z&uuml;ge <b>${meMoves}</b>${herz(meHerz)}${meDone?' &#10003;':(meOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; `
+    // Die eigenen Leben stehen gross zwischen Kreis und Steuerung, im Kopf nur die des Gegners
+    if(onl.mode==='circle') setLebenBar($('onl-csolo-leben'), onl.cs?onl.cs.hearts:null);
+    if(head) head.innerHTML=`<span style="color:var(--${meCol})">Du &middot; Z&uuml;ge <b>${meMoves}</b>${meDone?' &#10003;':(meOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; `
       +`<span style="color:var(--${oppCol})">Gegner &middot; Z&uuml;ge <b>${opp.moves||0}</b>${herz(oppHerz)}${opp.done?' &#10003;':(oppOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; <small>${wc}</small>`;
+    logRefresh();
     const blocked = onl.finished || meDone || meOut;
     document.querySelectorAll('#onl-gsolo-frame .pad-zone, #onl-gsolo-frame .pad-stay').forEach(e=>e.style.pointerEvents=blocked?'none':'');
     document.querySelectorAll('#onl-csolo-steps button').forEach(b=>b.disabled=blocked);
@@ -5185,6 +5364,7 @@
     positionMarkerG(gs, gs.players[0]); positionMarkerG(gs, gs.players[1]);
     updateHighlightG(gs);
     renderGerLog($('onl-log'), gs.players[onl.myIdx].log||[]);
+    logRefresh();
     onlRenderUi();
     if(onl.finished) onlShowResult();
   }
@@ -5212,6 +5392,7 @@
       if(!gs.mounted) return;
       markerFlashG(gs.players[0]); markerFlashG(gs.players[1]); updateHighlightG(gs);
       renderGerLog($('onl-log'), gs.players[onl.myIdx].log||[]);
+      logRefresh();
       if(winner!=null){ onl.finished=true; onl.winner=winner; onlRenderUi(); onlPublish(); onlShowResult(); return; }
       if(gs.players[0].done && gs.players[1].done){
         // Beiden sind die Herzen ausgegangen: wer weiter innen steht, gewinnt.
@@ -5254,7 +5435,8 @@
     const herz=(p)=> p.hearts==null ? '' : ` <span class="herz-anzeige${p.hearts<=2?' knapp':''}">&#9829;&nbsp;<b>${p.hearts}</b></span>`;
     const stat=(p)=> p.heartsLeer ? '<span class="mp-status lost">✗ keine Herzen mehr</span>' : (p.done?'<span class="mp-status done">✓ im Zentrum</span>':'');
     $('onl-me-head').className='mp-head '+meCol;
-    $('onl-me-head').innerHTML=`<b>Du</b> (${meLbl}) &middot; Z&uuml;ge <b>${me.moves}</b>${herz(me)} ${stat(me)}`;
+    $('onl-me-head').innerHTML=`<b>Du</b> (${meLbl}) &middot; Z&uuml;ge <b>${me.moves}</b> ${stat(me)}`;
+    setLebenBar($('onl-leben'), me.hearts);   // eigene Leben gross ueber der Steuerung
     $('onl-opp-head').className='mp-head '+oppCol;
     $('onl-opp-head').innerHTML=`Gegner (${oppLbl}) &middot; Z&uuml;ge <b>${opp.moves}</b>${herz(opp)} ${stat(opp)}`;
     const t=$('onl-turn'); t.classList.remove('mine','theirs','over');
@@ -5755,7 +5937,7 @@
   $('onl-code').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); onlJoin($('onl-code').value); } });
   $('onl-leave').addEventListener('click', onlLeave);
   $('onl-reveal').addEventListener('click', onlShowReveal);
-  $('onl-log-btn').addEventListener('click',()=>{ if(!onl) return; if(onl.cs) openLog(logHtml(renderLog, onl.cs.log||[])); else if(onl.gs) openLog(logHtml(renderGerLog, onl.gs.players[onl.myIdx].log||[])); });
+  $('onl-log-btn').addEventListener('click',()=>{ if(!onl) return; if(onl.cs) openLog(()=>[{log:onl.cs.log||[]}]); else if(onl.gs) openLog(()=>[{log:(onl.gs.players[onl.myIdx].log)||[]}]); });
   $('onl-rematch-btn').addEventListener('click', onlRequestRematch);
   document.querySelectorAll('#onl-steps button[data-step]').forEach(b=>{
     b.addEventListener('click', ()=>onlMove(parseInt(b.dataset.step,10)));
@@ -5828,7 +6010,7 @@
   $('spc-reveal').addEventListener('click',()=>{ if(!spcState) return; if(!spcState.revealed){ spcState.revealed=true; spcState.revealedAtMove=spcState.moves; } openReveal(circleExplain(spcState.rings, spcState.poseEffects, spcState.figRule)); });
   $('spc-reset').addEventListener('click',()=>{ if(spcState && !spcState.animating) spcStart(spcState.diffKey, spcState.ov); });
   $('spc-back').addEventListener('click',backToMenu);
-  $('spc-log-btn').addEventListener('click',()=>{ if(spcState) openLog(logHtml(renderLog, spcState.log)); });
+  $('spc-log-btn').addEventListener('click',()=>{ if(spcState) openLog(()=>[{log:spcState.log}]); });
 
   // MP controls
   $('mpg-reveal').addEventListener('click',mpShowReveal);
@@ -5837,9 +6019,9 @@
   $('mpc-reveal').addEventListener('click',mpShowReveal);
   $('mpc-again').addEventListener('click',()=>{ if(mp) mpStart(mp.config.diffKey, mp.ov, mp.circVar||'duell'); });
   $('mpc-back').addEventListener('click',backToMenu);
-  $('mpc-log-btn').addEventListener('click',()=>{ if(mp&&mp.players) openLog(logHtml(renderLog, [{label:'Spieler 1',cls:'p1',log:mp.players[0].cs.log},{label:'Spieler 2',cls:'p2',log:mp.players[1].cs.log}])); });
+  $('mpc-log-btn').addEventListener('click',()=>{ if(mp&&mp.players) openLog(()=>[{label:'Spieler 1',cls:'p1',log:mp.players[0].cs.log},{label:'Spieler 2',cls:'p2',log:mp.players[1].cs.log}]); });
   $('mpcg-reveal').addEventListener('click',mpcgShowReveal);
-  $('mpcg-log-btn').addEventListener('click',()=>{ if(mp&&mp.gs) openLog(logHtml(renderGerLog, [{label:'Spieler 1',cls:'p1',log:mp.gs.players[0].log},{label:'Spieler 2',cls:'p2',log:mp.gs.players[1].log}])); });
+  $('mpcg-log-btn').addEventListener('click',()=>{ if(mp&&mp.gs) openLog(()=>[{label:'Spieler 1',cls:'p1',log:mp.gs.players[0].log},{label:'Spieler 2',cls:'p2',log:mp.gs.players[1].log}]); });
   $('mpcg-again').addEventListener('click',()=>{ if(mp&&mp.gs){ teardownActive(); hideAllScreens(); mpcgStart(mp.gs.diffKey, mp.ov); } });
   $('mpcg-back').addEventListener('click',backToMenu);
 
@@ -5893,7 +6075,12 @@
       if(m){ e.preventDefault(); $(m).classList.add('hidden'); }
       return;
     }
-    if(!$('reveal-modal').classList.contains('hidden') || !$('log-modal').classList.contains('hidden') || !$('mini-modal').classList.contains('hidden')) return;
+    // Im offenen Protokoll blättern die Pfeiltasten durch die Züge (links = älter)
+    if(!$('log-modal').classList.contains('hidden')){
+      if(logView && (e.key==='ArrowLeft'||e.key==='ArrowRight')){ e.preventDefault(); logGehe(logView.idx + (e.key==='ArrowLeft'?1:-1)); }
+      return;
+    }
+    if(!$('reveal-modal').classList.contains('hidden') || !$('mini-modal').classList.contains('hidden')) return;
     if(!$('racing').classList.contains('hidden') && race){
       if(e.repeat){ e.preventDefault(); return; }        // Tastenwiederholung ist kein neuer Druck
       const m={ 'ArrowLeft':'L','ArrowRight':'R' };
