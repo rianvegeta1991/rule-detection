@@ -406,6 +406,14 @@
   .rings-svg{display:block; max-width:100%; height:auto;}
   .ring-field{fill:rgba(var(--accent-rgb),0.16); stroke:#0b1220; stroke-width:1.5;}
   .ring-field.star{fill:rgba(var(--accent-rgb),0.55);}
+  /* Herzfeld: hebt den Schrittvorrat wieder an */
+  .ring-field.heart{fill:rgba(244,114,182,0.42);}
+  .ring-field.heart + .field-label, .field-label.herz{fill:#fce7f3;}
+  .m-erschoepft{opacity:0.35; filter:grayscale(1);}
+  .herz-anzeige{display:inline-flex; align-items:center; gap:3px; color:#f9a8d4; font-weight:700;}
+  .herz-anzeige.knapp{color:#fca5a5; animation:pulse 0.8s infinite alternate;}
+  /* Protokoll: neun Zuege passen nicht mehr auf einen Blick – also scrollen lassen */
+  .log-scroll{max-height:62vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;}
   .ring-field.wall{fill:#0b1220; stroke:rgba(148,163,184,0.14); pointer-events:none;}
   .ring-field.current{stroke:var(--good); stroke-width:3;}
   .field-label{fill:#e2e8f0; text-anchor:middle; dominant-baseline:middle; pointer-events:none; font-family:inherit;}
@@ -612,7 +620,7 @@
   .mp-status{font-weight:700;}
   .mp-status.done{color:var(--good);}
   .mp-status.lost{color:var(--bad);}
-  .mp-log{width:100%; max-width:340px; min-height:20px;}
+  .mp-log{width:100%; max-width:340px; min-height:20px; max-height:46vh; overflow-y:auto; overscroll-behavior:contain;}
   .mp-result{margin-top:14px; text-align:center; font-size:1rem; line-height:1.6;}
   .mp-result .win-line{font-family:'Palatino Linotype','Book Antiqua',Georgia,serif; font-size:1.3rem; font-weight:700; color:var(--gold);}
 
@@ -922,6 +930,7 @@
 <div id="sp-circle" class="game-screen hidden">
   <div class="game-head">
     <div class="stats-row">
+      <span class="herz-anzeige" id="spc-hearts-wrap">&#9829;&nbsp;<b id="spc-hearts">7</b></span>
       <span>Z&uuml;ge <b id="spc-moves">0</b></span>
       <span>Ring <b id="spc-ring">–</b></span>
       <span>Feld <b id="spc-field">–</b></span>
@@ -996,7 +1005,7 @@
   </div>
   <div class="mp-wrap">
     <div class="mp-col">
-      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpc-m1">0</b> <span class="mp-status" id="mpc-s1"></span></div>
+      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpc-m1">0</b> <span class="herz-anzeige" id="mpc-h1">&#9829;&nbsp;<b>7</b></span> <span class="mp-status" id="mpc-s1"></span></div>
       <div id="mpc-host1" class="circle-host"></div>
       <div class="mp-steps p1" data-p="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
@@ -1005,7 +1014,7 @@
       <div class="mp-log clog" id="mpc-log1" style="font-size:0.76rem;"></div>
     </div>
     <div class="mp-col">
-      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpc-m2">0</b> <span class="mp-status" id="mpc-s2"></span></div>
+      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpc-m2">0</b> <span class="herz-anzeige" id="mpc-h2">&#9829;&nbsp;<b>7</b></span> <span class="mp-status" id="mpc-s2"></span></div>
       <div id="mpc-host2" class="circle-host"></div>
       <div class="mp-steps p2" data-p="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
@@ -1031,7 +1040,7 @@
   <div id="mpcg-turn" class="banner p1" style="margin-bottom:8px; text-align:center; font-weight:700;"></div>
   <div class="mp-wrap" style="align-items:flex-start;">
     <div class="mp-col" style="max-width:240px;">
-      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="mp-status" id="mpcg-s1"></span></div>
+      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="herz-anzeige" id="mpcg-h1">&#9829;&nbsp;<b>7</b></span> <span class="mp-status" id="mpcg-s1"></span></div>
       <div id="mpcg-det1"></div>
       <div class="mp-steps p1" data-cg="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
@@ -1040,7 +1049,7 @@
     </div>
     <div id="mpcg-host" class="circle-host"></div>
     <div class="mp-col" style="max-width:240px;">
-      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpcg-m2">0</b> <span class="mp-status" id="mpcg-s2"></span></div>
+      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpcg-m2">0</b> <span class="herz-anzeige" id="mpcg-h2">&#9829;&nbsp;<b>7</b></span> <span class="mp-status" id="mpcg-s2"></span></div>
       <div id="mpcg-det2"></div>
       <div class="mp-steps p2" data-cg="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
@@ -1189,6 +1198,10 @@
     <input type="range" id="opt-sfx" min="0" max="100" step="5" value="100" style="width:100%;">
     <label class="small" style="margin:12px 0 2px;">&#127925; Hintergrundmusik: <b id="music-val">55%</b></label>
     <input type="range" id="opt-music" min="0" max="100" step="5" value="55" style="width:100%;">
+    <label class="small" style="margin:18px 0 0; display:flex; align-items:center; gap:9px; cursor:pointer;">
+      <input type="checkbox" id="opt-reveal" checked style="width:17px; height:17px; accent-color:var(--gold); flex:0 0 auto;">
+      <span>&#128269; Knopf „Aufl&ouml;sung" zeigen</span>
+    </label>
     <button class="action" id="sound-test" style="width:100%; margin-top:14px;">&#128264; Ton testen</button>
     <button class="action" id="open-guide" style="width:100%; margin-top:14px;">&#128218; Anleitung</button>
   </div>
@@ -1211,6 +1224,8 @@
       <summary>Kreis-Modus</summary>
       <div class="intro" style="margin-top:8px;">
         Deine Figur steht auf konzentrischen Ringen. W&auml;hle pro Zug eine Zahl: die <b>Figur</b> bewegt sich genau um diese Schrittzahl &ndash; unabh&auml;ngig vom Ring, auf dem sie steht. Eine <b>Verzerrung</b> dieser Bewegung gibt es erst ab dem <b>Nachtleben</b>. Zus&auml;tzlich dreht sich <b>jeder Ring</b> auf deine Eingabe nach seiner eigenen Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug). Ganz innen liegt ein d&uuml;nner <b>Tor-Ring</b> mit nur einem einzigen &starf; &ndash; erreichst du es, geht es direkt ins Zentrum zum <b>Detektiv</b> (Sherlock): Mit Taste W bzw. &uarr; (oder Klick) wechselt er zwischen drei Posen. Pose 1 ist neutral, Pose 2 und 3 aktivieren je eine geheime Zusatzregel. Im <b>Duell</b> kannst du „Gerangel" w&auml;hlen: Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd, mit der zus&auml;tzlichen Pose <b>Sabotage</b>, die die <b>gegnerische Figur</b> zwangsweise verschiebt.
+        <br><br>
+        <b>&#9829; Herzen:</b> Du startest mit <b>7</b> Herzen. Jeder Zug kostet <b>eines</b> &ndash; auch ein Nullschritt, denn auch der dreht die Ringe weiter. Auf ein &starf; gezogen zu werden kostet <b>nichts</b> extra. Auf jedem Ring liegen <b>Herzfelder</b> (&#9829;): ein Ring unter 9 Feldern hat eines, unter 19 Feldern zwei, gr&ouml;&szlig;ere drei. L&auml;ufst du darauf, gibt es <b>+2</b> Herzen; das Herz taucht danach in der gegen&uuml;berliegenden Kreish&auml;lfte wieder auf. Sind die Herzen leer, ist die Runde vorbei. Im <b>Duell</b> gewinnt dann, wer am weitesten innen steht &ndash; bei gleichem Ring unentschieden.
       </div>
     </details>
     <details class="ed-adv">
@@ -1293,7 +1308,7 @@
       <h2>Zug-Protokoll</h2>
       <button class="modal-close" id="log-close" aria-label="Schlie&szlig;en">&times;</button>
     </div>
-    <div id="log-body"></div>
+    <div id="log-body" class="log-scroll"></div>
   </div>
 </div>
 
@@ -1663,7 +1678,7 @@
         cs.mounted=true;
         demo={ takt:1, schritt(){
           if(cs.animating) return true;                       // Zug laeuft noch
-          if(cs.phase==='won') return false;                  // Zentrum erreicht -> neu aufbauen
+          if(cs.phase==='won' || cs.phase==='out') return false;   // Zentrum erreicht oder Herzen leer -> neu aufbauen
           sfxStumm++;
           circleStep(cs, CHOICES[randInt(CHOICES.length)], 'both')
             .catch(()=>{}).then(()=>{ sfxStumm--; });
@@ -1744,7 +1759,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.39";
+  const APP_VERSION = "1.40";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2270,15 +2285,74 @@
     const poseEffects=[ {kind:'neutral'}, p2, p3 ];
     return { theme, diffKey, specs, outerIdx, startIndex, poseEffects, figRule };
   }
+  // ---- Herzen: der Schrittvorrat der Katze ----
+  // Jede Bewegung kostet ein Herz. Auf ein Sternenfeld gezogen zu werden kostet nichts – das ist
+  // kein eigener Schritt, sondern die Folge davon. Herzfelder geben zwei zurueck (netto +1).
+  const CIRCLE_HEARTS_START=7;
+  function heartCount(fieldCount){ return fieldCount<9 ? 1 : (fieldCount<19 ? 2 : 3); }
+  // Herzfelder moeglichst gleichmaessig verteilen, nie auf Sternenfeldern oder Startfeldern.
+  // `meiden` ist ein Index oder eine Liste davon (im Gerangel starten zwei Figuren auf dem Ring).
+  function placeHearts(ring, meiden){
+    if(ring.gate) return [];                        // der Tor-Ring hat nur sein Sternenfeld
+    const weg = Array.isArray(meiden) ? meiden : [meiden];
+    const n=heartCount(ring.fieldCount);
+    const frei=[];
+    for(let i=0;i<ring.fieldCount;i++) if(!ring.starIndices.includes(i) && !weg.includes(i)) frei.push(i);
+    const out=[];
+    for(let k=0;k<n && frei.length;k++){
+      const ziel=Math.round(k*ring.fieldCount/n);
+      let best=0, bd=Infinity;
+      frei.forEach((f,j)=>{ const roh=Math.abs(f-ziel); const d=Math.min(roh, ring.fieldCount-roh); if(d<bd){ bd=d; best=j; } });
+      out.push(frei.splice(best,1)[0]);
+    }
+    return out.sort((a,b)=>a-b);
+  }
+  // Ein aufgesammeltes Herz taucht in der gegenueberliegenden Kreishaelfte wieder auf
+  // Herzanzeige im Kopf: Zahl setzen, ab 2 Herzen rot pulsieren lassen.
+  function setHerzAnzeige(wrap, n, zahlEl){
+    if(!wrap) return;
+    const b = zahlEl || wrap.querySelector('b');
+    if(b) b.textContent = (n==null?'–':n);
+    wrap.classList.toggle('knapp', n!=null && n<=2);
+  }
+  // Herz einsammeln. `st` traegt die Ringe/Darstellung, `fig` die Position + den Herzvorrat –
+  // im Einzelspieler ist beides dasselbe Objekt, im Gerangel sind es Zustand und Spieler.
+  function grabHeart(st, fig){
+    if(fig.hearts==null) return false;
+    const r=st.rings[fig.ringIdx], pos=(r.hearts||[]).indexOf(fig.index);
+    if(pos<0) return false;
+    r.hearts.splice(pos,1);
+    const neu=moveHeart(r, fig.index);          // taucht gegenueber wieder auf
+    if(neu!=null) r.hearts.push(neu);
+    r.hearts.sort((a,b)=>a-b);
+    fig.hearts+=2; refreshHearts(st); sfx('coin');
+    return true;
+  }
+  function moveHeart(ring, altIdx){
+    const fc=ring.fieldCount;
+    const gegenueber=(altIdx+Math.round(fc/2))%fc;
+    const belegt=(i)=>ring.starIndices.includes(i) || (ring.hearts||[]).includes(i);
+    for(let d=0; d<Math.floor(fc/2); d++){
+      for(const k of (d===0?[0]:[d,-d])){
+        const i=((gegenueber+k)%fc+fc)%fc;
+        if(!belegt(i)) return i;
+      }
+    }
+    return null;
+  }
   function makeCircleState(config){
-    return {
+    const st={
       diffKey:config.diffKey, theme:config.theme, figRule:config.figRule,
-      rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null })),
+      rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null, hearts:[] })),
       ringIdx:config.outerIdx, index:config.startIndex,
       moves:0, done:false, doneAtMove:null, phase:'playing', animating:false, mounted:true,
       lastFlash:null, markerOverride:null, log:[],
+      hearts:CIRCLE_HEARTS_START, heartsLeer:false,
       gandalfPose:0, poseEffects:config.poseEffects
     };
+    // Herzfelder je Ring verteilen – auf dem Startring nicht direkt unter die Katze
+    st.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===st.ringIdx?st.index:-1); });
+    return st;
   }
   function circleExplain(rings, poseEffects, figRule){
     let html = '<b>Figur:</b> ' + ((figRule && figRule!=='normal') ? stepTransformLabel(figRule) : 'Die Figur bewegt sich genau um deine gew&auml;hlte Schrittzahl &ndash; unabh&auml;ngig davon, auf welchem Ring sie steht.');
@@ -2318,9 +2392,10 @@
           path.setAttribute('class','ring-field wall');
           arr.push(path); labs.push({el:null, px:0, py:0});
         } else {
-          path.setAttribute('class','ring-field'+(isStar?' star':''));
+          const isHeart=!isStar && (ring.hearts||[]).includes(i);
+          path.setAttribute('class','ring-field'+(isStar?' star':'')+(isHeart?' heart':''));
           const pos=polarToXY(cx,cy,(rInR+rOutR)/2,a0+sa/2);
-          const label=elNS('text'); label.setAttribute('x',pos.x); label.setAttribute('y',pos.y); label.setAttribute('class','field-label'); label.setAttribute('font-size',13*s); label.textContent=isStar?'★':String(i+1); group.appendChild(label);
+          const label=elNS('text'); label.setAttribute('x',pos.x); label.setAttribute('y',pos.y); label.setAttribute('class','field-label'); label.setAttribute('font-size',13*s); label.textContent=isStar?'★':(isHeart?'♥':String(i+1)); group.appendChild(label);
           arr.push(path); labs.push({el:label, px:pos.x, py:pos.y});
         }
       }
@@ -2338,6 +2413,23 @@
     cs.svg=svg; cs.marker=marker;
     host.innerHTML=''; host.appendChild(svg);
     applyRingTransforms(cs); positionMarker(cs);
+  }
+  // Herzfelder wandern im Spiel – Beschriftung und Farbe danach nachziehen
+  function refreshHearts(cs){
+    if(!cs.fieldPaths) return;
+    cs.rings.forEach((ring,ri)=>{
+      const pfade=cs.fieldPaths[ri], labs=cs.ringLabels&&cs.ringLabels[ri];
+      if(!pfade) return;
+      for(let i=0;i<ring.fieldCount;i++){
+        const p=pfade[i]; if(!p) continue;
+        const isStar=ring.starIndices.includes(i);
+        const isHeart=!isStar && (ring.hearts||[]).includes(i);
+        if(p.classList.contains('wall')) continue;
+        p.classList.toggle('heart', isHeart);
+        const l=labs&&labs[i]&&labs[i].el;
+        if(l && !isStar) l.textContent = isHeart ? '♥' : String(i+1);
+      }
+    });
   }
   function applyRingTransforms(cs){ cs.ringGroups.forEach((g,i)=>{ const off=ringOffsetNow(cs.rings[i]); g.setAttribute('transform',`rotate(${off} ${cs.geo.cx} ${cs.geo.cy})`); if(cs.ringLabels && cs.ringLabels[i]) cs.ringLabels[i].forEach(l=>{ if(l.el) l.el.setAttribute('transform',`rotate(${-off} ${l.px} ${l.py})`); }); }); }
   // Spielfigur im Kreis: eine Katze, die zum Detektiv ins Zentrum will.
@@ -2429,6 +2521,9 @@
     if(!cs.mounted) return false;
     cs.markerOverride=null;
     cs.index=((cs.index+figActual)%ring.fieldCount+ring.fieldCount)%ring.fieldCount;
+    // Jeder Zug kostet ein Herz – auch ein Nullschritt, denn auch der dreht die Ringe weiter
+    // und kann dich ueber ein Sternenfeld nach innen ziehen. Nur das Ziehen selbst ist gratis.
+    if(cs.hearts!=null) cs.hearts--;
     updateHighlight(cs); positionMarker(cs);
 
     const startOffsets=cs.rings.map(r=>r.offset);
@@ -2460,14 +2555,19 @@
       }
     }
 
-    cs.log.unshift({ move:cs.moves, choice, mode, pose:cs.gandalfPose+1, figActual, rotActuals:rotActuals.slice(), outcome: won?'center':hopInfo });
-    if(cs.log.length>3) cs.log.pop();
+    // Herzfeld eingesammelt? Gilt auch, wenn die Katze ueber ein Sternenfeld dorthin gezogen wurde.
+    const herzGeholt = grabHeart(cs, cs);
+    cs.log.unshift({ move:cs.moves, choice, mode, pose:cs.gandalfPose+1, figActual, rotActuals:rotActuals.slice(),
+                     hearts:cs.hearts, heart:herzGeholt, outcome: won?'center':hopInfo });
+    if(cs.log.length>9) cs.log.pop();
 
     if(won){
       const rw=360/cs.rings[0].fieldCount, ang=(cs.index+0.5)*rw+cs.rings[0].offset;
       await tween(dur(600), p=>{ if(!cs.mounted) return; cs.markerOverride={angle:ang, radius:ringMidR(cs,0)*(1-p)}; positionMarker(cs); });
       if(!cs.mounted) return false;
       cs.markerOverride=null; cs.phase='won'; cs.done=true; cs.doneAtMove=cs.moves;
+    } else if(cs.hearts!=null && cs.hearts<=0){
+      cs.hearts=0; cs.heartsLeer=true; cs.phase='out'; cs.done=true; cs.doneAtMove=cs.moves;
     }
     cs.animating=false;
     return won;
@@ -2480,6 +2580,7 @@
     let html=`<div class="log-entry"><div class="log-head"><span class="log-move">Zug ${e.move}</span>${logChip('Auswahl',fmtDelta(e.choice),'choice')}${poseTag}${modeTag}</div><div class="log-vals">`;
     html+=logChip('Figur',fmtDelta(e.figActual),'fig')+`<span class="log-sep"></span>`;
     e.rotActuals.forEach((d,i)=> html+=logChip('R'+(i+1),fmtDelta(d),d===0?'zero':'rot'));
+    if(e.hearts!=null) html+=`<span class="log-sep"></span>`+logChip('♥', e.hearts + (e.heart?' (+2)':''), e.heart?'rot':'zero');
     html+=`</div>`;
     if(e.outcome==='center') html+=`<div class="log-out win">→ ins Zentrum!</div>`;
     else if(e.outcome) html+=`<div class="log-out hop">→ Sprung Ring ${e.outcome.from+1}→${e.outcome.to+1}${e.outcome.randomTie?' (Zufall)':''}</div>`;
@@ -3691,13 +3792,8 @@
     return true;
   }
   function raceReveal(){
-    let html='<b>Steuerung:</b><ul style="margin:4px 0 8px 18px;">'
-      +(race.free
-        ? '<li><b>&#9664; / &#9654;</b> geben dem Auto kurz Seitengeschwindigkeit &ndash; ein Tipp tr&auml;gt etwa ein Feld weit.</li>'
-        : '<li><b>&#9664; / &#9654;</b> bewegen das Auto ein Feld.</li>')
-      +'<li><b>A</b> hebt das Auto 2,5 Felder ab &ndash; damit sind auch zwei Bomben hintereinander drin. Danach 3 Felder keine Spr&uuml;nge.</li>'
-      +'<li><b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei, auch wenn du die Zone wechselst.</li></ul>'
-      +'<b>Die Farbzonen verzerren die Steuerung (verborgen &ndash; finde sie heraus!):</b><ul style="margin:4px 0 0 18px;">';
+    // Die Steuerung steht in der Anleitung – hier interessiert nur, was verborgen war.
+    let html='<b>Die Farbzonen verzerren die Steuerung (verborgen &ndash; finde sie heraus!):</b><ul style="margin:4px 0 0 18px;">';
     ZONE_COLORS.slice(0, race.zoneCount).forEach((zc,i)=>{ const k=race.zoneDistort[i];
       const txt=(race.free && RACE_DIST_LABEL_FREE[k]) || RACE_DIST_LABEL[k];
       html+=`<li><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgb(${zc.tint});vertical-align:middle;margin-right:6px;"></span><b>${zc.name}</b>: ${txt}</li>`; });
@@ -3884,6 +3980,7 @@
   function spcRender(){
     const cs=spcState; circleMarkerFlash(cs);
     $('spc-moves').textContent=cs.moves;
+    setHerzAnzeige($('spc-hearts-wrap'), cs.hearts, $('spc-hearts'));
     $('spc-ring').textContent = cs.phase==='won'?'Zentrum':(cs.ringIdx+1)+' / '+cs.rings.length;
     $('spc-field').textContent = cs.phase==='won'?'–':(cs.index+1);
     if(!$('log-modal').classList.contains('hidden')) openLog(logHtml(renderLog, cs.log)); // offenes Protokoll live nachziehen
@@ -3893,6 +3990,12 @@
       ov.classList.remove('hidden');
       const note=cs.revealed?`Aufl&ouml;sung genutzt (ab Zug ${cs.revealedAtMove}).`:'Ohne Aufl&ouml;sung gel&ouml;st &ndash; stark!';
       $('spc-overlay-msg').innerHTML=`Detektiv erreicht in <b>${cs.moves}</b> Z&uuml;gen!<br>${note}`;
+      const acts=$('spc-overlay-actions'); acts.innerHTML='';
+      const n=el('button','action primary'); n.textContent='Nächste Runde'; n.onclick=()=>spcStart(cs.diffKey, cs.ov); acts.appendChild(n);
+      const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
+    } else if(cs.phase==='out'){
+      ov.classList.remove('hidden');
+      $('spc-overlay-msg').innerHTML=`<b>Keine Herzen mehr!</b><br>Die Katze kam bis Ring <b>${cs.ringIdx+1}</b> von ${cs.rings.length} &ndash; in ${cs.moves} Z&uuml;gen.`;
       const acts=$('spc-overlay-actions'); acts.innerHTML='';
       const n=el('button','action primary'); n.textContent='Nächste Runde'; n.onclick=()=>spcStart(cs.diffKey, cs.ov); acts.appendChild(n);
       const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
@@ -3922,8 +4025,19 @@
   function mpDone(i){ const p=mp.players[i]; return p.cs?p.cs.done:p.board.figs[0].done; }
   function freezeAll(){ if(mp.players) mp.players.forEach(p=>{ if(p.board) p.board.figs[0].done=true; if(p.cs) p.cs.done=true; }); }
 
-  function mpOnFinish(idx){
+  // Wie weit ist der Spieler nach innen gekommen? Kleiner ist besser, Zentrum schlaegt alles.
+  function mpTiefe(i){ const cs=mp.players[i].cs; if(!cs) return 99; return cs.phase==='won' ? -1 : cs.ringIdx; }
+  function mpOnFinish(idx, grund){
     if(mp.finished) return;
+    if(grund==='out'){
+      // Herzen leer. Entschieden wird erst, wenn beide durch sind – der andere kann noch ankommen.
+      if(!(mpDone(0)&&mpDone(1))) { mpUpdateHeads(); return; }
+      const imZentrum=[0,1].filter(i=>mp.players[i].cs && mp.players[i].cs.phase==='won');
+      mp.finished=true;
+      if(imZentrum.length===1){ mp.winner=imZentrum[0]; }
+      else { const a=mpTiefe(0), b=mpTiefe(1); mp.winner = a<b?0 : b<a?1 : 'tie'; mp.reason='hearts'; }
+      mpShowResult(); return;
+    }
     if(winCond==='fastest'){ mp.finished=true; mp.winner=idx; freezeAll(); mpShowResult(); }
     else if(mpDone(0)&&mpDone(1)){ mp.finished=true; const a=mpMoves(0),b=mpMoves(1); mp.winner = a<b?0 : b<a?1 : 'tie'; mpShowResult(); }
   }
@@ -3931,7 +4045,13 @@
     const isGrid = mp.mode==='grid';
     const resEl = $(isGrid?'mpg-result':'mpc-result');
     let line;
-    if(mp.winner==='tie') line=`<div class="win-line">Unentschieden!</div>Beide brauchten ${mpMoves(0)} Z&uuml;ge.`;
+    if(mp.reason==='hearts'){
+      const tief=i=>`Ring ${mpTiefe(i)+1}`;
+      line = mp.winner==='tie'
+        ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (${tief(0)}).`
+        : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Herzen leer &ndash; am weitesten innen: ${tief(mp.winner)} gegen ${tief(1-mp.winner)}.`;
+    }
+    else if(mp.winner==='tie') line=`<div class="win-line">Unentschieden!</div>Beide brauchten ${mpMoves(0)} Z&uuml;ge.`;
     else { const w=mp.winner+1;
       if(winCond==='fastest') line=`<div class="win-line">Spieler ${w} gewinnt!</div>Zuerst am Ziel in ${mpMoves(mp.winner)} Z&uuml;gen (Gegner: ${mpMoves(1-mp.winner)}${mpDone(1-mp.winner)?'':', noch unterwegs'}).`;
       else line=`<div class="win-line">Spieler ${w} gewinnt!</div>Weniger Z&uuml;ge: ${mpMoves(mp.winner)} gegen ${mpMoves(1-mp.winner)}.`;
@@ -3947,7 +4067,10 @@
     [0,1].forEach(i=>{
       const s=$((isGrid?'mpg-s':'mpc-s')+(i+1));
       const p=mp.players[i]; const doneAt=p.cs?p.cs.doneAtMove:p.board.figs[0].doneAtMove;
-      if(mpDone(i)&&doneAt){ s.textContent=`✓ fertig (${doneAt} Z.)`; s.classList.add('done'); } else { s.textContent=''; s.classList.remove('done'); }
+      if(p.cs) setHerzAnzeige($('mpc-h'+(i+1)), p.cs.hearts);
+      if(p.cs && p.cs.heartsLeer){ s.textContent='✗ keine Herzen mehr'; s.classList.add('done'); }
+      else if(mpDone(i)&&doneAt){ s.textContent=`✓ fertig (${doneAt} Z.)`; s.classList.add('done'); }
+      else { s.textContent=''; s.classList.remove('done'); }
     });
     refreshMpTouchButtons();
   }
@@ -4055,6 +4178,7 @@
     renderLog($('mpc-log'+(idx+1)), cs.log);
     mpUpdateHeads();
     if(won) mpOnFinish(idx);
+    else if(cs.phase==='out') mpOnFinish(idx, 'out');
   }
 
   // ===================== KREIS-GERANGEL (gemeinsamer Kreis, abwechselnd) =====================
@@ -4070,7 +4194,7 @@
     gs.fieldPaths.forEach(arr=>arr.forEach(p=>p.classList.remove('current-p1','current-p2')));
     gs.players.forEach((pl,i)=>{ if(!pl.done && pl.ringIdx>=0) gs.fieldPaths[pl.ringIdx][pl.index].classList.add(i===0?'current-p1':'current-p2'); });
   }
-  function markerFlashG(pl){ if(!pl.marker) return; pl.marker.classList.remove('flash-good','flash-bad'); if(pl.lastFlash) pl.marker.classList.add(pl.lastFlash==='good'?'flash-good':'flash-bad'); pl.marker.style.display = pl.done?'none':''; }
+  function markerFlashG(pl){ if(!pl.marker) return; pl.marker.classList.remove('flash-good','flash-bad'); if(pl.lastFlash) pl.marker.classList.add(pl.lastFlash==='good'?'flash-good':'flash-bad'); pl.marker.classList.toggle('m-erschoepft', !!pl.heartsLeer); pl.marker.style.display = (pl.done&&!pl.heartsLeer)?'none':''; }
   async function animateHopG(gs, pl, fromR, fromIdx, toR, toIdx){
     const wFrom=360/gs.rings[fromR].fieldCount, wTo=360/gs.rings[toR].fieldCount;
     const a0=(fromIdx+0.5)*wFrom+gs.rings[fromR].offset, a1=(toIdx+0.5)*wTo+gs.rings[toR].offset;
@@ -4114,6 +4238,8 @@
     if(!gs.mounted) return false;
     pl.markerOverride=null;
     pl.index=((pl.index+figActual)%ring.fieldCount+ring.fieldCount)%ring.fieldCount;
+    // Jeder Zug kostet ein Herz – siehe circleStep. Nur das Ziehen auf ein Sternenfeld ist gratis.
+    if(pl.hearts!=null) pl.hearts--;
     positionMarkerG(gs,pl);
     const startOffsets=gs.rings.map(r=>r.offset);
     if(rotActuals.some(d=>d!==0)){
@@ -4173,13 +4299,17 @@
         opp.markerOverride=null; opp.done=true; opp.doneAtMove=opp.moves; oppWon=true;
       }
     }
-    pl.log.unshift({ move:pl.moves, choice, mode:'both', pose:pl.gandalfPose+1, poseName:gs.poseNames[pl.gandalfPose], figActual, rotActuals:rotActuals.slice(), sabotage:saboInfo, outcome: won?'center':hopInfo });
-    if(pl.log.length>3) pl.log.pop();
+    const herzGeholt = won ? false : grabHeart(gs, pl);
+    if(isSabo && !oppWon && !opp.done) grabHeart(gs, opp);   // auch die verschobene Katze darf zugreifen
+    pl.log.unshift({ move:pl.moves, choice, mode:'both', pose:pl.gandalfPose+1, poseName:gs.poseNames[pl.gandalfPose], figActual, rotActuals:rotActuals.slice(), sabotage:saboInfo, hearts:pl.hearts, heart:herzGeholt, outcome: won?'center':hopInfo });
+    if(pl.log.length>9) pl.log.pop();
     if(won){
       const rw=360/gs.rings[0].fieldCount, ang=(pl.index+0.5)*rw+gs.rings[0].offset;
       await tween(dur(600), p=>{ if(!gs.mounted) return; pl.markerOverride={angle:ang, radius:ringMidR(gs,0)*(1-p)}; positionMarkerG(gs,pl); });
       if(!gs.mounted) return null;
       pl.markerOverride=null; pl.done=true; pl.doneAtMove=pl.moves;
+    } else if(pl.hearts!=null && pl.hearts<=0){
+      pl.hearts=0; pl.heartsLeer=true; pl.done=true; pl.doneAtMove=pl.moves;
     }
     gs.animating=false;
     return won ? pi : (oppWon ? (1-pi) : null);
@@ -4188,6 +4318,7 @@
     let html=`<div class="log-entry"><div class="log-head"><span class="log-move">Zug ${e.move}</span>${logChip('Auswahl',fmtDelta(e.choice),'choice')}<span class="pose-dot pose-c${e.pose-1}" title="Pose-Farbe"></span></div><div class="log-vals">`;
     html+=logChip('Figur',fmtDelta(e.figActual),'fig')+`<span class="log-sep"></span>`;
     e.rotActuals.forEach((d,i)=> html+=logChip('R'+(i+1),fmtDelta(d),d===0?'zero':'rot'));
+    if(e.hearts!=null) html+=`<span class="log-sep"></span>`+logChip('♥', e.hearts + (e.heart?' (+2)':''), e.heart?'rot':'zero');
     html+=`</div>`;
     if(e.sabotage){ let t=`Sabotage &rarr; Gegner ${fmtDelta(e.sabotage.amount)}`; if(e.sabotage.hop) t+=` (Ebene ${e.sabotage.hop.from}&rarr;${e.sabotage.hop.to})`; html+=`<div class="log-out"><span class="log-sabo">${t}</span></div>`; }
     if(e.outcome==='center') html+=`<div class="log-out win">&rarr; ins Zentrum!</div>`;
@@ -4207,7 +4338,10 @@
     const gs=mp.gs;
     $('mpcg-m1').textContent=gs.players[0].moves; $('mpcg-m2').textContent=gs.players[1].moves;
     [0,1].forEach(i=>{ const s=$('mpcg-s'+(i+1)); const pl=gs.players[i];
-      if(pl.done){ s.textContent=`✓ im Zentrum (${pl.doneAtMove} Z.)`; s.classList.add('done'); } else { s.textContent=''; s.classList.remove('done'); } });
+      setHerzAnzeige($('mpcg-h'+(i+1)), pl.hearts);
+      if(pl.heartsLeer){ s.textContent='✗ keine Herzen mehr'; s.classList.add('done'); }
+      else if(pl.done){ s.textContent=`✓ im Zentrum (${pl.doneAtMove} Z.)`; s.classList.add('done'); }
+      else { s.textContent=''; s.classList.remove('done'); } });
     const turnEl=$('mpcg-turn'); turnEl.classList.remove('p1','p2'); turnEl.classList.add(gs.turn===0?'p1':'p2');
     turnEl.innerHTML = mp.finished ? 'Runde beendet.' : `<b>Spieler ${gs.turn+1}</b> ist am Zug`;
     renderGerDetective(gs,0); renderGerDetective(gs,1);
@@ -4223,13 +4357,15 @@
     musicSetTrack('circle');
     const config=buildCircleConfig(diffKey, ov); setThemeBg(config.theme);
     const outerIdx=config.outerIdx, fc=config.specs[outerIdx].fieldCount;
-    const mkPlayer=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[] });
+    const mkPlayer=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[], hearts:CIRCLE_HEARTS_START, heartsLeer:false });
     const gs={ diffKey, theme:config.theme, figRule:config.figRule, mounted:true, animating:false,
-      rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null })),
+      rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null, hearts:[] })),
       poseEffects: config.poseEffects.concat([{kind:'sabotage'}]),
       poseNames: GER_POSE_NAMES,
       players:[ mkPlayer(config.startIndex), mkPlayer((config.startIndex+Math.floor(fc/2))%fc) ],
       turn:0 };
+    // Herzfelder: der Ring, auf dem beide starten, spart beide Startfelder aus
+    gs.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===outerIdx?[gs.players[0].index, gs.players[1].index]:-1); });
     mp={ mode:'circleGer', gs, ov, finished:false, winner:null };
     buildGerangelCircle(gs, $('mpcg-host'), 0.9);
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
@@ -4253,12 +4389,27 @@
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]); updateHighlightG(gs);
     renderGerLog($('mpcg-log'+(pi+1)), pl.log);
     if(winner!=null){ mp.finished=true; mp.winner=winner; mpcgUpdate(); mpcgShowResult(); return; }
-    gs.turn=1-pi;
+    if(gs.players[0].done && gs.players[1].done){
+      // Beiden sind die Herzen ausgegangen: wer weiter innen steht, gewinnt.
+      const a=gs.players[0].ringIdx, b=gs.players[1].ringIdx;
+      mp.finished=true; mp.winner = a<b?0 : b<a?1 : 'tie'; mp.reason='hearts';
+      mpcgUpdate(); mpcgShowResult(); return;
+    }
+    gs.turn = gs.players[1-pi].done ? pi : 1-pi;   // ein erschoepfter Gegner wird uebersprungen
     mpcgUpdate();
   }
   function mpcgShowResult(){
     const gs=mp.gs, w=mp.winner;
-    $('mpcg-result').innerHTML=`<div class="win-line">Spieler ${w+1} gewinnt!</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove} Z&uuml;gen (Gegner: ${gs.players[1-w].moves} Z&uuml;ge).`;
+    let line;
+    if(mp.reason==='hearts'){
+      const ring=i=>`Ring ${gs.players[i].ringIdx+1}`;
+      line = w==='tie'
+        ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (${ring(0)}).`
+        : `<div class="win-line">Spieler ${w+1} gewinnt!</div>Herzen leer &ndash; am weitesten innen: ${ring(w)} gegen ${ring(1-w)}.`;
+    } else {
+      line=`<div class="win-line">Spieler ${w+1} gewinnt!</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove} Z&uuml;gen (Gegner: ${gs.players[1-w].moves} Z&uuml;ge).`;
+    }
+    $('mpcg-result').innerHTML=line;
     $('mpcg-result').classList.remove('hidden'); sfx('win');
   }
   function mpcgShowReveal(){
@@ -4432,19 +4583,23 @@
   function onlWinnerFromWire(w){ return (w==null || w<0) ? null : (w===2 ? 'tie' : w); }
   function onlBuildGs(cfg){
     const outerIdx=cfg.outerIdx, fc=cfg.specs[outerIdx].fieldCount;
-    const mk=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[] });
-    return {
+    const mk=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[], hearts:CIRCLE_HEARTS_START, heartsLeer:false });
+    const gs={
       diffKey: cfg.diffKey, theme: THEMES[cfg.diffKey]||THEMES.mittel, figRule: cfg.figRule||'normal',
       mounted:true, animating:false,
-      rings: cfg.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null })),
+      rings: cfg.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null, hearts:[] })),
       poseEffects: cfg.poseEffects, poseNames: GER_POSE_NAMES,
       players: [ mk(cfg.startIndex), mk((cfg.startIndex+Math.floor(fc/2))%fc) ],
       turn: 0
     };
+    // placeHearts rechnet ohne Zufall – beide Geraete kommen auf dieselben Herzfelder
+    gs.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===outerIdx?[gs.players[0].index, gs.players[1].index]:-1); });
+    return gs;
   }
   // Baut die Partie frisch auf – auch beim Rematch (alte Instanz wird abgeräumt).
   function onlEnterGame(cfg){
     onl.mode=onlModeOf(cfg); onl.variant=onlVariantOf(cfg); onl.shared=onlSharedOf(cfg); onl.winCond=cfg.winCond||'fastest'; onl.ov=cfg.ov||{}; onl.resultSfx=false;
+    onl.reason=null; onl.myOut=false; onl.myRing=99;
     musicSetTrack(onl.mode==='racing'?'racing':(onl.mode==='circle'?'circle':'grid'));
     if(onl.board){ stopDogTimer(onl.board); onl.board=null; }
     if(onl.cs){ onl.cs.mounted=false; onl.cs=null; }
@@ -4624,7 +4779,7 @@
     const cb=oRef.on('value', s=>{ const snap=s.val(); if(snap){ onl.oppSnap=snap; onlRenderMini(snap); onlSoloRenderHead(); if(onl.role==='host') onlRefereeSolo(); } });
     onl.miniListener={ref:oRef, cb}; onl.listeners.push({ref:oRef, ev:'value', cb});
     const rRef=onl.roomRef.child('result');
-    const cb3=rRef.on('value', s=>{ const r=s.val(); if(r && r.m===onl.matchSeq && !onl.finished){ onl.finished=true; onl.winner=onlWinnerFromWire(r.winner); onlSoloRenderHead(); onlShowResult(); } });
+    const cb3=rRef.on('value', s=>{ const r=s.val(); if(r && r.m===onl.matchSeq && !onl.finished){ onl.finished=true; onl.winner=onlWinnerFromWire(r.winner); onl.reason=r.reason||null; onlSoloRenderHead(); onlShowResult(); } });
     onl.resultListener={ref:rRef, cb:cb3}; onl.listeners.push({ref:rRef, ev:'value', cb:cb3});
   }
   function onlPublishSolo(){
@@ -4635,22 +4790,39 @@
       snap={ moves:f.moves, done:!!f.done, doneAt:f.doneAtMove||0, x:f.x, y:f.y, cp:f.checkpointIdx||0, reached:(f.reached||[]).map(p=>({x:p.x,y:p.y})) };
     } else {
       const cs=onl.cs;
-      snap={ moves:cs.moves, done:cs.phase==='won', doneAt:cs.doneAtMove||0, ringIdx:cs.ringIdx, index:cs.index, offs:cs.rings.map(r=>r.offset), pose:cs.gandalfPose };
+      snap={ moves:cs.moves, done:cs.phase==='won', doneAt:cs.doneAtMove||0, ringIdx:cs.ringIdx, index:cs.index, offs:cs.rings.map(r=>r.offset), pose:cs.gandalfPose,
+             out:cs.phase==='out', hearts:(cs.hearts==null?-1:cs.hearts) };
     }
     onl.myDone=snap.done; onl.myDoneAt=snap.doneAt;
+    onl.myOut=!!snap.out; onl.myRing=(snap.ringIdx==null?99:snap.ringIdx);
     onl.roomRef.child('state/'+onl.role).set(clean(Object.assign({m:onl.matchSeq}, snap)));
     if(onl.role==='host') onlRefereeSolo();
   }
   function onlRefereeSolo(){
     if(!onl || onl.role!=='host' || onl.finished || onl.shared) return;
-    const me={ done:!!onl.myDone, at:onl.myDoneAt||0 };
-    const opp=onl.oppSnap ? { done:!!onl.oppSnap.done, at:onl.oppSnap.doneAt||0 } : { done:false, at:0 };
-    let winner=null, finished=false;
-    if(onl.winCond==='fewest'){ if(me.done && opp.done){ finished=true; winner = me.at<opp.at?0 : opp.at<me.at?1 : 'tie'; } }
-    else { if(me.done){ winner=0; finished=true; } else if(opp.done){ winner=1; finished=true; } }
+    const me={ done:!!onl.myDone, at:onl.myDoneAt||0, out:!!onl.myOut, ring:onl.myRing==null?99:onl.myRing };
+    const o=onl.oppSnap||{};
+    const opp={ done:!!o.done, at:o.doneAt||0, out:!!o.out, ring:(o.ringIdx==null?99:o.ringIdx) };
+    // Herzen leer zaehlt als "fertig, aber nicht am Ziel".
+    const tiefer=()=> me.ring<opp.ring?0 : opp.ring<me.ring?1 : 'tie';
+    let winner=null, finished=false, herzEnde=false;
+    if(onl.winCond==='fewest'){
+      if((me.done||me.out) && (opp.done||opp.out)){
+        finished=true;
+        if(me.done && opp.done) winner = me.at<opp.at?0 : opp.at<me.at?1 : 'tie';
+        else if(me.done) winner=0;
+        else if(opp.done) winner=1;
+        else { winner=tiefer(); herzEnde=true; }
+      }
+    }
+    else {
+      if(me.done){ winner=0; finished=true; }
+      else if(opp.done){ winner=1; finished=true; }
+      else if(me.out && opp.out){ winner=tiefer(); finished=true; herzEnde=true; }
+    }
     if(finished){
-      onl.finished=true; onl.winner=winner;
-      onl.roomRef.child('result').set(clean({ m:onl.matchSeq, winner:onlWinnerToWire(winner), finished:true }));
+      onl.finished=true; onl.winner=winner; onl.reason = herzEnde?'hearts':null;
+      onl.roomRef.child('result').set(clean({ m:onl.matchSeq, winner:onlWinnerToWire(winner), finished:true, reason:herzEnde?'hearts':null }));
       onlSoloRenderHead(); onlShowResult();
     }
   }
@@ -4681,9 +4853,13 @@
     const head=onl.mode==='grid'?$('onl-gsolo-head'):$('onl-csolo-head');
     const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
     const wc = onl.winCond==='fewest'?'Wenigste Züge':'Schnellster';
-    if(head) head.innerHTML=`<span style="color:var(--${meCol})">Du &middot; Z&uuml;ge <b>${meMoves}</b>${meDone?' &#10003;':''}</span> &nbsp;&middot;&nbsp; `
-      +`<span style="color:var(--${oppCol})">Gegner &middot; Z&uuml;ge <b>${opp.moves||0}</b>${opp.done?' &#10003;':''}</span> &nbsp;&middot;&nbsp; <small>${wc}</small>`;
-    const blocked = onl.finished || meDone;
+    // Herzen nur im Kreis – im Feld gibt es sie nicht
+    const herz=(n)=> (onl.mode!=='circle'||n==null||n<0) ? '' : ` <span class="herz-anzeige${n<=2?' knapp':''}">&#9829;&nbsp;<b>${n}</b></span>`;
+    const meHerz = onl.cs?onl.cs.hearts:null, oppHerz = (opp.hearts==null?null:opp.hearts);
+    const meOut = !!(onl.cs&&onl.cs.phase==='out'), oppOut=!!opp.out;
+    if(head) head.innerHTML=`<span style="color:var(--${meCol})">Du &middot; Z&uuml;ge <b>${meMoves}</b>${herz(meHerz)}${meDone?' &#10003;':(meOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; `
+      +`<span style="color:var(--${oppCol})">Gegner &middot; Z&uuml;ge <b>${opp.moves||0}</b>${herz(oppHerz)}${opp.done?' &#10003;':(oppOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; <small>${wc}</small>`;
+    const blocked = onl.finished || meDone || meOut;
     document.querySelectorAll('#onl-gsolo-frame .pad-zone, #onl-gsolo-frame .pad-stay').forEach(e=>e.style.pointerEvents=blocked?'none':'');
     document.querySelectorAll('#onl-csolo-steps button').forEach(b=>b.disabled=blocked);
   }
@@ -4954,10 +5130,14 @@
       seq: ++onl.stateSeq, m: onl.matchSeq,
       turn: gs.turn,
       finished: !!onl.finished,
-      winner: (onl.winner==null ? -1 : onl.winner),
+      winner: onlWinnerToWire(onl.winner),
+      reason: onl.reason||'',
       rings: gs.rings.map(r=>r.offset),
-      p: gs.players.map(p=>({ r:p.ringIdx, i:p.index, pose:p.gandalfPose, moves:p.moves, done:!!p.done, doneAt:p.doneAtMove||0 })),
-      logs: gs.players.map(p=>(p.log||[]).slice(0,3))
+      // Herzfelder je Ring als Textliste – ein leeres Array wuerde Firebase verschlucken
+      herz: gs.rings.map(r=>(r.hearts||[]).join(',')),
+      p: gs.players.map(p=>({ r:p.ringIdx, i:p.index, pose:p.gandalfPose, moves:p.moves, done:!!p.done, doneAt:p.doneAtMove||0,
+                              hearts:(p.hearts==null?-1:p.hearts), out:!!p.heartsLeer })),
+      logs: gs.players.map(p=>(p.log||[]).slice(0,9))
     }));
   }
   function onlApplyGridState(st){
@@ -4989,11 +5169,16 @@
     if(st.m!=null && st.m!==onl.matchSeq) return;   // State aus einem anderen Match (Rematch-Umbruch)
     const gs=onl.gs; if(!gs) return;
     (st.rings||[]).forEach((off,i)=>{ if(gs.rings[i]){ gs.rings[i].offset=off; gs.rings[i].offsetVisual=null; } });
+    if(st.herz) Object.keys(st.herz).forEach(k=>{ const r=gs.rings[+k]; if(!r) return;
+      const s=String(st.herz[k]||''); r.hearts = s ? s.split(',').map(Number) : []; });
     (st.p||[]).forEach((p,i)=>{ const pl=gs.players[i]; if(!pl) return;
-      pl.ringIdx=p.r; pl.index=p.i; pl.gandalfPose=p.pose||0; pl.moves=p.moves||0; pl.done=!!p.done; pl.doneAtMove=p.doneAt||null; });
+      pl.ringIdx=p.r; pl.index=p.i; pl.gandalfPose=p.pose||0; pl.moves=p.moves||0; pl.done=!!p.done; pl.doneAtMove=p.doneAt||null;
+      pl.hearts=(p.hearts==null||p.hearts<0)?null:p.hearts; pl.heartsLeer=!!p.out; });
+    refreshHearts(gs);
     gs.turn=st.turn||0;
     onl.finished=!!st.finished;
-    onl.winner=(st.winner==null||st.winner<0)?null:st.winner;
+    onl.winner=onlWinnerFromWire(st.winner);
+    onl.reason=st.reason||null;
     const logs=st.logs||[];
     gs.players.forEach((pl,i)=>{ pl.log=logs[i]||[]; });
     applyRingTransforms(gs);
@@ -5028,7 +5213,13 @@
       markerFlashG(gs.players[0]); markerFlashG(gs.players[1]); updateHighlightG(gs);
       renderGerLog($('onl-log'), gs.players[onl.myIdx].log||[]);
       if(winner!=null){ onl.finished=true; onl.winner=winner; onlRenderUi(); onlPublish(); onlShowResult(); return; }
-      gs.turn=1-pi;
+      if(gs.players[0].done && gs.players[1].done){
+        // Beiden sind die Herzen ausgegangen: wer weiter innen steht, gewinnt.
+        const a=gs.players[0].ringIdx, b=gs.players[1].ringIdx;
+        onl.finished=true; onl.winner = a<b?0 : b<a?1 : 'tie'; onl.reason='hearts';
+        onlRenderUi(); onlPublish(); onlShowResult(); return;
+      }
+      gs.turn = gs.players[1-pi].done ? pi : 1-pi;   // ein erschoepfter Gegner wird uebersprungen
       onlRenderUi(); onlPublish();
     }
   }
@@ -5060,10 +5251,12 @@
     const me=gs.players[onl.myIdx], opp=gs.players[1-onl.myIdx];
     const meLbl=onl.myIdx===0?'Spieler 1':'Spieler 2', oppLbl=onl.myIdx===0?'Spieler 2':'Spieler 1';
     const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
+    const herz=(p)=> p.hearts==null ? '' : ` <span class="herz-anzeige${p.hearts<=2?' knapp':''}">&#9829;&nbsp;<b>${p.hearts}</b></span>`;
+    const stat=(p)=> p.heartsLeer ? '<span class="mp-status lost">✗ keine Herzen mehr</span>' : (p.done?'<span class="mp-status done">✓ im Zentrum</span>':'');
     $('onl-me-head').className='mp-head '+meCol;
-    $('onl-me-head').innerHTML=`<b>Du</b> (${meLbl}) &middot; Z&uuml;ge <b>${me.moves}</b> ${me.done?'<span class="mp-status done">✓ im Zentrum</span>':''}`;
+    $('onl-me-head').innerHTML=`<b>Du</b> (${meLbl}) &middot; Z&uuml;ge <b>${me.moves}</b>${herz(me)} ${stat(me)}`;
     $('onl-opp-head').className='mp-head '+oppCol;
-    $('onl-opp-head').innerHTML=`Gegner (${oppLbl}) &middot; Z&uuml;ge <b>${opp.moves}</b> ${opp.done?'<span class="mp-status done">✓ im Zentrum</span>':''}`;
+    $('onl-opp-head').innerHTML=`Gegner (${oppLbl}) &middot; Z&uuml;ge <b>${opp.moves}</b>${herz(opp)} ${stat(opp)}`;
     const t=$('onl-turn'); t.classList.remove('mine','theirs','over');
     if(onl.finished){ t.classList.add('over'); t.textContent='Runde beendet.'; }
     else if(gs.turn===onl.myIdx){ t.classList.add('mine'); t.textContent='Du bist dran!'; }
@@ -5106,7 +5299,13 @@
     if(!onl.shared){
       const meMoves = onl.mode==='grid' ? (onl.board?onl.board.figs[0].moves:0) : (onl.cs?onl.cs.moves:0);
       const oppMoves = onl.oppSnap?onl.oppSnap.moves:0;
-      $('onl-result').innerHTML = w==='tie'
+      if(onl.reason==='hearts'){
+        const meRing=(onl.cs?onl.cs.ringIdx:0)+1, oppRing=((onl.oppSnap&&onl.oppSnap.ringIdx!=null?onl.oppSnap.ringIdx:0)+1);
+        $('onl-result').innerHTML = w==='tie'
+          ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (Ring ${meRing}).`
+          : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Herzen leer &ndash; Du Ring ${meRing} &middot; Gegner Ring ${oppRing}.`;
+      }
+      else $('onl-result').innerHTML = w==='tie'
         ? `<div class="win-line">Unentschieden!</div>Beide ${meMoves} Z&uuml;ge.`
         : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Du ${meMoves} &middot; Gegner ${oppMoves} Z&uuml;ge.`;
       $('onl-result').classList.remove('hidden');
@@ -5124,6 +5323,15 @@
       return;
     }
     const gs=onl.gs;
+    if(onl.reason==='hearts'){
+      const ring=i=>`Ring ${gs.players[i].ringIdx+1}`;
+      $('onl-result').innerHTML = w==='tie'
+        ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (${ring(0)}).`
+        : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Herzen leer &ndash; am weitesten innen: ${ring(w)} gegen ${ring(1-w)}.`;
+      $('onl-result').classList.remove('hidden');
+      onlShowRematchPanel();
+      return;
+    }
     const mine=(w===onl.myIdx);
     $('onl-result').innerHTML=`<div class="win-line">${mine?'Du gewinnst!':'Gegner gewinnt!'}</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove||gs.players[w].moves} Z&uuml;gen.`;
     $('onl-result').classList.remove('hidden');
@@ -5653,6 +5861,18 @@
   }
   document.querySelectorAll('.speed-slider').forEach(s=>{ s.value=animSpeed; s.addEventListener('input',()=>setSpeed(parseFloat(s.value))); });
   setSpeed(animSpeed);
+
+  // Auflösungs-Knopf ein- oder ausblenden (standardmaessig sichtbar). Betrifft alle Ansichten,
+  // die einen haben – gespielt wird ja in jedem Modus mit demselben Versprechen.
+  const REVEAL_KEY='regel-detektiv-reveal';
+  let revealAn = localStorage.getItem(REVEAL_KEY)!=='0';
+  const REVEAL_IDS=['spg-reveal','spc-reveal','mpg-reveal','mpc-reveal','mpcg-reveal','onl-reveal','race-reveal'];
+  function applyRevealOption(){ REVEAL_IDS.forEach(id=>{ const b=$(id); if(b) b.classList.toggle('hidden', !revealAn); }); }
+  (function(){ const box=$('opt-reveal'); if(!box) return;
+    box.checked=revealAn;
+    box.addEventListener('change',()=>{ revealAn=box.checked; localStorage.setItem(REVEAL_KEY, revealAn?'1':'0'); applyRevealOption(); });
+  })();
+  applyRevealOption();
 
   // ===================== KEYBOARD =====================
   let zeroHeld=false;
