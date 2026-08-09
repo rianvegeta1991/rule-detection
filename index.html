@@ -43,6 +43,16 @@
   .ed-adv summary:hover{color:var(--text);}
   #ed-jump-rows select{background:#0b1220; color:var(--text); border:1px solid var(--cell-border); border-radius:8px; padding:5px 7px; font-family:inherit;}
 
+  /* Ohne Deathless bleibt die erwischte Figur als Schatten liegen */
+  .fig.fig-tot{filter:grayscale(1) brightness(0.55); opacity:0.5;}
+
+  /* ===== Optionen je Spielmodus (Einstellungen) ===== */
+  .opt-gruppe{margin-top:18px; padding-top:12px; border-top:1px solid rgba(212,175,55,0.22);}
+  .opt-titel{font-family:'Palatino Linotype','Book Antiqua',Georgia,serif; font-size:0.95rem; color:var(--gold); letter-spacing:0.04em; margin-bottom:7px;}
+  .opt-zeile{margin:8px 0 0; display:flex; align-items:center; gap:9px; cursor:pointer; font-size:0.9rem;}
+  .opt-zeile input[type=checkbox]{width:17px; height:17px; accent-color:var(--gold); flex:0 0 auto;}
+  .opt-hilfe{margin:5px 0 0 26px; font-size:0.76rem; line-height:1.45; color:var(--muted);}
+
   /* ===== gear / settings modal ===== */
   #gear-btn{
     position:fixed; top:16px; right:16px; z-index:50; width:42px; height:42px; border-radius:50%;
@@ -844,14 +854,6 @@
     </div>
   </div>
 
-  <div id="race-variant-block" class="hidden">
-    <div class="tab-caption">Variante</div>
-    <div class="mode-tabs" id="race-variant-tabs">
-      <button class="mode-tab active" data-rvariant="grid">K&auml;stchen</button>
-      <button class="mode-tab" data-rvariant="free">Freie Fahrt</button>
-    </div>
-  </div>
-
   <div id="winmode-block" class="hidden">
     <div class="tab-caption">Siegbedingung im Duell</div>
     <div class="mode-tabs" id="winmode-tabs">
@@ -911,6 +913,7 @@
       <div class="ed-row"><label class="small">Münzen: <b id="ed-coins-val"></b></label><input type="range" id="ed-coins" min="0" max="12" step="1"></div>
     </div>
     <div class="ed-row hidden" id="ed-spuren-row"><label class="small">Meilensteine: <b id="ed-mile-val"></b></label><input type="range" id="ed-mile" min="1" max="3" step="1"></div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-gdeath" checked> Deathless (Kontakt setzt nur zur&uuml;ck, statt zu verlieren)</label></div>
     <div class="ed-row"><label class="small">Sprung-Muster (Teil der Grundregel, max. 2 Felder pro Zug)</label>
       <select id="ed-jumpmode" class="ed-sel"><option value="none">Aus – immer 1 Feld</option><option value="random">Zufällig</option><option value="custom">Eigenes Muster …</option></select></div>
     <div class="ed-row hidden" id="ed-jump-custom">
@@ -926,6 +929,7 @@
   <div class="panel hidden" id="ed-circle-opts">
     <div class="ed-row"><label class="small">Anzahl Ringe: <b id="ed-rings-val"></b></label><input type="range" id="ed-rings" min="2" max="5" step="1"></div>
     <div class="hint" style="color:var(--muted); font-size:0.78rem;">Dazu kommt automatisch ein d&uuml;nner Tor-Ring vor dem Zentrum.</div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-cdeath"> Deathless (ohne Herzen und Herzfelder)</label></div>
     <div class="ed-row"><label class="small">Figur-Bewegung (unabh&auml;ngig vom Ring)</label><select id="ed-fig" class="ed-sel"></select></div>
     <div class="ed-row"><label class="small">Pose <b style="color:#22c55e">Grün</b></label><select id="ed-pose2" class="ed-sel"></select></div>
     <div class="ed-row"><label class="small">Pose <b style="color:#3b82f6">Blau</b></label><select id="ed-pose3" class="ed-sel"></select></div>
@@ -942,6 +946,7 @@
     <div class="ed-row"><label class="small">Anzahl Farbzonen (Regeln): <b id="ed-rzones-val"></b></label><input type="range" id="ed-rzones" min="1" max="4" step="1"></div>
     <div class="ed-row"><label class="small">Bomben-Dichte: <b id="ed-rbomb-val"></b> %</label><input type="range" id="ed-rbomb" min="0" max="50" step="2"></div>
     <div class="ed-row"><label class="small">M&uuml;nz-H&auml;ufigkeit: <b id="ed-rcoin-val"></b> %</label><input type="range" id="ed-rcoin" min="0" max="40" step="2"></div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-rgrid" checked> K&auml;stchenbasiert (aus = freie Fahrt)</label></div>
     <div class="ed-row"><label><input type="checkbox" id="ed-rrockets"> Raketen (weichen seitlich aus)</label></div>
     <div class="ed-row" id="ed-rthrust-row"><label><input type="checkbox" id="ed-rthrust"> Raketen mit Antrieb (kommen dir entgegen)</label></div>
     <details class="ed-adv"><summary>Erweitert: Regel je Farbzone</summary>
@@ -1268,12 +1273,40 @@
     <input type="range" id="opt-sfx" min="0" max="100" step="5" value="100" style="width:100%;">
     <label class="small" style="margin:12px 0 2px;">&#127925; Hintergrundmusik: <b id="music-val">55%</b></label>
     <input type="range" id="opt-music" min="0" max="100" step="5" value="55" style="width:100%;">
-    <label class="small" style="margin:18px 0 0; display:flex; align-items:center; gap:9px; cursor:pointer;">
-      <input type="checkbox" id="opt-reveal" checked style="width:17px; height:17px; accent-color:var(--gold); flex:0 0 auto;">
+    <label class="opt-zeile">
+      <input type="checkbox" id="opt-reveal" checked>
       <span>&#128269; Knopf „Aufl&ouml;sung" zeigen</span>
     </label>
     <button class="action" id="sound-test" style="width:100%; margin-top:14px;">&#128264; Ton testen</button>
-    <button class="action" id="open-guide" style="width:100%; margin-top:14px;">&#128218; Anleitung</button>
+
+    <div class="opt-gruppe">
+      <div class="opt-titel">&#128506; Feld-Modus</div>
+      <label class="opt-zeile">
+        <input type="checkbox" id="opt-grid-deathless" checked>
+        <span>Deathless</span>
+      </label>
+      <div class="opt-hilfe">An: Nach einer Bombe oder einem Hund geht es vom Start weiter. Aus: Ber&uuml;hrung beendet die Partie sofort.</div>
+    </div>
+
+    <div class="opt-gruppe">
+      <div class="opt-titel">&#127950; Racing-Modus</div>
+      <label class="opt-zeile">
+        <input type="checkbox" id="opt-race-grid" checked>
+        <span>K&auml;stchenbasiert</span>
+      </label>
+      <div class="opt-hilfe">An: Das Auto springt von K&auml;stchen zu K&auml;stchen. Aus: freie Fahrt &ndash; das Auto f&auml;hrt, solange du die Taste h&auml;ltst.</div>
+    </div>
+
+    <div class="opt-gruppe">
+      <div class="opt-titel">&#11093; Kreis-Modus</div>
+      <label class="opt-zeile">
+        <input type="checkbox" id="opt-circle-deathless">
+        <span>Deathless</span>
+      </label>
+      <div class="opt-hilfe">An: ohne Herzen und ohne Herzfelder &ndash; du hast beliebig viele Z&uuml;ge.</div>
+    </div>
+
+    <button class="action" id="open-guide" style="width:100%; margin-top:16px;">&#128218; Anleitung</button>
   </div>
 </div>
 
@@ -1762,7 +1795,7 @@
           return true;
         }};
       } else {
-        demo=buildRacePreview(inner, !!raceFreeOpt);
+        demo=buildRacePreview(inner, raceFrei());
       }
     }catch(e){ console.warn('Vorschau fehlgeschlagen:', mode, e); }
     // "Start" liegt ueber dem Vorschaubild – blendet langsam auf und wieder weg (3-s-Takt)
@@ -1836,7 +1869,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.44";
+  const APP_VERSION = "1.45";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2001,6 +2034,8 @@
     ov = ov || {};
     const theme = ov.bg ? themeFromBg(ov.bg) : THEMES[diffKey];
     const shared={ diffKey, theme, variant, editor:!!ov.bg, rule:buildGridRule(diffKey, ov), zones:buildZones(ov.zoneEffects) };
+    // Deathless: Kontakt setzt nur zurueck. Aus = sofort verloren. Editor sticht die Einstellung.
+    shared.deathless = ov.deathless!=null ? !!ov.deathless : !!modeOpts.gridDeathless;
     shared.hazardType = ov.hazardType || ((diffKey==='schwer'||diffKey==='experte') ? 'dog' : 'bomb');
     shared.hazardTick = ov.hazardTick!=null ? ov.hazardTick : (shared.hazardType==='dog' ? (diffKey==='schwer'?2000:1000) : 0);
     let hazardCount = ov.hazardCount!=null ? ov.hazardCount : HAZARD_COUNT[diffKey];
@@ -2160,6 +2195,7 @@
     b.figs.forEach(f=>{
       const pi=f.y*s.cols+f.x; const fig=el('div','fig'+(f.colorClass?' '+f.colorClass:''));
       if(now<f.blinkUntil) fig.classList.add('blink');
+      if(f.dead) fig.classList.add('fig-tot');
       // Laufanimation: ~0,15 s je Feld, ueber das Animationstempo mitskaliert
       if(f.walkSteps>0 && now<f.walkUntil){
         fig.classList.add('walking');
@@ -2176,6 +2212,9 @@
   function removeHazard(b,x,y){ const i=b.hazards.findIndex(hh=>hh.x===x&&hh.y===y); if(i>=0) b.hazards.splice(i,1); b.hazardSet=new Set(b.hazards.map(hh=>hh.x+','+hh.y)); }
   // Nach einer Kollision setzt die Figur zurueck – dabei nicht ueber das halbe Brett gleiten
   function resetFig(b,f){ f.x=f.startX; f.y=f.startY; f.renderedAt=null; f.animTo=null; f.walkSteps=0; f.blinkUntil=Date.now()+3000; setTimeout(()=>{ if(b.figs.includes(f)){ renderGridBoard(b); if(b.onChange) b.onChange(); } }, 3050); }
+  // Ohne Deathless ist die Beruehrung das Ende: die Figur bleibt liegen und zieht nicht mehr.
+  function killFig(b,f){ f.dead=true; f.done=true; f.doneAtMove=f.moves; f.walkSteps=0; f.animTo=null; }
+  function boardDeathless(b){ return b.shared.deathless!==false; }
   // returns event object {type} | null
   function gridBoardSubmit(b, fi, reqDir){
     const s=b.shared, f=b.figs[fi], now=Date.now();
@@ -2199,7 +2238,14 @@
     f.walkSteps=walked;
     f.walkUntil=walked>0 ? Date.now()+Math.max(40,dur(250))*walked+60 : 0;
     f.moves++;
-    if(collide){ if(s.hazardType==='bomb') removeHazard(b,collide.x,collide.y); resetFig(b,f); renderGridBoard(b); if(s.hazardType==='bomb') spawnExplosion(b.cells[collide.y*s.cols+collide.x]); return {type:'collide'}; }
+    if(collide){
+      const zelle=b.cells[collide.y*s.cols+collide.x];
+      if(s.hazardType==='bomb') removeHazard(b,collide.x,collide.y);
+      if(boardDeathless(b)) resetFig(b,f); else { killFig(b,f); sfx('crash'); }
+      renderGridBoard(b);
+      if(s.hazardType==='bomb') spawnExplosion(zelle);
+      return {type: f.dead ? 'dead' : 'collide'};
+    }
     if(b.coins){ const ci=b.coins.findIndex(c=>c.x===f.x&&c.y===f.y); if(ci>=0){ b.coins.splice(ci,1); f.score++; if(gerangelDone(b)){ f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); sfx('win'); return {type:'won'}; } renderGridBoard(b); sfx('coin'); return {type:'coin'}; } }
     if(b.centerItem && !b.centerItem.taken && f.x===b.centerItem.x && f.y===b.centerItem.y){ b.centerItem.taken=true; f.score += (b.centerItem.type==='key'?3:1); if(gerangelDone(b)){ f.done=true; f.doneAtMove=f.moves; renderGridBoard(b); sfx('win'); return {type:'won'}; } renderGridBoard(b); sfx('coin'); return {type:b.centerItem.type}; }
     if(s.layoutKind==='bands'){
@@ -2229,8 +2275,12 @@
     });
     b.hazardSet=new Set(b.hazards.map(hh=>hh.x+','+hh.y));
     const now=Date.now();
-    b.figs.forEach(f=>{ if(!f.done && now>=f.blinkUntil && b.hazardSet.has(f.x+','+f.y)) resetFig(b,f); });
+    let gerissen=false;
+    b.figs.forEach(f=>{ if(!f.done && now>=f.blinkUntil && b.hazardSet.has(f.x+','+f.y)){
+      if(boardDeathless(b)) resetFig(b,f); else { killFig(b,f); sfx('crash'); gerissen=true; }
+    } });
     renderGridBoard(b); if(b.onChange) b.onChange();
+    if(gerissen && b.onDead) b.onDead();
   }
 
   // ===================== CIRCLE =====================
@@ -2360,7 +2410,8 @@
     let p3 = (ov.poseEffects&&ov.poseEffects[1]) ? ov.poseEffects[1] : makeActivePoseEffect();
     if(!(ov.poseEffects&&ov.poseEffects[1])){ let g=0; while(g++<16 && JSON.stringify(p3)===JSON.stringify(p2)) p3=makeActivePoseEffect(); }
     const poseEffects=[ {kind:'neutral'}, p2, p3 ];
-    return { theme, diffKey, specs, outerIdx, startIndex, poseEffects, figRule };
+    const deathless = ov.deathless!=null ? !!ov.deathless : !!modeOpts.circleDeathless;
+    return { theme, diffKey, specs, outerIdx, startIndex, poseEffects, figRule, deathless };
   }
   // ---- Herzen: der Schrittvorrat der Katze ----
   // Jede Bewegung kostet ein Herz – ausser der Zug endet auf einem Sternenfeld: so ein Zug ist
@@ -2436,11 +2487,12 @@
       ringIdx:config.outerIdx, index:config.startIndex,
       moves:0, done:false, doneAtMove:null, phase:'playing', animating:false, mounted:true,
       lastFlash:null, markerOverride:null, log:[],
-      hearts:CIRCLE_HEARTS_START, heartsLeer:false,
+      // Deathless: hearts bleibt null – daran haengt die ganze Mechanik (Kosten, Herzfelder, Leiste)
+      hearts: config.deathless ? null : CIRCLE_HEARTS_START, heartsLeer:false,
       gandalfPose:0, poseEffects:config.poseEffects
     };
     // Herzfelder je Ring verteilen – auf dem Startring nicht direkt unter die Katze
-    st.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===st.ringIdx?st.index:-1); });
+    if(!config.deathless) st.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===st.ringIdx?st.index:-1); });
     return st;
   }
   function circleExplain(rings, poseEffects, figRule){
@@ -2815,6 +2867,21 @@
   $('log-dots').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) logGehe(parseInt(b.dataset.i,10)); });
 
   // ===================== EINSTELLUNGEN / ANLEITUNG =====================
+  // Optionen je Spielmodus. Sie gelten fuer die naechste Partie; eine laufende Runde
+  // haelt ihren Stand selbst fest (board.shared.deathless, cs.hearts, race.free).
+  const MODE_OPT_KEY='regel-detektiv-modi';
+  const MODE_OPT_DEF={ gridDeathless:true, raceGrid:true, circleDeathless:false };
+  let modeOpts=Object.assign({}, MODE_OPT_DEF);
+  try{ Object.assign(modeOpts, JSON.parse(localStorage.getItem(MODE_OPT_KEY)||'{}')); }catch(e){}
+  function saveModeOpts(){ try{ localStorage.setItem(MODE_OPT_KEY, JSON.stringify(modeOpts)); }catch(e){} }
+  const MODE_OPT_BOXES=[['opt-grid-deathless','gridDeathless'],['opt-race-grid','raceGrid'],['opt-circle-deathless','circleDeathless']];
+  function wireModeOpts(){
+    MODE_OPT_BOXES.forEach(([id,key])=>{
+      const box=$(id); if(!box) return;
+      box.checked=!!modeOpts[key];
+      box.addEventListener('change',()=>{ modeOpts[key]=box.checked; saveModeOpts(); refreshPreviews(); });
+    });
+  }
   function openSettings(){
     $('opt-sfx').value=Math.round(sfxVol*100); $('sfx-val').textContent=Math.round(sfxVol*100)+'%';
     $('opt-music').value=Math.round(musicVol*100); $('music-val').textContent=Math.round(musicVol*100)+'%';
@@ -3340,9 +3407,9 @@
       raceGroundStep=step;
     }catch(e){ raceGroundStep=step; }             // ohne Canvas bleiben die CSS-Verlaeufe als Rueckfall
   }
-  // Freie Fahrt: Einstellung, greift ab der naechsten Partie (race.free haelt den Stand der laufenden)
-  const RACE_FREE_KEY='regel-detektiv-racefree';
-  let raceFreeOpt = localStorage.getItem(RACE_FREE_KEY)==='1';
+  // Freie Fahrt: steht als Schalter „Kaestchenbasiert" in den Einstellungen und greift ab der
+  // naechsten Partie (race.free haelt den Stand der laufenden fest).
+  function raceFrei(){ return !modeOpts.raceGrid; }
   // Trefferflaechen in Feldbreiten. Auto und Hindernis sind ~0,88 Felder breit gezeichnet – sie
   // beruehren sich also schon bei 0,88 Abstand. Erst ab 0,50 zaehlt es: dann stehen sie gut vier
   // Zehntel Feld ineinander, und der Treffer ist auch fuer den Spieler eindeutig zu sehen.
@@ -3988,7 +4055,7 @@
       airborne:0, jumpCd:0, bHopCd:0, lastDir:1, delayBuf:undefined, lastRawDirBtn:null,
       skid:0, skidDir:1, bubble:0, bubbleDist:null, zoneCount, zoneDistort:null,
       // Freie Fahrt: im Online-Duell aus, sonst faehren beide Geraete nach verschiedenen Regeln
-      free: raceFreeOpt && opts.seed==null, objs:[], objLayer:null,
+      free: (opts.free!=null ? !!opts.free : raceFrei()) && opts.seed==null, objs:[], objLayer:null,
       topPy:1, bands:[], groundEl:null, bandH:0, pad:RACE_PAD, gap:RACE_GAP,
       worldY:0, rowsDone:0, worldT:0, shiftFrac:0,     // Weltuhr: eine Position fuer alles
       heldBtn:null, holdVx:0, burstVx:0, burstUntil:0, skidVx:0, skidUntil:0, flipAt:0, flipVx:0, holdBis:0,
@@ -4134,7 +4201,11 @@
       ov.classList.remove('hidden');
       const acts=$('spg-overlay-actions'); acts.innerHTML='';
       const note=spgState.revealed?`Aufl&ouml;sung genutzt (ab Zug ${spgState.revealedAtMove}).`:'Ohne Aufl&ouml;sung gel&ouml;st &ndash; stark!';
-      if(shared.layoutKind==='bands'){
+      if(f.dead){
+        const was = shared.hazardType==='dog' ? 'Ein Hund' : 'Eine Briefbombe';
+        $('spg-overlay-msg').innerHTML=`<b>Erwischt!</b><br>${was} hat dich in Zug <b>${f.moves}</b> gestellt.`;
+      }
+      else if(shared.layoutKind==='bands'){
         const eff=Math.min(100,Math.round(100*shared.optimal/Math.max(1,f.moves)));
         $('spg-overlay-msg').innerHTML=`Letzte Spur gefunden in <b>${f.moves}</b> Z&uuml;gen (optimal <b>${shared.optimal}</b>) &ndash; Effizienz <b>${eff}%</b>.<br>${note}`;
       } else {
@@ -4206,8 +4277,20 @@
 
   // Wie weit ist der Spieler nach innen gekommen? Kleiner ist besser, Zentrum schlaegt alles.
   function mpTiefe(i){ const cs=mp.players[i].cs; if(!cs) return 99; return cs.phase==='won' ? -1 : cs.ringIdx; }
+  // Wie weit ist der Spieler im Feld gekommen? Groesser ist besser, Ziel schlaegt alles.
+  function mpWeite(i){ const f=mp.players[i].board.figs[0]; return f.done && !f.dead ? 99 : (f.checkpointIdx||0); }
+  function mpTot(i){ const p=mp.players[i]; return !!(p.board && p.board.figs[0].dead); }
   function mpOnFinish(idx, grund){
     if(mp.finished) return;
+    if(grund==='dead'){
+      // Erwischt. Der andere kann noch ankommen – entschieden wird, wenn beide durch sind.
+      if(!(mpDone(0)&&mpDone(1))) { mpUpdateHeads(); return; }
+      mp.finished=true;
+      const amZiel=[0,1].filter(i=>!mpTot(i));
+      if(amZiel.length===1) mp.winner=amZiel[0];
+      else { const a=mpWeite(0), b=mpWeite(1); mp.winner = a>b?0 : b>a?1 : 'tie'; }
+      mp.reason='dead'; mpShowResult(); return;
+    }
     if(grund==='out'){
       // Herzen leer. Entschieden wird erst, wenn beide durch sind – der andere kann noch ankommen.
       if(!(mpDone(0)&&mpDone(1))) { mpUpdateHeads(); return; }
@@ -4229,6 +4312,13 @@
       line = mp.winner==='tie'
         ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (${tief(0)}).`
         : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Herzen leer &ndash; am weitesten innen: ${tief(mp.winner)} gegen ${tief(1-mp.winner)}.`;
+    }
+    else if(mp.reason==='dead'){
+      line = mp.winner==='tie'
+        ? `<div class="win-line">Unentschieden!</div>Beide wurden erwischt &ndash; gleich weit gekommen.`
+        : (mpTot(mp.winner)
+            ? `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Beide wurden erwischt &ndash; aber Spieler ${mp.winner+1} kam weiter.`
+            : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Spieler ${2-mp.winner} wurde erwischt.`);
     }
     else if(mp.winner==='tie') line=`<div class="win-line">Unentschieden!</div>Beide brauchten ${mpMoves(0)} Z&uuml;ge.`;
     else { const w=mp.winner+1;
@@ -4278,11 +4368,23 @@
     refreshMpTouchButtons();
   }
   function mpGerangelEnd(){
+    if(mp.finished) return;
     mp.finished=true; stopDogTimer(mp.board);
-    const s0=mp.board.figs[0].score, s1=mp.board.figs[1].score;
-    mp.winner = s0>s1?0:s1>s0?1:'tie';
+    const f0=mp.board.figs[0], f1=mp.board.figs[1];
+    const s0=f0.score, s1=f1.score;
     const res=$('mpg-result');
-    res.innerHTML = mp.winner==='tie' ? `<div class="win-line">Unentschieden!</div>Beide ${s0} Punkte.` : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>${s0} : ${s1} Punkte.`;
+    // Ohne Deathless entscheidet die Beruehrung: wer noch steht, gewinnt. Beide erwischt -> Punkte.
+    if(f0.dead||f1.dead){
+      mp.winner = (f0.dead && f1.dead) ? (s0>s1?0:s1>s0?1:'tie') : (f0.dead?1:0);
+      res.innerHTML = mp.winner==='tie'
+        ? `<div class="win-line">Unentschieden!</div>Beide wurden erwischt &ndash; ${s0} Punkte je.`
+        : (f0.dead&&f1.dead
+            ? `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Beide wurden erwischt &ndash; ${s0} : ${s1} Punkte.`
+            : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Spieler ${(f0.dead?1:2)} wurde erwischt.`);
+    } else {
+      mp.winner = s0>s1?0:s1>s0?1:'tie';
+      res.innerHTML = mp.winner==='tie' ? `<div class="win-line">Unentschieden!</div>Beide ${s0} Punkte.` : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>${s0} : ${s1} Punkte.`;
+    }
     res.classList.remove('hidden'); sfx('win');
   }
 
@@ -4301,7 +4403,7 @@
       const board=createGridBoard($('mpg-shared-host'), shared, cell, [
         {startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p1'},
         {startX:shared.starts[1].x,startY:shared.starts[1].y,colorClass:'p2'} ]);
-      board.onChange=mpgRenderScores;
+      board.onChange=mpgRenderScores; board.onDead=mpGerangelEnd;
       mp={ mode:'grid', variant:'gerangel', shared, board, ov, finished:false, winner:null };
       renderGridBoard(board); startDogTimer(board);
       $('mpg-title').innerHTML=`${shared.theme.title} &middot; Gerangel &middot; <small>Sammle die meisten Punkte &ndash; M&uuml;nze 1, Schl&uuml;ssel 3</small>`;
@@ -4315,6 +4417,7 @@
       const b1=createGridBoard($('mpg-host1'), shared, cell, [{startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p1'}]);
       const b2=createGridBoard($('mpg-host2'), shared, cell, [{startX:shared.starts[0].x,startY:shared.starts[0].y,colorClass:'p2'}]);
       b1.onChange=mpUpdateHeads; b2.onChange=mpUpdateHeads;
+      b1.onDead=()=>mpOnFinish(0,'dead'); b2.onDead=()=>mpOnFinish(1,'dead');
       mp={ mode:'grid', variant:'spurensuche', shared, ov, finished:false, winner:null, players:[{board:b1},{board:b2}] };
       renderGridBoard(b1); renderGridBoard(b2); startDogTimer(b1); startDogTimer(b2);
       $('mpg-title').innerHTML=`${shared.theme.title} &middot; Spurensuche &middot; <small>${winCond==='fastest'?'Schnellster ins Ziel':'Wenigste Züge'} &ndash; identische Regel für beide</small>`;
@@ -4324,8 +4427,9 @@
   }
   function mpGridMove(idx, dir){
     if(mp.finished) return;
-    if(mp.variant==='gerangel'){ gridBoardSubmit(mp.board, idx, dir); mpgRenderScores(); }
-    else { const p=mp.players[idx]; if(p.board.figs[0].done) return; const r=gridBoardSubmit(p.board, 0, dir); mpUpdateHeads(); if(r&&r.type==='won') mpOnFinish(idx); }
+    if(mp.variant==='gerangel'){ const r=gridBoardSubmit(mp.board, idx, dir); mpgRenderScores(); if(r&&r.type==='dead') mpGerangelEnd(); }
+    else { const p=mp.players[idx]; if(p.board.figs[0].done) return; const r=gridBoardSubmit(p.board, 0, dir); mpUpdateHeads();
+      if(r&&r.type==='won') mpOnFinish(idx); else if(r&&r.type==='dead') mpOnFinish(idx,'dead'); }
   }
 
   function mpStartCircle(diffKey, ov){
@@ -4543,7 +4647,7 @@
     musicSetTrack('circle');
     const config=buildCircleConfig(diffKey, ov); setThemeBg(config.theme);
     const outerIdx=config.outerIdx, fc=config.specs[outerIdx].fieldCount;
-    const mkPlayer=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[], hearts:CIRCLE_HEARTS_START, heartsLeer:false });
+    const mkPlayer=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[], hearts: config.deathless?null:CIRCLE_HEARTS_START, heartsLeer:false });
     const gs={ diffKey, theme:config.theme, figRule:config.figRule, mounted:true, animating:false,
       rings: config.specs.map(s=>({ fieldCount:s.fieldCount, starIndices:[s.star], rotRule:s.rotRule, gate:!!s.gate, offset:0, offsetVisual:null, hearts:[] })),
       poseEffects: config.poseEffects.concat([{kind:'sabotage'}]),
@@ -4551,7 +4655,7 @@
       players:[ mkPlayer(config.startIndex), mkPlayer((config.startIndex+Math.floor(fc/2))%fc) ],
       turn:0 };
     // Herzfelder: der Ring, auf dem beide starten, spart beide Startfelder aus
-    gs.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===outerIdx?[gs.players[0].index, gs.players[1].index]:-1); });
+    if(!config.deathless) gs.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===outerIdx?[gs.players[0].index, gs.players[1].index]:-1); });
     mp={ mode:'circleGer', gs, ov, finished:false, winner:null };
     buildGerangelCircle(gs, $('mpcg-host'), 0.9);
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
@@ -4739,7 +4843,10 @@
       return clean(Object.assign(base, { seed:(Math.random()*4294967296)>>>0 }));
     }
     if(onl.mode==='grid'){
-      return clean(Object.assign(base, { seed:(Math.random()*4294967296)>>>0, ov:onl.ov||{} }));
+      // Deathless festschreiben: sonst spielt jedes Geraet nach seiner eigenen Einstellung
+      const ov=Object.assign({}, onl.ov||{});
+      if(ov.deathless==null) ov.deathless=!!modeOpts.gridDeathless;
+      return clean(Object.assign(base, { seed:(Math.random()*4294967296)>>>0, ov }));
     }
     const config=buildCircleConfig(onl.diffKey, onl.ov||{});
     // Duell hat keine Sabotage-Pose (die wirkt nur im geteilten Gerangel auf die Gegnerfigur).
@@ -4748,7 +4855,8 @@
       bg: (onl.ov&&onl.ov.bg)||null,
       figRule: config.figRule,
       specs: config.specs.map(s=>({ fieldCount:s.fieldCount, star:s.star, rotRule:s.rotRule, gate:!!s.gate })),
-      outerIdx: config.outerIdx, startIndex: config.startIndex, poseEffects: poses
+      outerIdx: config.outerIdx, startIndex: config.startIndex, poseEffects: poses,
+      deathless: !!config.deathless
     }));
   }
   // Das Feld reist per Seed (+ov): shared.rule/zoneOf sind Closures, wallSet ein Set – beide Geräte
@@ -4770,7 +4878,7 @@
   function onlWinnerFromWire(w){ return (w==null || w<0) ? null : (w===2 ? 'tie' : w); }
   function onlBuildGs(cfg){
     const outerIdx=cfg.outerIdx, fc=cfg.specs[outerIdx].fieldCount;
-    const mk=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[], hearts:CIRCLE_HEARTS_START, heartsLeer:false });
+    const mk=(startIdx)=>({ ringIdx:outerIdx, index:startIdx, moves:0, done:false, doneAtMove:null, gandalfPose:0, lastFlash:null, markerOverride:null, marker:null, log:[], hearts: cfg.deathless?null:CIRCLE_HEARTS_START, heartsLeer:false });
     const gs={
       diffKey: cfg.diffKey, theme: THEMES[cfg.diffKey]||THEMES.mittel, figRule: cfg.figRule||'normal',
       mounted:true, animating:false,
@@ -4780,7 +4888,7 @@
       turn: 0
     };
     // placeHearts rechnet ohne Zufall – beide Geraete kommen auf dieselben Herzfelder
-    gs.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===outerIdx?[gs.players[0].index, gs.players[1].index]:-1); });
+    if(!cfg.deathless) gs.rings.forEach((r,i)=>{ r.hearts=placeHearts(r, i===outerIdx?[gs.players[0].index, gs.players[1].index]:-1); });
     return gs;
   }
   // Baut die Partie frisch auf – auch beim Rematch (alte Instanz wird abgeräumt).
@@ -4915,11 +5023,14 @@
   function onlGridChanged(){
     if(!onl || onl.role!=='host' || !onl.board) return;
     const b=onl.board;
-    if(!onl.finished && gerangelDone(b)){
+    const tot0=!!b.figs[0].dead, tot1=!!b.figs[1].dead;
+    if(!onl.finished && (gerangelDone(b) || tot0 || tot1)){
       stopDogTimer(b);
       onl.finished=true;
       const s0=b.figs[0].score, s1=b.figs[1].score;
-      onl.winner = s0>s1 ? 0 : s1>s0 ? 1 : 'tie';
+      // Ohne Deathless entscheidet die Beruehrung: wer noch steht, gewinnt.
+      if(tot0||tot1){ onl.winner = (tot0&&tot1) ? (s0>s1?0:s1>s0?1:'tie') : (tot0?1:0); onl.reason='dead'; }
+      else onl.winner = s0>s1 ? 0 : s1>s0 ? 1 : 'tie';
     }
     onlRenderUi(); onlPublish();
     if(onl.finished) onlShowResult();
@@ -4931,7 +5042,8 @@
   function onlOppRole(){ return onl.role==='host'?'guest':'host'; }
   function onlSoloCircleConfig(cfg){
     return { diffKey:cfg.diffKey, theme: cfg.bg ? themeFromBg(cfg.bg) : (THEMES[cfg.diffKey]||THEMES.mittel),
-      figRule:cfg.figRule||'normal', specs:cfg.specs, outerIdx:cfg.outerIdx, startIndex:cfg.startIndex, poseEffects:cfg.poseEffects };
+      figRule:cfg.figRule||'normal', specs:cfg.specs, outerIdx:cfg.outerIdx, startIndex:cfg.startIndex, poseEffects:cfg.poseEffects,
+      deathless: !!cfg.deathless };
   }
   function onlEnterSolo(cfg){
     const myCls = onl.myIdx===0?'p1':'p2';
@@ -4974,24 +5086,26 @@
     let snap;
     if(onl.mode==='grid'){
       const f=onl.board.figs[0];
-      snap={ moves:f.moves, done:!!f.done, doneAt:f.doneAtMove||0, x:f.x, y:f.y, cp:f.checkpointIdx||0, reached:(f.reached||[]).map(p=>({x:p.x,y:p.y})) };
+      // `rang`: kleiner ist besser. Im Feld zaehlt der erreichte Meilenstein, deshalb negativ.
+      snap={ moves:f.moves, done:!!f.done && !f.dead, doneAt:f.doneAtMove||0, x:f.x, y:f.y, cp:f.checkpointIdx||0,
+             out:!!f.dead, rang:-(f.checkpointIdx||0), reached:(f.reached||[]).map(p=>({x:p.x,y:p.y})) };
     } else {
       const cs=onl.cs;
       snap={ moves:cs.moves, done:cs.phase==='won', doneAt:cs.doneAtMove||0, ringIdx:cs.ringIdx, index:cs.index, offs:cs.rings.map(r=>r.offset), pose:cs.gandalfPose,
-             out:cs.phase==='out', hearts:(cs.hearts==null?-1:cs.hearts) };
+             out:cs.phase==='out', rang:cs.ringIdx, hearts:(cs.hearts==null?-1:cs.hearts) };
     }
     onl.myDone=snap.done; onl.myDoneAt=snap.doneAt;
-    onl.myOut=!!snap.out; onl.myRing=(snap.ringIdx==null?99:snap.ringIdx);
+    onl.myOut=!!snap.out; onl.myRang=(snap.rang==null?99:snap.rang);
     onl.roomRef.child('state/'+onl.role).set(clean(Object.assign({m:onl.matchSeq}, snap)));
     if(onl.role==='host') onlRefereeSolo();
   }
   function onlRefereeSolo(){
     if(!onl || onl.role!=='host' || onl.finished || onl.shared) return;
-    const me={ done:!!onl.myDone, at:onl.myDoneAt||0, out:!!onl.myOut, ring:onl.myRing==null?99:onl.myRing };
+    const me={ done:!!onl.myDone, at:onl.myDoneAt||0, out:!!onl.myOut, rang:onl.myRang==null?99:onl.myRang };
     const o=onl.oppSnap||{};
-    const opp={ done:!!o.done, at:o.doneAt||0, out:!!o.out, ring:(o.ringIdx==null?99:o.ringIdx) };
-    // Herzen leer zaehlt als "fertig, aber nicht am Ziel".
-    const tiefer=()=> me.ring<opp.ring?0 : opp.ring<me.ring?1 : 'tie';
+    const opp={ done:!!o.done, at:o.doneAt||0, out:!!o.out, rang:(o.rang==null?99:o.rang) };
+    // Ausgeschieden (Herzen leer bzw. erwischt) zaehlt als "fertig, aber nicht am Ziel".
+    const tiefer=()=> me.rang<opp.rang?0 : opp.rang<me.rang?1 : 'tie';
     let winner=null, finished=false, herzEnde=false;
     if(onl.winCond==='fewest'){
       if((me.done||me.out) && (opp.done||opp.out)){
@@ -5008,8 +5122,9 @@
       else if(me.out && opp.out){ winner=tiefer(); finished=true; herzEnde=true; }
     }
     if(finished){
-      onl.finished=true; onl.winner=winner; onl.reason = herzEnde?'hearts':null;
-      onl.roomRef.child('result').set(clean({ m:onl.matchSeq, winner:onlWinnerToWire(winner), finished:true, reason:herzEnde?'hearts':null }));
+      const grund = herzEnde ? (onl.mode==='grid'?'dead':'hearts') : null;
+      onl.finished=true; onl.winner=winner; onl.reason=grund;
+      onl.roomRef.child('result').set(clean({ m:onl.matchSeq, winner:onlWinnerToWire(winner), finished:true, reason:grund }));
       onlSoloRenderHead(); onlShowResult();
     }
   }
@@ -5035,7 +5150,8 @@
   }
   function onlSoloRenderHead(){
     const meMoves = onl.mode==='grid' ? (onl.board?onl.board.figs[0].moves:0) : (onl.cs?onl.cs.moves:0);
-    const meDone = onl.mode==='grid' ? !!(onl.board&&onl.board.figs[0].done) : !!(onl.cs&&onl.cs.phase==='won');
+    const meTot = !!(onl.mode==='grid' && onl.board && onl.board.figs[0].dead);
+    const meDone = onl.mode==='grid' ? !!(onl.board&&onl.board.figs[0].done&&!meTot) : !!(onl.cs&&onl.cs.phase==='won');
     const opp=onl.oppSnap||{};
     const head=onl.mode==='grid'?$('onl-gsolo-head'):$('onl-csolo-head');
     const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
@@ -5043,7 +5159,7 @@
     // Herzen nur im Kreis – im Feld gibt es sie nicht
     const herz=(n)=> (onl.mode!=='circle'||n==null||n<0) ? '' : ` <span class="herz-anzeige${n<=2?' knapp':''}">&#9829;&nbsp;<b>${n}</b></span>`;
     const oppHerz = (opp.hearts==null?null:opp.hearts);
-    const meOut = !!(onl.cs&&onl.cs.phase==='out'), oppOut=!!opp.out;
+    const meOut = meTot || !!(onl.cs&&onl.cs.phase==='out'), oppOut=!!opp.out;
     // Die eigenen Leben stehen gross zwischen Kreis und Steuerung, im Kopf nur die des Gegners
     if(onl.mode==='circle') setLebenBar($('onl-csolo-leben'), onl.cs?onl.cs.hearts:null);
     if(head) head.innerHTML=`<span style="color:var(--${meCol})">Du &middot; Z&uuml;ge <b>${meMoves}</b>${meDone?' &#10003;':(meOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; `
@@ -5305,9 +5421,10 @@
         seq: ++onl.stateSeq, m: onl.matchSeq,
         finished: !!onl.finished,
         winner: onlWinnerToWire(onl.winner),
+        reason: onl.reason||'',
         // blinkUntil ist ein lokaler Date.now()-Stempel und ueber zwei Geraete hinweg wertlos –
         // deshalb die Restdauer schicken, die der Gast auf seine eigene Uhr umrechnet.
-        figs: b.figs.map(f=>({ x:f.x, y:f.y, score:f.score, moves:f.moves, done:!!f.done,
+        figs: b.figs.map(f=>({ x:f.x, y:f.y, score:f.score, moves:f.moves, done:!!f.done, dead:!!f.dead,
                                blink: Math.max(0, f.blinkUntil-now), flash: f.lastFlash||'' })),
         coins: (b.coins||[]).map(c=>({x:c.x,y:c.y})),
         hazards: (b.hazards||[]).map(h=>({x:h.x,y:h.y})),
@@ -5335,7 +5452,7 @@
     const b=onl.board; if(!b) return;
     const now=Date.now();
     (st.figs||[]).forEach((p,i)=>{ const f=b.figs[i]; if(!f) return;
-      f.x=p.x; f.y=p.y; f.score=p.score||0; f.moves=p.moves||0; f.done=!!p.done;
+      f.x=p.x; f.y=p.y; f.score=p.score||0; f.moves=p.moves||0; f.done=!!p.done; f.dead=!!p.dead;
       f.blinkUntil = p.blink>0 ? now+p.blink : 0;
       f.lastFlash = p.flash || null;
     });
@@ -5350,6 +5467,7 @@
     if(b.centerItem) b.centerItem.taken=!!st.centerTaken;
     onl.finished=!!st.finished;
     onl.winner=onlWinnerFromWire(st.winner);
+    onl.reason=st.reason||null;
     renderGridBoard(b);
     onlRenderUi();
     if(onl.finished) onlShowResult();
@@ -5464,8 +5582,8 @@
     const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
     const left=(b.coins?b.coins.length:0)+(b.centerItem && !b.centerItem.taken ? 1 : 0);
     $('onl-grid-score').innerHTML=
-      `<span style="color:var(--${meCol})">Du <b>${me.score}</b></span> &nbsp;·&nbsp; `
-      + `<span style="color:var(--${oppCol})">Gegner <b>${opp.score}</b></span> &nbsp;·&nbsp; M&uuml;nzen <b>${left}</b>`;
+      `<span style="color:var(--${meCol})">Du <b>${me.score}</b>${me.dead?' ✗':''}</span> &nbsp;·&nbsp; `
+      + `<span style="color:var(--${oppCol})">Gegner <b>${opp.score}</b>${opp.dead?' ✗':''}</span> &nbsp;·&nbsp; M&uuml;nzen <b>${left}</b>`;
     const t=$('onl-turn'); t.classList.remove('mine','theirs','over');
     if(onl.finished){ t.classList.add('over'); t.textContent='Runde beendet.'; }
     else { t.classList.add('mine'); t.textContent='Ihr zieht gleichzeitig – sammle die Münzen!'; }
@@ -5498,6 +5616,12 @@
           ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (Ring ${meRing}).`
           : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Herzen leer &ndash; Du Ring ${meRing} &middot; Gegner Ring ${oppRing}.`;
       }
+      else if(onl.reason==='dead'){
+        const ichTot=!!(onl.board&&onl.board.figs[0].dead);
+        $('onl-result').innerHTML = w==='tie'
+          ? `<div class="win-line">Unentschieden!</div>Beide wurden erwischt &ndash; gleich weit gekommen.`
+          : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>${ichTot&&w!==onl.myIdx?'Du wurdest erwischt.':(ichTot?'Beide erwischt &ndash; du kamst weiter.':'Der Gegner wurde erwischt.')}`;
+      }
       else $('onl-result').innerHTML = w==='tie'
         ? `<div class="win-line">Unentschieden!</div>Beide ${meMoves} Z&uuml;ge.`
         : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Du ${meMoves} &middot; Gegner ${oppMoves} Z&uuml;ge.`;
@@ -5508,7 +5632,14 @@
     if(onl.mode==='grid'){
       const b=onl.board; if(!b) return;
       const me=b.figs[onl.myIdx].score, opp=b.figs[1-onl.myIdx].score;
-      $('onl-result').innerHTML = w==='tie'
+      const ichTot=!!b.figs[onl.myIdx].dead, erTot=!!b.figs[1-onl.myIdx].dead;
+      if(onl.reason==='dead'){
+        $('onl-result').innerHTML = w==='tie'
+          ? `<div class="win-line">Unentschieden!</div>Beide wurden erwischt &ndash; ${me} Punkte je.`
+          : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>`
+            + (ichTot&&erTot ? `Beide erwischt &ndash; Du ${me} : ${opp} Gegner.` : (ichTot?'Du wurdest erwischt.':'Der Gegner wurde erwischt.'));
+      }
+      else $('onl-result').innerHTML = w==='tie'
         ? `<div class="win-line">Unentschieden!</div>Beide ${me} Punkte.`
         : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Du ${me} : ${opp} Gegner.`;
       $('onl-result').classList.remove('hidden');
@@ -5591,7 +5722,6 @@
     $('player-block').classList.remove('hidden');            // Racing kann jetzt auch im Duell gespielt werden
     $('variant-block').classList.toggle('hidden', currentMode!=='grid');
     $('circle-variant-block').classList.toggle('hidden', !(currentMode==='circle' && playerCount===2));
-    $('race-variant-block').classList.toggle('hidden', !racing);
     const gerangel = currentMode==='grid' && gridVariant==='gerangel';
     const circGer = currentMode==='circle' && circleVariant==='gerangel';
     $('winmode-block').classList.toggle('hidden', racing || playerCount!==2 || gerangel || circGer);
@@ -5647,15 +5777,6 @@
       updateMenuVisibility();
     });
   });
-  document.querySelectorAll('#race-variant-tabs .mode-tab').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      raceFreeOpt = btn.dataset.rvariant==='free';
-      localStorage.setItem(RACE_FREE_KEY, raceFreeOpt?'1':'0');
-      document.querySelectorAll('#race-variant-tabs .mode-tab').forEach(b=>b.classList.toggle('active',b===btn));
-      updateMenuVisibility(); refreshPreviews();
-    });
-  });
-  document.querySelectorAll('#race-variant-tabs .mode-tab').forEach(b=>b.classList.toggle('active', (b.dataset.rvariant==='free')===raceFreeOpt));
   document.querySelectorAll('#player-tabs .mode-tab').forEach(btn=>{
     btn.addEventListener('click',()=>{
       playerCount=parseInt(btn.dataset.players,10);
@@ -5794,6 +5915,7 @@
       rSpeed0:edN('ed-rspeed0'), rSpeed1:edN('ed-rspeed1'), rZones:edN('ed-rzones'),
       rBomb:edN('ed-rbomb'), rCoin:edN('ed-rcoin'),
       rRockets:$('ed-rrockets').checked, rThrust:$('ed-rthrust').checked,
+      gDeathless:$('ed-gdeath').checked, cDeathless:$('ed-cdeath').checked, rGrid:$('ed-rgrid').checked,
       rDistorts:edReadRaceZones() };
   }
   // Verzerrung je Racing-Zone; null = alles zufaellig
@@ -5832,6 +5954,10 @@
     set('ed-rzones', sp.rZones!=null?sp.rZones:2); set('ed-rbomb', sp.rBomb!=null?sp.rBomb:12);
     set('ed-rcoin', sp.rCoin!=null?sp.rCoin:13);
     $('ed-rrockets').checked=!!sp.rRockets; $('ed-rthrust').checked=!!sp.rThrust;
+    // Aeltere Profile kennen die Schalter noch nicht – dann gilt der Standard des Modus
+    $('ed-gdeath').checked = sp.gDeathless!=null ? !!sp.gDeathless : true;
+    $('ed-cdeath').checked = !!sp.cDeathless;
+    $('ed-rgrid').checked  = sp.rGrid!=null ? !!sp.rGrid : true;
     edBuildRaceRows(); if(sp.rDistorts){ const sels=$('ed-race-rows').querySelectorAll('select'); sp.rDistorts.forEach((v,i)=>{ if(sels[i]) sels[i].value=v; }); }
     edRefresh();
   }
@@ -5882,6 +6008,7 @@
       if(sp.zoneEffects && sp.zoneEffects.length===4) ov.zoneEffects = sp.zoneEffects.map(e=> e==='random' ? pick(['normal',...ZONE_EFFECTS]) : e);
       if(sp.variant==='gerangel'){ ov.cols=sp.size; ov.wall=sp.wall; ov.coins=sp.coins; }
       else { ov.rows=sp.size; ov.cols=clamp(Math.round(sp.size*0.55),6,11); ov.milestones=sp.mile; }
+      ov.deathless = sp.gDeathless!=null ? !!sp.gDeathless : true;
       return { mode:'grid', variant:sp.variant, ov };
     }
     if(sp.mode==='racing'){
@@ -5889,11 +6016,13 @@
         speed:{ s:sp.rSpeed0||800, e:sp.rSpeed1||200 }, zoneCount:clamp(sp.rZones||2,1,4),
         bombProb:(sp.rBomb!=null?sp.rBomb:12)/100, coinProb:(sp.rCoin!=null?sp.rCoin:13)/100,
         rockets:!!sp.rRockets, thrust:!!(sp.rRockets && sp.rThrust),
+        free: sp.rGrid!=null ? !sp.rGrid : false,
         distorts:(sp.rDistorts&&sp.rDistorts.length)?sp.rDistorts.slice():null } };
     }
     ov.ringCount=sp.rings; ov.poseEffects=[poseFromVal(sp.pose2), poseFromVal(sp.pose3)];
     if(sp.figRule && sp.figRule!=='random') ov.figRule=sp.figRule;
     if(sp.ringRules && sp.ringRules.length) ov.ringRules=sp.ringRules;
+    ov.deathless = !!sp.cDeathless;
     return { mode:'circle', variant:'duell', ov };
   }
   function startFromSpec(sp){
@@ -6066,6 +6195,7 @@
     box.addEventListener('change',()=>{ revealAn=box.checked; localStorage.setItem(REVEAL_KEY, revealAn?'1':'0'); applyRevealOption(); });
   })();
   applyRevealOption();
+  wireModeOpts();
 
   // ===================== KEYBOARD =====================
   let zeroHeld=false;
