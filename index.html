@@ -1836,7 +1836,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.43";
+  const APP_VERSION = "1.44";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -3072,9 +3072,10 @@
 
   // ===================== RACING =====================
   const RACE_COLS=7, RACE_ROWS=13, RACE_ZONE_ROWS=12;   // Zonenhöhe ~3x Spurensuche-Band
-  // Werte sind Millisekunden je Reihe – kleiner heisst schneller. Alle Stufen um ein Viertel
-  // beschleunigt (Zeit mal 0,8 = Tempo mal 1,25). Das Editor-Tempo hat eigene Regler und bleibt.
-  const RACE_SPEED={ leicht:{s:640,e:160}, mittel:{s:560,e:144}, schwer:{s:480,e:112}, experte:{s:400,e:80} };
+  // Werte sind Millisekunden je Reihe – kleiner heisst schneller. Zweimal nachgeschaerft: erst alle
+  // Stufen um ein Viertel (Zeit mal 0,8), dann noch einmal um 20 % (Zeit durch 1,2).
+  // Das Editor-Tempo hat eigene Regler und bleibt davon unberuehrt.
+  const RACE_SPEED={ leicht:{s:533,e:133}, mittel:{s:467,e:120}, schwer:{s:400,e:93}, experte:{s:333,e:67} };
   // Wie viele verschiedene Farbzonen (= Regeln) eine Strecke benutzt
   const RACE_ZONES={ leicht:2, mittel:3, schwer:4, experte:4 };
   const RACE_BOMB={ leicht:0.10, mittel:0.15, schwer:0.20, experte:0.28 };
