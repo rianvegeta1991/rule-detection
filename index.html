@@ -417,20 +417,19 @@
     padding:6px 12px; border-radius:14px; box-sizing:border-box;
     background:linear-gradient(180deg, rgba(157,23,77,0.34), rgba(11,18,32,0.8));
     border:1px solid rgba(244,114,182,0.55); box-shadow:0 3px 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.07);}
-  .leben-bar .lb-ic{font-size:1.55rem; line-height:1; color:#f472b6; filter:drop-shadow(0 0 7px rgba(244,114,182,0.9));}
-  .leben-bar .lb-num{font-size:1.85rem; font-weight:800; line-height:1; color:#fbcfe8; font-variant-numeric:tabular-nums;}
-  .leben-bar .lb-cap{font-size:0.6rem; letter-spacing:0.16em; text-transform:uppercase; color:#f9a8d4; opacity:0.9;}
-  .leben-bar .lb-pips{display:flex; flex-wrap:wrap; gap:3px; justify-content:flex-end; align-items:center; flex:1 1 auto; min-width:0;}
-  .lb-pip{width:11px; height:15px; border-radius:3px; background:#f472b6; box-shadow:0 0 5px rgba(244,114,182,0.75);}
-  .lb-pip.plus{background:var(--gold); box-shadow:0 0 5px rgba(250,204,21,0.8);}
-  .lb-mehr{font-size:0.7rem; font-weight:700; color:var(--gold);}
+  .leben-bar .lb-txt{flex:0 0 auto; color:#f9a8d4; font-size:0.8rem; font-weight:700; white-space:nowrap;}
+  .leben-bar .lb-num{font-size:1.7rem; font-weight:800; color:#fbcfe8; font-variant-numeric:tabular-nums; margin-right:3px;}
+  .leben-bar .lb-pips{display:flex; flex-wrap:wrap; gap:2px; justify-content:flex-end; align-items:center; flex:1 1 auto; min-width:0;}
+  /* Immer alle neun Plaetze: was fehlt, steht ausgegraut daneben */
+  .lb-herz{font-size:1.35rem; line-height:1; color:#f472b6; text-shadow:0 0 6px rgba(244,114,182,0.75);}
+  .lb-herz.leer{color:#3f4a5c; text-shadow:none;}
   .leben-bar.knapp{border-color:var(--bad); animation:pulse 0.8s infinite alternate;}
-  .leben-bar.knapp .lb-ic, .leben-bar.knapp .lb-num{color:#fca5a5;}
-  .leben-bar.knapp .lb-pip{background:#f87171; box-shadow:0 0 6px rgba(248,113,113,0.9);}
-  /* In den Duell-Spalten ist weniger Platz – dort nur Herz und Zahl */
-  .leben-bar.kompakt{gap:6px; padding:4px 9px;}
-  .leben-bar.kompakt .lb-ic{font-size:1.2rem;} .leben-bar.kompakt .lb-num{font-size:1.35rem;}
-  .leben-bar.kompakt .lb-cap{display:none;} .leben-bar.kompakt .lb-pip{width:8px; height:12px;}
+  .leben-bar.knapp .lb-num, .leben-bar.knapp .lb-txt{color:#fca5a5;}
+  .leben-bar.knapp .lb-herz:not(.leer){color:#f87171; text-shadow:0 0 7px rgba(248,113,113,0.9);}
+  /* In den Duell-Spalten ist weniger Platz – dort alles eine Nummer kleiner */
+  .leben-bar.kompakt{gap:5px; padding:4px 8px;}
+  .leben-bar.kompakt .lb-txt{font-size:0.7rem;} .leben-bar.kompakt .lb-num{font-size:1.2rem;}
+  .leben-bar.kompakt .lb-pips{gap:1px;} .leben-bar.kompakt .lb-herz{font-size:1.05rem;}
   /* Protokoll: neun Zuege passen nicht mehr auf einen Blick – also scrollen lassen */
   .log-scroll{max-height:62vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;}
   .ring-field.wall{fill:#0b1220; stroke:rgba(148,163,184,0.14); pointer-events:none;}
@@ -1009,7 +1008,7 @@
   </div>
   <!-- Leben direkt zwischen Brett und Steuerung: dort schaut man beim Ziehen ohnehin hin -->
   <div class="leben-bar" id="spc-leben">
-    <span class="lb-ic">&#9829;</span><b class="lb-num" id="spc-hearts">7</b><span class="lb-cap">Leben</span>
+    <span class="lb-txt"><b class="lb-num" id="spc-hearts">7</b> Leben</span>
     <span class="lb-pips"></span>
   </div>
   <div class="control-area">
@@ -1070,7 +1069,7 @@
     <div class="mp-col">
       <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpc-m1">0</b> <span class="mp-status" id="mpc-s1"></span></div>
       <div id="mpc-host1" class="circle-host"></div>
-      <div class="leben-bar kompakt" id="mpc-leben1"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
+      <div class="leben-bar kompakt" id="mpc-leben1"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
       <div class="mp-steps p1" data-p="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
         <button class="pose" data-pose>Pose</button>
@@ -1080,7 +1079,7 @@
     <div class="mp-col">
       <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpc-m2">0</b> <span class="mp-status" id="mpc-s2"></span></div>
       <div id="mpc-host2" class="circle-host"></div>
-      <div class="leben-bar kompakt" id="mpc-leben2"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
+      <div class="leben-bar kompakt" id="mpc-leben2"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
       <div class="mp-steps p2" data-p="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
         <button class="pose" data-pose>Pose</button>
@@ -1107,7 +1106,7 @@
     <div class="mp-col" style="max-width:240px;">
       <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="mp-status" id="mpcg-s1"></span></div>
       <div id="mpcg-det1"></div>
-      <div class="leben-bar kompakt" id="mpcg-leben1"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
+      <div class="leben-bar kompakt" id="mpcg-leben1"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
       <div class="mp-steps p1" data-cg="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
       </div>
@@ -1117,7 +1116,7 @@
     <div class="mp-col" style="max-width:240px;">
       <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpcg-m2">0</b> <span class="mp-status" id="mpcg-s2"></span></div>
       <div id="mpcg-det2"></div>
-      <div class="leben-bar kompakt" id="mpcg-leben2"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
+      <div class="leben-bar kompakt" id="mpcg-leben2"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
       <div class="mp-steps p2" data-cg="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
       </div>
@@ -1193,7 +1192,7 @@
       <div class="mp-col" style="max-width:260px;">
         <div class="mp-head" id="onl-me-head"></div>
         <div id="onl-det"></div>
-        <div class="leben-bar kompakt hidden" id="onl-leben"><span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-pips"></span></div>
+        <div class="leben-bar kompakt hidden" id="onl-leben"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
         <div class="mp-steps" id="onl-steps">
           <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
         </div>
@@ -1238,7 +1237,7 @@
       <div id="onl-csolo-head" class="onl-solo-head"></div>
       <div class="board-wrap"><div id="onl-csolo-host" class="circle-host"></div></div>
       <div class="leben-bar" id="onl-csolo-leben">
-        <span class="lb-ic">&#9829;</span><b class="lb-num">7</b><span class="lb-cap">Leben</span><span class="lb-pips"></span>
+        <span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span>
       </div>
       <div class="onl-solo-ctrl">
         <button class="onl-mini" id="onl-csolo-mini" title="Gegner &ndash; tippen zum Vergr&ouml;&szlig;ern"></button>
@@ -1296,7 +1295,7 @@
       <div class="intro" style="margin-top:8px;">
         Deine Figur steht auf konzentrischen Ringen. W&auml;hle pro Zug eine Zahl: die <b>Figur</b> bewegt sich genau um diese Schrittzahl &ndash; unabh&auml;ngig vom Ring, auf dem sie steht. Eine <b>Verzerrung</b> dieser Bewegung gibt es erst ab dem <b>Nachtleben</b>. Zus&auml;tzlich dreht sich <b>jeder Ring</b> auf deine Eingabe nach seiner eigenen Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug). Ganz innen liegt ein d&uuml;nner <b>Tor-Ring</b> mit nur einem einzigen &starf; &ndash; erreichst du es, geht es direkt ins Zentrum zum <b>Detektiv</b> (Sherlock): Mit Taste W bzw. &uarr; (oder Klick) wechselt er zwischen drei Posen. Pose 1 ist neutral, Pose 2 und 3 aktivieren je eine geheime Zusatzregel. Im <b>Duell</b> kannst du „Gerangel" w&auml;hlen: Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd, mit der zus&auml;tzlichen Pose <b>Sabotage</b>, die die <b>gegnerische Figur</b> zwangsweise verschiebt.
         <br><br>
-        <b>&#9829; Herzen:</b> Du startest mit <b>7</b> Herzen. Jeder Zug kostet <b>eines</b> &ndash; auch ein Nullschritt, denn auch der dreht die Ringe weiter. Ein Zug, der dich auf ein &starf; zieht, ist <b>ganz frei</b>: das Herz bekommst du zur&uuml;ck. Wer die Ringe durchschaut, kommt so ohne einen einzigen Verlust nach innen. Auf jedem Ring liegen <b>Herzfelder</b> (&#9829;): ein Ring unter 9 Feldern hat eines, unter 19 Feldern zwei, gr&ouml;&szlig;ere drei. L&auml;ufst du darauf, gibt es <b>+2</b> Herzen; das Herz taucht danach in der gegen&uuml;berliegenden Kreish&auml;lfte wieder auf. Sind die Herzen leer, ist die Runde vorbei. Im <b>Duell</b> gewinnt dann, wer am weitesten innen steht &ndash; bei gleichem Ring unentschieden.
+        <b>&#9829; Herzen:</b> Du startest mit <b>7</b> Herzen. Jeder Zug kostet <b>eines</b> &ndash; auch ein Nullschritt, denn auch der dreht die Ringe weiter. Ein Zug, der dich auf ein &starf; zieht, ist <b>ganz frei</b>: das Herz bekommst du zur&uuml;ck. Wer die Ringe durchschaut, kommt so ohne einen einzigen Verlust nach innen. Auf jedem Ring liegen <b>Herzfelder</b> (&#9829;): eines je <b>sechs Felder</b> des Rings (abgerundet) &ndash; ein Ring mit 24 Feldern hat also vier. L&auml;ufst du darauf, gibt es <b>+2</b> Herzen; das Herz taucht danach in der gegen&uuml;berliegenden Kreish&auml;lfte wieder auf. Mehr als <b>9</b> Herzen fasst die Leiste nicht &ndash; ist sie voll, bleibt das Herzfeld liegen. Sind die Herzen leer, ist die Runde vorbei. Im <b>Duell</b> gewinnt dann, wer am weitesten innen steht &ndash; bei gleichem Ring unentschieden.
       </div>
     </details>
     <details class="ed-adv">
@@ -1837,7 +1836,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.42";
+  const APP_VERSION = "1.43";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ---- transforms ----
@@ -2367,8 +2366,10 @@
   // Jede Bewegung kostet ein Herz – ausser der Zug endet auf einem Sternenfeld: so ein Zug ist
   // ganz frei (das Herz wird zurueckgebucht), man kann also theoretisch ohne einen einzigen
   // Verlust bis ins Zentrum. Herzfelder geben zwei zurueck (netto +1).
-  const CIRCLE_HEARTS_START=7;
-  function heartCount(fieldCount){ return fieldCount<9 ? 1 : (fieldCount<19 ? 2 : 3); }
+  // Start bei 7, aufgefuellt werden kann bis 9 – die Leiste zeigt immer alle neun Plaetze.
+  const CIRCLE_HEARTS_START=7, CIRCLE_HEARTS_MAX=9;
+  // Ein Herzfeld je volle sechs Felder des Rings: 6 -> 1, 12 -> 2, 24 -> 4.
+  function heartCount(fieldCount){ return Math.floor(fieldCount/6); }
   // Herzfelder moeglichst gleichmaessig verteilen, nie auf Sternenfeldern oder Startfeldern.
   // `meiden` ist ein Index oder eine Liste davon (im Gerangel starten zwei Figuren auf dem Ring).
   function placeHearts(ring, meiden){
@@ -2386,21 +2387,19 @@
     }
     return out.sort((a,b)=>a-b);
   }
-  // Grosse Lebensanzeige zwischen Brett und Steuerung: Zahl plus Segmentbalken.
-  // Mehr Herzen als der Startvorrat werden golden angehaengt, sehr viele als "+n" gebuendelt.
-  const LEBEN_PIPS_MAX=12;
+  // Grosse Lebensanzeige zwischen Brett und Steuerung: links "n Leben", rechts alle neun Herzen.
+  // Die nicht vorhandenen sind ausgegraut – zu Beginn also zwei, weil man mit 7 startet.
   function setLebenBar(bar, n){
     if(!bar) return;
     bar.classList.toggle('hidden', n==null);
     if(n==null) return;
+    const voll=Math.max(0, Math.min(n, CIRCLE_HEARTS_MAX));
     bar.classList.toggle('knapp', n<=2);
     const num=bar.querySelector('.lb-num'); if(num) num.textContent=n;
     const pips=bar.querySelector('.lb-pips');
     if(pips){
-      const zeig=Math.min(n, LEBEN_PIPS_MAX);
       let h='';
-      for(let i=0;i<zeig;i++) h+='<span class="lb-pip'+(i>=CIRCLE_HEARTS_START?' plus':'')+'"></span>';
-      if(n>LEBEN_PIPS_MAX) h+='<span class="lb-mehr">+'+(n-LEBEN_PIPS_MAX)+'</span>';
+      for(let i=0;i<CIRCLE_HEARTS_MAX;i++) h+='<span class="lb-herz'+(i<voll?'':' leer')+'">&#9829;</span>';
       pips.innerHTML=h;
     }
   }
@@ -2408,13 +2407,14 @@
   // im Einzelspieler ist beides dasselbe Objekt, im Gerangel sind es Zustand und Spieler.
   function grabHeart(st, fig){
     if(fig.hearts==null) return false;
+    if(fig.hearts>=CIRCLE_HEARTS_MAX) return false;   // voll: das Feld bleibt liegen, statt zu verpuffen
     const r=st.rings[fig.ringIdx], pos=(r.hearts||[]).indexOf(fig.index);
     if(pos<0) return false;
     r.hearts.splice(pos,1);
     const neu=moveHeart(r, fig.index);          // taucht gegenueber wieder auf
     if(neu!=null) r.hearts.push(neu);
     r.hearts.sort((a,b)=>a-b);
-    fig.hearts+=2; refreshHearts(st); sfx('coin');
+    fig.hearts=Math.min(CIRCLE_HEARTS_MAX, fig.hearts+2); refreshHearts(st); sfx('coin');
     return true;
   }
   function moveHeart(ring, altIdx){
