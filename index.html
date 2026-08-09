@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -60,6 +60,19 @@
     font-size:1.15rem; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center;
   }
   #gear-btn:hover{color:var(--gold); border-color:var(--gold); transform:rotate(40deg);}
+  /* Sprachwahl: zwei Flaggen links neben dem Zahnrad */
+  #lang-pick{position:fixed; top:16px; right:66px; z-index:50; display:flex; gap:6px;}
+  #lang-pick button{width:38px; height:38px; border-radius:50%; padding:0; cursor:pointer; overflow:hidden;
+    background:var(--panel); border:1px solid var(--cell-border); opacity:0.5; transition:all .2s;
+    display:flex; align-items:center; justify-content:center;}
+  #lang-pick button:hover{opacity:0.85;}
+  #lang-pick button.active{opacity:1; border-color:var(--gold); box-shadow:0 0 0 2px rgba(212,175,55,0.25);}
+  #lang-pick svg{width:26px; height:19px; display:block; border-radius:2px;}
+  @media (max-width: 560px){
+    #lang-pick{top:calc(8px + env(safe-area-inset-top)); right:52px; gap:4px;}
+    #lang-pick button{width:32px; height:32px;}
+    #lang-pick svg{width:22px; height:16px;}
+  }
   /* Ton-Freigabe (mobile Autoplay-Sperre): sichtbar, bis der Ton entsperrt ist */
   #sound-fab{position:fixed; top:16px; left:16px; z-index:51; display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:999px;
     background:var(--accent); border:none; color:#0b1220; font-family:inherit; font-weight:700; font-size:0.9rem; cursor:pointer;
@@ -785,8 +798,24 @@
 </head>
 <body>
 
-<button id="gear-btn" aria-label="Einstellungen">&#9881;</button>
-<button id="sound-fab" class="hidden" aria-label="Ton aktivieren"><span class="sf-ic">&#128266;</span><span class="sf-tx">Ton an</span></button>
+<div id="lang-pick">
+  <button id="lang-de" data-lang="de" aria-label="Deutsch" title="Deutsch">
+    <svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="5" height="1" y="0" fill="#000"/><rect width="5" height="1" y="1" fill="#d00"/><rect width="5" height="1" y="2" fill="#ffce00"/>
+    </svg>
+  </button>
+  <button id="lang-en" data-lang="en" aria-label="English" title="English">
+    <svg viewBox="0 0 60 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="60" height="36" fill="#012169"/>
+      <path d="M0,0 L60,36 M60,0 L0,36" stroke="#fff" stroke-width="7"/>
+      <path d="M0,0 L60,36 M60,0 L0,36" stroke="#C8102E" stroke-width="4"/>
+      <path d="M30,0 V36 M0,18 H60" stroke="#fff" stroke-width="12"/>
+      <path d="M30,0 V36 M0,18 H60" stroke="#C8102E" stroke-width="7"/>
+    </svg>
+  </button>
+</div>
+<button id="gear-btn" aria-label="Einstellungen" data-en-aria="Settings">&#9881;</button>
+<button id="sound-fab" class="hidden" aria-label="Ton aktivieren" data-en-aria="Enable sound"><span class="sf-ic">&#128266;</span><span class="sf-tx" data-en="Sound on">Ton an</span></button>
 <div id="onl-conn" class="hidden"></div>
 
 <div id="start-screen">
@@ -804,24 +833,24 @@
       <circle cx="44" cy="42" r="7" fill="#ffffff" opacity="0.18"/>
     </svg>
     <h1>Regelsuche</h1>
-    <div class="tagline serif">Ermittel die Regeln, regel das Spiel.</div>
+    <div class="tagline serif" data-en="Work out the rules, rule the game.">Ermittel die Regeln, regel das Spiel.</div>
     <div class="app-version" id="app-version"></div>
   </div>
 
   <!-- Reihenfolge ist bewusst so: jede Wahl blendet nur Bloecke UNTER sich ein/aus. -->
-  <div class="tab-caption">Modus <span class="cap-hint">&ndash; wischen zum Wechseln</span></div>
+  <div class="tab-caption" data-en="Mode <span class=&quot;cap-hint&quot;>&ndash; swipe to switch</span>">Modus <span class="cap-hint">&ndash; wischen zum Wechseln</span></div>
   <div class="mode-carousel" id="mode-carousel">
     <div class="mode-card" data-mode="grid">
       <div class="mc-preview" data-prev="grid"></div>
-      <div class="mc-body"><b class="mc-title">Feld-Modus</b><span class="mc-desc">F&uuml;hre deine Figur durchs Raster &ndash; die verborgene Regel verf&auml;lscht deine Eingabe.</span></div>
+      <div class="mc-body"><b class="mc-title" data-en="Field mode">Feld-Modus</b><span class="mc-desc" data-en="Guide your figure across the grid &ndash; a hidden rule twists what you press.">F&uuml;hre deine Figur durchs Raster &ndash; die verborgene Regel verf&auml;lscht deine Eingabe.</span></div>
     </div>
     <div class="mode-card" data-mode="racing">
       <div class="mc-preview" data-prev="racing"></div>
-      <div class="mc-body"><b class="mc-title">Racing-Modus</b><span class="mc-desc">Lenke das Auto am unteren Rand &ndash; das Feld rast dir entgegen, weiche Bomben aus, sammle M&uuml;nzen.</span></div>
+      <div class="mc-body"><b class="mc-title" data-en="Racing mode">Racing-Modus</b><span class="mc-desc" data-en="Steer the car at the bottom &ndash; the road rushes at you, dodge bombs, collect coins.">Lenke das Auto am unteren Rand &ndash; das Feld rast dir entgegen, weiche Bomben aus, sammle M&uuml;nzen.</span></div>
     </div>
     <div class="mode-card" data-mode="circle">
       <div class="mc-preview" data-prev="circle"></div>
-      <div class="mc-body"><b class="mc-title">Kreis-Modus</b><span class="mc-desc">Dreh dich &uuml;ber konzentrische Ringe bis ins Zentrum &ndash; jede Zahl steuert Figur und Ringe.</span></div>
+      <div class="mc-body"><b class="mc-title" data-en="Circle mode">Kreis-Modus</b><span class="mc-desc" data-en="Spin inward across concentric rings &ndash; every number moves both figure and rings.">Dreh dich &uuml;ber konzentrische Ringe bis ins Zentrum &ndash; jede Zahl steuert Figur und Ringe.</span></div>
     </div>
   </div>
   <div class="mode-dots" id="mode-dots"></div>
@@ -831,133 +860,133 @@
   <div class="mode-dots" id="diff-dots"></div>
 
   <div id="player-block">
-    <div class="tab-caption">Spieler</div>
+    <div class="tab-caption" data-en="Players">Spieler</div>
     <div class="mode-tabs" id="player-tabs">
-      <button class="mode-tab active" data-players="1">Einzelspieler</button>
-      <button class="mode-tab" data-players="2">Duell (2 Spieler)</button>
+      <button class="mode-tab active" data-players="1" data-en="Single player">Einzelspieler</button>
+      <button class="mode-tab" data-players="2" data-en="Duel (2 players)">Duell (2 Spieler)</button>
     </div>
   </div>
 
   <div id="variant-block">
-    <div class="tab-caption">Variante</div>
+    <div class="tab-caption" data-en="Variant">Variante</div>
     <div class="mode-tabs" id="variant-tabs">
-      <button class="mode-tab active" data-variant="gerangel">Gerangel</button>
-      <button class="mode-tab" data-variant="spurensuche">Spurensuche</button>
+      <button class="mode-tab active" data-variant="gerangel" data-en="Scramble">Gerangel</button>
+      <button class="mode-tab" data-variant="spurensuche" data-en="Trail">Spurensuche</button>
     </div>
   </div>
 
   <div id="circle-variant-block" class="hidden">
-    <div class="tab-caption">Variante (nur im Duell)</div>
+    <div class="tab-caption" data-en="Variant (duel only)">Variante (nur im Duell)</div>
     <div class="mode-tabs" id="circle-variant-tabs">
-      <button class="mode-tab active" data-cvariant="duell">Duell (getrennte Kreise)</button>
-      <button class="mode-tab" data-cvariant="gerangel">Gerangel (gemeinsamer Kreis)</button>
+      <button class="mode-tab active" data-cvariant="duell" data-en="Duel (separate circles)">Duell (getrennte Kreise)</button>
+      <button class="mode-tab" data-cvariant="gerangel" data-en="Scramble (shared circle)">Gerangel (gemeinsamer Kreis)</button>
     </div>
   </div>
 
   <div id="winmode-block" class="hidden">
-    <div class="tab-caption">Siegbedingung im Duell</div>
+    <div class="tab-caption" data-en="Win condition in the duel">Siegbedingung im Duell</div>
     <div class="mode-tabs" id="winmode-tabs">
-      <button class="mode-tab active" data-win="fastest">Schnellster ins Ziel</button>
-      <button class="mode-tab" data-win="fewest">Wenigste Z&uuml;ge</button>
+      <button class="mode-tab active" data-win="fastest" data-en="First to the goal">Schnellster ins Ziel</button>
+      <button class="mode-tab" data-win="fewest" data-en="Fewest moves">Wenigste Z&uuml;ge</button>
     </div>
   </div>
   <div style="text-align:center; margin-top:16px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-    <button class="action" id="open-online" style="background:#0e7490; border-color:#22d3ee; padding:10px 16px;">&#128241; Online spielen &ndash; Gerangel auf 2 Handys</button>
-    <button class="action" id="open-editor" style="background:#4c1d95; border-color:#a78bfa; padding:10px 16px;">&#128295; Editor-Modus &ndash; eigene Regeln erstellen</button>
+    <button class="action" id="open-online" style="background:#0e7490; border-color:#22d3ee; padding:10px 16px;" data-en="&#128241; Play online &ndash; two phones">&#128241; Online spielen &ndash; Gerangel auf 2 Handys</button>
+    <button class="action" id="open-editor" style="background:#4c1d95; border-color:#a78bfa; padding:10px 16px;" data-en="&#128295; Editor mode &ndash; build your own rules">&#128295; Editor-Modus &ndash; eigene Regeln erstellen</button>
   </div>
 </div>
 
 <div id="editor-screen" class="hidden" style="max-width:660px; width:100%;">
-  <h1 class="serif" style="font-size:1.6rem; margin-bottom:2px;">Editor-Modus</h1>
-  <p class="subtitle">Stelle dein eigenes Spiel zusammen &ndash; keine Schwierigkeitsgrade, du bestimmst die Regeln.</p>
+  <h1 class="serif" style="font-size:1.6rem; margin-bottom:2px;" data-en="Editor mode">Editor-Modus</h1>
+  <p class="subtitle" data-en="Put together your own game &ndash; no difficulty levels, you set the rules.">Stelle dein eigenes Spiel zusammen &ndash; keine Schwierigkeitsgrade, du bestimmst die Regeln.</p>
 
   <div class="panel">
-    <label class="small">Profil (bis zu 10 &ndash; speichert deine Regeln)</label>
+    <label class="small" data-en="Profile (up to 10 &ndash; stores your rules)">Profil (bis zu 10 &ndash; speichert deine Regeln)</label>
     <div class="btn-row">
       <select id="ed-user" class="ed-sel" style="flex:1;"></select>
-      <button class="action" id="ed-load">Laden</button>
-      <button class="action" id="ed-save">Speichern</button>
-      <button class="action warn" id="ed-del">L&ouml;schen</button>
+      <button class="action" id="ed-load" data-en="Load">Laden</button>
+      <button class="action" id="ed-save" data-en="Save">Speichern</button>
+      <button class="action warn" id="ed-del" data-en="Delete">L&ouml;schen</button>
     </div>
     <div class="btn-row" style="margin-top:6px;">
-      <input id="ed-newname" placeholder="Neuer Profilname" class="ed-inp" style="flex:1;" maxlength="18">
-      <button class="action" id="ed-add">Anlegen</button>
+      <input id="ed-newname" placeholder="Neuer Profilname" data-en-ph="New profile name" class="ed-inp" style="flex:1;" maxlength="18">
+      <button class="action" id="ed-add" data-en="Create">Anlegen</button>
     </div>
   </div>
 
   <div class="panel">
-    <div class="ed-row"><label class="small">Spielfeld</label><select id="ed-mode" class="ed-sel"><option value="grid">Feld-Modus</option><option value="racing">Racing-Modus</option><option value="circle">Kreis-Modus</option></select></div>
-    <div class="ed-row" id="ed-variant-row"><label class="small">Variante</label><select id="ed-variant" class="ed-sel"><option value="gerangel">Gerangel</option><option value="spurensuche">Spurensuche</option></select></div>
-    <div class="ed-row"><label class="small">Spieler</label><select id="ed-players" class="ed-sel"><option value="1">Einzelspieler</option><option value="2">Duell (2 Spieler)</option></select></div>
-    <div class="ed-row"><label class="small">Hintergrund / Farbschema</label><select id="ed-bg" class="ed-sel"><option value="garden">Garten (grün)</option><option value="office">Büro (hell)</option><option value="night">Nachtleben (rot)</option><option value="graveyard">Friedhof (düster)</option></select></div>
+    <div class="ed-row"><label class="small" data-en="Board">Spielfeld</label><select id="ed-mode" class="ed-sel"><option value="grid" data-en="Field mode">Feld-Modus</option><option value="racing" data-en="Racing mode">Racing-Modus</option><option value="circle" data-en="Circle mode">Kreis-Modus</option></select></div>
+    <div class="ed-row" id="ed-variant-row"><label class="small" data-en="Variant">Variante</label><select id="ed-variant" class="ed-sel"><option value="gerangel" data-en="Scramble">Gerangel</option><option value="spurensuche" data-en="Trail">Spurensuche</option></select></div>
+    <div class="ed-row"><label class="small" data-en="Players">Spieler</label><select id="ed-players" class="ed-sel"><option value="1" data-en="Single player">Einzelspieler</option><option value="2" data-en="Duel (2 players)">Duell (2 Spieler)</option></select></div>
+    <div class="ed-row"><label class="small" data-en="Background / colour scheme">Hintergrund / Farbschema</label><select id="ed-bg" class="ed-sel"><option value="garden" data-en="Garden (green)">Garten (grün)</option><option value="office" data-en="Office (bright)">Büro (hell)</option><option value="night" data-en="Nightlife (red)">Nachtleben (rot)</option><option value="graveyard" data-en="Graveyard (grim)">Friedhof (düster)</option></select></div>
   </div>
 
   <div class="panel" id="ed-grid-opts">
-    <div class="ed-row"><label class="small">Grundregel</label><select id="ed-rule" class="ed-sel">
-      <option value="none">Keine (Eingabe wirkt direkt)</option>
-      <option value="constant">Feste Verzerrung</option>
-      <option value="parityPos">Positions-Parität</option>
-      <option value="parityTick">Zug-Parität</option>
-      <option value="repeatInvert">Wiederholung umkehren</option>
-      <option value="delay">Verzögerung</option>
+    <div class="ed-row"><label class="small" data-en="Base rule">Grundregel</label><select id="ed-rule" class="ed-sel">
+      <option value="none" data-en="None (input acts directly)">Keine (Eingabe wirkt direkt)</option>
+      <option value="constant" data-en="Fixed distortion">Feste Verzerrung</option>
+      <option value="parityPos" data-en="Position parity">Positions-Parität</option>
+      <option value="parityTick" data-en="Move parity">Zug-Parität</option>
+      <option value="repeatInvert" data-en="Invert on repeat">Wiederholung umkehren</option>
+      <option value="delay" data-en="Delay">Verzögerung</option>
     </select></div>
-    <div class="ed-row" id="ed-sec-row"><label class="small">Art der Verzerrung</label><select id="ed-sec" class="ed-sel">
-      <option value="random">Zufällig</option><option value="mirrorLR">Links/Rechts tauschen</option><option value="mirrorUD">Oben/Unten tauschen</option><option value="rotateCW">90° im Uhrzeigersinn</option><option value="rotateCCW">90° gegen Uhrzeigersinn</option><option value="swapAxes">Achsen tauschen</option>
+    <div class="ed-row" id="ed-sec-row"><label class="small" data-en="Kind of distortion">Art der Verzerrung</label><select id="ed-sec" class="ed-sel">
+      <option value="random" data-en="Random">Zufällig</option><option value="mirrorLR" data-en="Swap left/right">Links/Rechts tauschen</option><option value="mirrorUD" data-en="Swap up/down">Oben/Unten tauschen</option><option value="rotateCW" data-en="90° clockwise">90° im Uhrzeigersinn</option><option value="rotateCCW" data-en="90° counter-clockwise">90° gegen Uhrzeigersinn</option><option value="swapAxes" data-en="Swap axes">Achsen tauschen</option>
     </select></div>
-    <div class="ed-row"><label class="small">Spielfeldgröße: <b id="ed-size-val"></b></label><input type="range" id="ed-size" min="9" max="21" step="1"></div>
-    <div class="ed-row"><label class="small">Hindernis-Typ</label><select id="ed-haz" class="ed-sel"><option value="bomb">Briefbomben</option><option value="dog">Hunde (bewegen sich)</option></select></div>
-    <div class="ed-row"><label class="small">Anzahl Hindernisse: <b id="ed-hazn-val"></b></label><input type="range" id="ed-hazn" min="0" max="16" step="1"></div>
-    <div class="ed-row hidden" id="ed-haztick-row"><label class="small">Hunde-Tempo (Sekunden pro Schritt): <b id="ed-haztick-val"></b></label><input type="range" id="ed-haztick" min="500" max="3000" step="250"></div>
+    <div class="ed-row"><label class="small"><span data-en="Board size">Spielfeldgröße</span>: <b id="ed-size-val"></b></label><input type="range" id="ed-size" min="9" max="21" step="1"></div>
+    <div class="ed-row"><label class="small" data-en="Hazard type">Hindernis-Typ</label><select id="ed-haz" class="ed-sel"><option value="bomb" data-en="Letter bombs">Briefbomben</option><option value="dog" data-en="Dogs (they move)">Hunde (bewegen sich)</option></select></div>
+    <div class="ed-row"><label class="small"><span data-en="Number of hazards">Anzahl Hindernisse</span>: <b id="ed-hazn-val"></b></label><input type="range" id="ed-hazn" min="0" max="16" step="1"></div>
+    <div class="ed-row hidden" id="ed-haztick-row"><label class="small"><span data-en="Dog pace (seconds per step)">Hunde-Tempo (Sekunden pro Schritt)</span>: <b id="ed-haztick-val"></b></label><input type="range" id="ed-haztick" min="500" max="3000" step="250"></div>
     <div id="ed-gerangel-row">
-      <div class="ed-row"><label><input type="checkbox" id="ed-wall"> Wand in der Mitte (schützt die Mittel-Münze)</label></div>
-      <div class="ed-row"><label class="small">Münzen: <b id="ed-coins-val"></b></label><input type="range" id="ed-coins" min="0" max="12" step="1"></div>
+      <div class="ed-row"><label><input type="checkbox" id="ed-wall"> <span data-en="Wall in the middle (guards the centre coin)">Wand in der Mitte (schützt die Mittel-Münze)</span></label></div>
+      <div class="ed-row"><label class="small"><span data-en="Coins">Münzen</span>: <b id="ed-coins-val"></b></label><input type="range" id="ed-coins" min="0" max="12" step="1"></div>
     </div>
-    <div class="ed-row hidden" id="ed-spuren-row"><label class="small">Meilensteine: <b id="ed-mile-val"></b></label><input type="range" id="ed-mile" min="1" max="3" step="1"></div>
-    <div class="ed-row"><label><input type="checkbox" id="ed-gdeath" checked> Deathless (Kontakt setzt nur zur&uuml;ck, statt zu verlieren)</label></div>
-    <div class="ed-row"><label class="small">Sprung-Muster (Teil der Grundregel, max. 2 Felder pro Zug)</label>
-      <select id="ed-jumpmode" class="ed-sel"><option value="none">Aus – immer 1 Feld</option><option value="random">Zufällig</option><option value="custom">Eigenes Muster …</option></select></div>
+    <div class="ed-row hidden" id="ed-spuren-row"><label class="small"><span data-en="Milestones">Meilensteine</span>: <b id="ed-mile-val"></b></label><input type="range" id="ed-mile" min="1" max="3" step="1"></div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-gdeath" checked> <span data-en="Deathless (contact only resets you instead of losing)">Deathless (Kontakt setzt nur zur&uuml;ck, statt zu verlieren)</span></label></div>
+    <div class="ed-row"><label class="small" data-en="Jump pattern (part of the base rule, max. 2 cells per move)">Sprung-Muster (Teil der Grundregel, max. 2 Felder pro Zug)</label>
+      <select id="ed-jumpmode" class="ed-sel"><option value="none" data-en="Off – always 1 cell">Aus – immer 1 Feld</option><option value="random" data-en="Random">Zufällig</option><option value="custom" data-en="Custom pattern …">Eigenes Muster …</option></select></div>
     <div class="ed-row hidden" id="ed-jump-custom">
-      <label class="small">Musterlänge: <b id="ed-jumplen-val"></b> Eingaben (wiederholt sich)</label><input type="range" id="ed-jumplen" min="2" max="4" step="1">
+      <label class="small"><span data-en="Pattern length">Musterlänge</span>: <b id="ed-jumplen-val"></b> <span data-en="inputs (repeats)">Eingaben (wiederholt sich)</span></label><input type="range" id="ed-jumplen" min="2" max="4" step="1">
       <div id="ed-jump-rows" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;"></div>
     </div>
-    <details class="ed-adv"><summary>Erweitert: Ebenenregeln (Zonen)</summary>
-      <div class="hint" style="margin-left:0;">Jede Farbzone wendet zus&auml;tzlich ihren Effekt auf die (bereits von der Grundregel ver&auml;nderte) Bewegung an. Standard: zuf&auml;llig.</div>
+    <details class="ed-adv"><summary data-en="Advanced: zone rules">Erweitert: Ebenenregeln (Zonen)</summary>
+      <div class="hint" style="margin-left:0;" data-en="Each colour zone applies its own effect on top of the movement the base rule already changed. Default: random.">Jede Farbzone wendet zus&auml;tzlich ihren Effekt auf die (bereits von der Grundregel ver&auml;nderte) Bewegung an. Standard: zuf&auml;llig.</div>
       <div id="ed-zone-rows" style="margin-top:8px;"></div>
     </details>
   </div>
 
   <div class="panel hidden" id="ed-circle-opts">
-    <div class="ed-row"><label class="small">Anzahl Ringe: <b id="ed-rings-val"></b></label><input type="range" id="ed-rings" min="2" max="5" step="1"></div>
-    <div class="hint" style="color:var(--muted); font-size:0.78rem;">Dazu kommt automatisch ein d&uuml;nner Tor-Ring vor dem Zentrum.</div>
-    <div class="ed-row"><label><input type="checkbox" id="ed-cdeath"> Deathless (ohne Herzen und Herzfelder)</label></div>
-    <div class="ed-row"><label class="small">Figur-Bewegung (unabh&auml;ngig vom Ring)</label><select id="ed-fig" class="ed-sel"></select></div>
-    <div class="ed-row"><label class="small">Pose <b style="color:#22c55e">Grün</b></label><select id="ed-pose2" class="ed-sel"></select></div>
-    <div class="ed-row"><label class="small">Pose <b style="color:#3b82f6">Blau</b></label><select id="ed-pose3" class="ed-sel"></select></div>
-    <div class="hint" style="color:var(--muted); font-size:0.78rem;">Pose <b style="color:#facc15">Gelb</b> ist immer neutral (Sabotage = Rot, nur im Gerangel).</div>
-    <details class="ed-adv"><summary>Erweitert: Ring-Rotationen (pro Ring)</summary>
-      <div class="hint" style="margin-left:0;">Drehung je Ring auf deine Eingabe. Standard: zuf&auml;llig.</div>
+    <div class="ed-row"><label class="small"><span data-en="Number of rings">Anzahl Ringe</span>: <b id="ed-rings-val"></b></label><input type="range" id="ed-rings" min="2" max="5" step="1"></div>
+    <div class="hint" style="color:var(--muted); font-size:0.78rem;" data-en="A thin gate ring in front of the centre is added automatically.">Dazu kommt automatisch ein d&uuml;nner Tor-Ring vor dem Zentrum.</div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-cdeath"> <span data-en="Deathless (no lives, no heart fields)">Deathless (ohne Herzen und Herzfelder)</span></label></div>
+    <div class="ed-row"><label class="small" data-en="Figure movement (independent of the ring)">Figur-Bewegung (unabh&auml;ngig vom Ring)</label><select id="ed-fig" class="ed-sel"></select></div>
+    <div class="ed-row"><label class="small">Pose <b style="color:#22c55e" data-en="Green">Grün</b></label><select id="ed-pose2" class="ed-sel"></select></div>
+    <div class="ed-row"><label class="small">Pose <b style="color:#3b82f6" data-en="Blue">Blau</b></label><select id="ed-pose3" class="ed-sel"></select></div>
+    <div class="hint" style="color:var(--muted); font-size:0.78rem;" data-en="Pose <b style=&quot;color:#facc15&quot;>Yellow</b> is always neutral (sabotage = red, scramble only).">Pose <b style="color:#facc15">Gelb</b> ist immer neutral (Sabotage = Rot, nur im Gerangel).</div>
+    <details class="ed-adv"><summary data-en="Advanced: ring rotations (per ring)">Erweitert: Ring-Rotationen (pro Ring)</summary>
+      <div class="hint" style="margin-left:0;" data-en="How each ring turns on your input. Default: random.">Drehung je Ring auf deine Eingabe. Standard: zuf&auml;llig.</div>
       <div id="ed-ring-rows" style="margin-top:8px;"></div>
     </details>
   </div>
 
   <div class="panel hidden" id="ed-race-opts">
-    <div class="ed-row"><label class="small">Start-Tempo: <b id="ed-rspeed0-val"></b> s je Reihe</label><input type="range" id="ed-rspeed0" min="300" max="1200" step="50"></div>
-    <div class="ed-row"><label class="small">End-Tempo (nach 2 Min): <b id="ed-rspeed1-val"></b> s je Reihe</label><input type="range" id="ed-rspeed1" min="80" max="600" step="20"></div>
-    <div class="ed-row"><label class="small">Anzahl Farbzonen (Regeln): <b id="ed-rzones-val"></b></label><input type="range" id="ed-rzones" min="1" max="4" step="1"></div>
-    <div class="ed-row"><label class="small">Bomben-Dichte: <b id="ed-rbomb-val"></b> %</label><input type="range" id="ed-rbomb" min="0" max="50" step="2"></div>
-    <div class="ed-row"><label class="small">M&uuml;nz-H&auml;ufigkeit: <b id="ed-rcoin-val"></b> %</label><input type="range" id="ed-rcoin" min="0" max="40" step="2"></div>
-    <div class="ed-row"><label><input type="checkbox" id="ed-rgrid" checked> K&auml;stchenbasiert (aus = freie Fahrt)</label></div>
-    <div class="ed-row"><label><input type="checkbox" id="ed-rrockets"> Raketen (weichen seitlich aus)</label></div>
-    <div class="ed-row" id="ed-rthrust-row"><label><input type="checkbox" id="ed-rthrust"> Raketen mit Antrieb (kommen dir entgegen)</label></div>
-    <details class="ed-adv"><summary>Erweitert: Regel je Farbzone</summary>
-      <div class="hint" style="margin-left:0;">Welche Verzerrung die jeweilige Zone auf die Steuerung legt. Standard: zuf&auml;llig.</div>
+    <div class="ed-row"><label class="small"><span data-en="Start pace">Start-Tempo</span>: <b id="ed-rspeed0-val"></b> <span data-en="s per row">s je Reihe</span></label><input type="range" id="ed-rspeed0" min="300" max="1200" step="50"></div>
+    <div class="ed-row"><label class="small"><span data-en="End pace (after 2 min)">End-Tempo (nach 2 Min)</span>: <b id="ed-rspeed1-val"></b> <span data-en="s per row">s je Reihe</span></label><input type="range" id="ed-rspeed1" min="80" max="600" step="20"></div>
+    <div class="ed-row"><label class="small"><span data-en="Number of colour zones (rules)">Anzahl Farbzonen (Regeln)</span>: <b id="ed-rzones-val"></b></label><input type="range" id="ed-rzones" min="1" max="4" step="1"></div>
+    <div class="ed-row"><label class="small"><span data-en="Bomb density">Bomben-Dichte</span>: <b id="ed-rbomb-val"></b> %</label><input type="range" id="ed-rbomb" min="0" max="50" step="2"></div>
+    <div class="ed-row"><label class="small"><span data-en="Coin frequency">M&uuml;nz-H&auml;ufigkeit</span>: <b id="ed-rcoin-val"></b> %</label><input type="range" id="ed-rcoin" min="0" max="40" step="2"></div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-rgrid" checked> <span data-en="Grid based (off = free driving)">K&auml;stchenbasiert (aus = freie Fahrt)</span></label></div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-rrockets"> <span data-en="Rockets (they dodge sideways)">Raketen (weichen seitlich aus)</span></label></div>
+    <div class="ed-row" id="ed-rthrust-row"><label><input type="checkbox" id="ed-rthrust"> <span data-en="Powered rockets (they come at you)">Raketen mit Antrieb (kommen dir entgegen)</span></label></div>
+    <details class="ed-adv"><summary data-en="Advanced: rule per colour zone">Erweitert: Regel je Farbzone</summary>
+      <div class="hint" style="margin-left:0;" data-en="Which distortion each zone puts on the controls. Default: random.">Welche Verzerrung die jeweilige Zone auf die Steuerung legt. Standard: zuf&auml;llig.</div>
       <div id="ed-race-rows" style="margin-top:8px;"></div>
     </details>
   </div>
 
   <div class="footer-row">
-    <button class="action primary" id="ed-start" style="flex:1;">Spiel starten</button>
-    <button class="action" id="ed-back">Zur&uuml;ck</button>
+    <button class="action primary" id="ed-start" style="flex:1;" data-en="Start game">Spiel starten</button>
+    <button class="action" id="ed-back" data-en="Back">Zur&uuml;ck</button>
   </div>
 </div>
 
@@ -966,9 +995,9 @@
   <div class="game-head">
     <div class="stats-row" id="spg-stats"></div>
     <div class="head-actions">
-      <button class="action warn mini" id="spg-reveal">Aufl&ouml;sung</button>
-      <button class="action mini" id="spg-reset">Neu</button>
-      <button class="action mini" id="spg-back">Zur&uuml;ck</button>
+      <button class="action warn mini" id="spg-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action mini" id="spg-reset" data-en="New">Neu</button>
+      <button class="action mini" id="spg-back" data-en="Back">Zur&uuml;ck</button>
     </div>
   </div>
   <div class="board-wrap" style="position:relative;">
@@ -985,7 +1014,7 @@
     <div class="pad-zone right" data-dir="1"><span class="pad-ic">&#9654;</span></div>
     <div class="pad-zone down"  data-dir="2"><span class="pad-ic">&#9660;</span></div>
     <div class="pad-zone left"  data-dir="3"><span class="pad-ic">&#9664;</span></div>
-    <button class="pad-stay" data-dir="stay" title="Bleiben (neutral)"><span class="pad-stay-dot"></span></button>
+    <button class="pad-stay" data-dir="stay" title="Bleiben (neutral)" data-en-title="Stay (neutral)"><span class="pad-stay-dot"></span></button>
   </div>
 </div>
 
@@ -993,15 +1022,15 @@
 <div id="sp-circle" class="game-screen hidden">
   <div class="game-head">
     <div class="stats-row">
-      <span>Z&uuml;ge <b id="spc-moves">0</b></span>
-      <span>Ring <b id="spc-ring">–</b></span>
-      <span>Feld <b id="spc-field">–</b></span>
+      <span><span data-en="Moves">Z&uuml;ge</span> <b id="spc-moves">0</b></span>
+      <span><span data-en="Ring">Ring</span> <b id="spc-ring">–</b></span>
+      <span><span data-en="Cell">Feld</span> <b id="spc-field">–</b></span>
     </div>
     <div class="head-actions">
-      <button class="action mini" id="spc-log-btn">Protokoll</button>
-      <button class="action warn mini" id="spc-reveal">Aufl&ouml;sung</button>
-      <button class="action mini" id="spc-reset">Neu</button>
-      <button class="action mini" id="spc-back">Zur&uuml;ck</button>
+      <button class="action mini" id="spc-log-btn" data-en="Log">Protokoll</button>
+      <button class="action warn mini" id="spc-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action mini" id="spc-reset" data-en="New">Neu</button>
+      <button class="action mini" id="spc-back" data-en="Back">Zur&uuml;ck</button>
     </div>
   </div>
   <div class="board-wrap">
@@ -1013,7 +1042,7 @@
   </div>
   <!-- Leben direkt zwischen Brett und Steuerung: dort schaut man beim Ziehen ohnehin hin -->
   <div class="leben-bar" id="spc-leben">
-    <span class="lb-txt"><b class="lb-num" id="spc-hearts">7</b> Leben</span>
+    <span class="lb-txt"><b class="lb-num" id="spc-hearts">7</b> <span data-en="lives">Leben</span></span>
     <span class="lb-pips"></span>
   </div>
   <div class="control-area">
@@ -1032,20 +1061,20 @@
   <div class="mp-top">
     <div class="mp-title" id="mpg-title"></div>
     <div class="footer-row">
-      <button class="action warn" id="mpg-reveal">Aufl&ouml;sung</button>
-      <button class="action" id="mpg-again">Neue Runde</button>
-      <button class="action" id="mpg-back">Zur&uuml;ck</button>
+      <button class="action warn" id="mpg-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action" id="mpg-again" data-en="New round">Neue Runde</button>
+      <button class="action" id="mpg-back" data-en="Back">Zur&uuml;ck</button>
     </div>
   </div>
   <!-- Spurensuche: beide Bretter samt Steuerkreuz direkt nebeneinander -->
   <div class="mp-wrap" id="mpg-twocol">
     <div class="mp-col">
-      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpg-m1">0</b> <span class="mp-status" id="mpg-s1"></span></div>
+      <div class="mp-head p1"><span data-en="Player 1">Spieler 1</span> &middot; <span data-en="Moves">Z&uuml;ge</span> <b id="mpg-m1">0</b> <span class="mp-status" id="mpg-s1"></span></div>
       <div id="mpg-host1"></div>
       <div class="mp-pad-slot" id="mpg-pad1"></div>
     </div>
     <div class="mp-col">
-      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpg-m2">0</b> <span class="mp-status" id="mpg-s2"></span></div>
+      <div class="mp-head p2"><span data-en="Player 2">Spieler 2</span> &middot; <span data-en="Moves">Z&uuml;ge</span> <b id="mpg-m2">0</b> <span class="mp-status" id="mpg-s2"></span></div>
       <div id="mpg-host2"></div>
       <div class="mp-pad-slot" id="mpg-pad2"></div>
     </div>
@@ -1064,30 +1093,30 @@
   <div class="mp-top">
     <div class="mp-title" id="mpc-title"></div>
     <div class="footer-row">
-      <button class="action" id="mpc-log-btn">Protokoll</button>
-      <button class="action warn" id="mpc-reveal">Aufl&ouml;sung</button>
-      <button class="action" id="mpc-again">Neue Runde</button>
-      <button class="action" id="mpc-back">Zur&uuml;ck</button>
+      <button class="action" id="mpc-log-btn" data-en="Log">Protokoll</button>
+      <button class="action warn" id="mpc-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action" id="mpc-again" data-en="New round">Neue Runde</button>
+      <button class="action" id="mpc-back" data-en="Back">Zur&uuml;ck</button>
     </div>
   </div>
   <div class="mp-wrap">
     <div class="mp-col">
-      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpc-m1">0</b> <span class="mp-status" id="mpc-s1"></span></div>
+      <div class="mp-head p1"><span data-en="Player 1">Spieler 1</span> &middot; <span data-en="Moves">Z&uuml;ge</span> <b id="mpc-m1">0</b> <span class="mp-status" id="mpc-s1"></span></div>
       <div id="mpc-host1" class="circle-host"></div>
-      <div class="leben-bar kompakt" id="mpc-leben1"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
+      <div class="leben-bar kompakt" id="mpc-leben1"><span class="lb-txt"><b class="lb-num">7</b> <span data-en="lives">Leben</span></span><span class="lb-pips"></span></div>
       <div class="mp-steps p1" data-p="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
-        <button class="pose" data-pose>Pose</button>
+        <button class="pose" data-pose data-en="Pose">Pose</button>
       </div>
       <div class="mp-log clog" id="mpc-log1" style="font-size:0.76rem;"></div>
     </div>
     <div class="mp-col">
-      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpc-m2">0</b> <span class="mp-status" id="mpc-s2"></span></div>
+      <div class="mp-head p2"><span data-en="Player 2">Spieler 2</span> &middot; <span data-en="Moves">Z&uuml;ge</span> <b id="mpc-m2">0</b> <span class="mp-status" id="mpc-s2"></span></div>
       <div id="mpc-host2" class="circle-host"></div>
-      <div class="leben-bar kompakt" id="mpc-leben2"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
+      <div class="leben-bar kompakt" id="mpc-leben2"><span class="lb-txt"><b class="lb-num">7</b> <span data-en="lives">Leben</span></span><span class="lb-pips"></span></div>
       <div class="mp-steps p2" data-p="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
-        <button class="pose" data-pose>Pose</button>
+        <button class="pose" data-pose data-en="Pose">Pose</button>
       </div>
       <div class="mp-log clog" id="mpc-log2" style="font-size:0.76rem;"></div>
     </div>
@@ -1100,18 +1129,18 @@
   <div class="mp-top">
     <div class="mp-title" id="mpcg-title"></div>
     <div class="footer-row">
-      <button class="action" id="mpcg-log-btn">Protokoll</button>
-      <button class="action warn" id="mpcg-reveal">Aufl&ouml;sung</button>
-      <button class="action" id="mpcg-again">Neue Runde</button>
-      <button class="action" id="mpcg-back">Zur&uuml;ck</button>
+      <button class="action" id="mpcg-log-btn" data-en="Log">Protokoll</button>
+      <button class="action warn" id="mpcg-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action" id="mpcg-again" data-en="New round">Neue Runde</button>
+      <button class="action" id="mpcg-back" data-en="Back">Zur&uuml;ck</button>
     </div>
   </div>
   <div id="mpcg-turn" class="banner p1" style="margin-bottom:8px; text-align:center; font-weight:700;"></div>
   <div class="mp-wrap" style="align-items:flex-start;">
     <div class="mp-col" style="max-width:240px;">
-      <div class="mp-head p1">Spieler 1 &middot; Z&uuml;ge <b id="mpcg-m1">0</b> <span class="mp-status" id="mpcg-s1"></span></div>
+      <div class="mp-head p1"><span data-en="Player 1">Spieler 1</span> &middot; <span data-en="Moves">Z&uuml;ge</span> <b id="mpcg-m1">0</b> <span class="mp-status" id="mpcg-s1"></span></div>
       <div id="mpcg-det1"></div>
-      <div class="leben-bar kompakt" id="mpcg-leben1"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
+      <div class="leben-bar kompakt" id="mpcg-leben1"><span class="lb-txt"><b class="lb-num">7</b> <span data-en="lives">Leben</span></span><span class="lb-pips"></span></div>
       <div class="mp-steps p1" data-cg="0">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
       </div>
@@ -1119,9 +1148,9 @@
     </div>
     <div id="mpcg-host" class="circle-host"></div>
     <div class="mp-col" style="max-width:240px;">
-      <div class="mp-head p2">Spieler 2 &middot; Z&uuml;ge <b id="mpcg-m2">0</b> <span class="mp-status" id="mpcg-s2"></span></div>
+      <div class="mp-head p2"><span data-en="Player 2">Spieler 2</span> &middot; <span data-en="Moves">Z&uuml;ge</span> <b id="mpcg-m2">0</b> <span class="mp-status" id="mpcg-s2"></span></div>
       <div id="mpcg-det2"></div>
-      <div class="leben-bar kompakt" id="mpcg-leben2"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
+      <div class="leben-bar kompakt" id="mpcg-leben2"><span class="lb-txt"><b class="lb-num">7</b> <span data-en="lives">Leben</span></span><span class="lb-pips"></span></div>
       <div class="mp-steps p2" data-cg="1">
         <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
       </div>
@@ -1136,9 +1165,9 @@
   <div class="mp-top">
     <div class="mp-title" id="onl-title">Online</div>
     <div class="footer-row">
-      <button class="action hidden" id="onl-log-btn">Protokoll</button>
-      <button class="action warn hidden" id="onl-reveal">Aufl&ouml;sung</button>
-      <button class="action" id="onl-leave">Zur&uuml;ck</button>
+      <button class="action hidden" id="onl-log-btn" data-en="Log">Protokoll</button>
+      <button class="action warn hidden" id="onl-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action" id="onl-leave" data-en="Back">Zur&uuml;ck</button>
     </div>
   </div>
 
@@ -1146,35 +1175,35 @@
   <div id="onl-lobby">
     <div id="onl-msg" class="banner hidden" style="margin-bottom:12px;"></div>
     <div class="panel">
-      <div class="tab-caption" style="margin-top:0;">Neuen Raum er&ouml;ffnen</div>
+      <div class="tab-caption" style="margin-top:0;" data-en="Open a new room">Neuen Raum er&ouml;ffnen</div>
       <div class="btn-row" style="margin-bottom:6px;">
         <select id="onl-mode" class="ed-sel" style="flex:1;">
-          <option value="grid">Feld-Modus</option>
-          <option value="racing">Racing-Modus</option>
-          <option value="circle">Kreis-Modus</option>
+          <option value="grid" data-en="Field mode">Feld-Modus</option>
+          <option value="racing" data-en="Racing mode">Racing-Modus</option>
+          <option value="circle" data-en="Circle mode">Kreis-Modus</option>
         </select>
         <select id="onl-gvariant" class="ed-sel" style="flex:1;"></select>
       </div>
       <div class="btn-row" style="margin-bottom:6px;">
         <select id="onl-wincond" class="ed-sel hidden" style="flex:1;">
-          <option value="fastest">Schnellster ins Ziel</option>
-          <option value="fewest">Wenigste Z&uuml;ge</option>
+          <option value="fastest" data-en="First to the goal">Schnellster ins Ziel</option>
+          <option value="fewest" data-en="Fewest moves">Wenigste Z&uuml;ge</option>
         </select>
         <select id="onl-profile" class="ed-sel" style="flex:1;"><option value="">&mdash; Standard &mdash;</option></select>
       </div>
       <div class="btn-row">
         <select id="onl-theme" class="ed-sel" style="flex:1;"></select>
-        <button class="action" id="onl-create">Raum erstellen</button>
+        <button class="action" id="onl-create" data-en="Create room">Raum erstellen</button>
       </div>
-      <div class="hint" style="color:var(--muted); font-size:0.76rem; margin-top:4px;">Du bekommst einen Code, den dein Mitspieler eingibt. Du bist <b class="p1" style="color:var(--p1)">Spieler 1</b>.</div>
+      <div class="hint" style="color:var(--muted); font-size:0.76rem; margin-top:4px;" data-en="You get a code for the other player to enter. You are <b class=&quot;p1&quot; style=&quot;color:var(--p1)&quot;>Player 1</b>.">Du bekommst einen Code, den dein Mitspieler eingibt. Du bist <b class="p1" style="color:var(--p1)">Spieler 1</b>.</div>
 
-      <div class="tab-caption">Einem Raum beitreten</div>
+      <div class="tab-caption" data-en="Join a room">Einem Raum beitreten</div>
       <div class="btn-row">
         <input id="onl-code" class="ed-inp" placeholder="CODE" maxlength="4" autocapitalize="characters" autocomplete="off" style="flex:1; text-transform:uppercase; letter-spacing:0.25em; font-weight:700; text-align:center;">
-        <button class="action" id="onl-join">Beitreten</button>
+        <button class="action" id="onl-join" data-en="Join">Beitreten</button>
       </div>
 
-      <div class="tab-caption">Offene R&auml;ume <span id="onl-rooms-hint" style="font-weight:400; text-transform:none; letter-spacing:0;"></span></div>
+      <div class="tab-caption"><span data-en="Open rooms">Offene R&auml;ume</span> <span id="onl-rooms-hint" style="font-weight:400; text-transform:none; letter-spacing:0;"></span></div>
       <div id="onl-rooms"></div>
     </div>
   </div>
@@ -1182,9 +1211,9 @@
   <!-- ---------- Warteraum ---------- -->
   <div id="onl-wait" class="hidden">
     <div class="panel" style="text-align:center;">
-      <div style="font-size:0.9rem; color:var(--muted);">Dein Raumcode &ndash; gib ihn deinem Mitspieler:</div>
+      <div style="font-size:0.9rem; color:var(--muted);" data-en="Your room code &ndash; pass it to the other player:">Dein Raumcode &ndash; gib ihn deinem Mitspieler:</div>
       <div id="onl-wait-code" style="font-family:'Palatino Linotype',Georgia,serif; font-size:3rem; font-weight:700; letter-spacing:0.3em; color:var(--gold); margin:8px 0;"></div>
-      <div id="onl-wait-status" class="hint" style="color:var(--muted);">Warte auf Mitspieler &hellip;</div>
+      <div id="onl-wait-status" class="hint" style="color:var(--muted);" data-en="Waiting for the other player &hellip;">Warte auf Mitspieler &hellip;</div>
     </div>
   </div>
 
@@ -1197,7 +1226,7 @@
       <div class="mp-col" style="max-width:260px;">
         <div class="mp-head" id="onl-me-head"></div>
         <div id="onl-det"></div>
-        <div class="leben-bar kompakt hidden" id="onl-leben"><span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span></div>
+        <div class="leben-bar kompakt hidden" id="onl-leben"><span class="lb-txt"><b class="lb-num">7</b> <span data-en="lives">Leben</span></span><span class="lb-pips"></span></div>
         <div class="mp-steps" id="onl-steps">
           <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
         </div>
@@ -1225,7 +1254,7 @@
       <div id="onl-gsolo-head" class="onl-solo-head"></div>
       <div class="board-wrap" style="position:relative;"><div id="onl-gsolo-host"></div></div>
       <div class="onl-solo-ctrl">
-        <button class="onl-mini" id="onl-gsolo-mini" title="Gegner &ndash; tippen zum Vergr&ouml;&szlig;ern"></button>
+        <button class="onl-mini" id="onl-gsolo-mini" title="Gegner &ndash; tippen zum Vergr&ouml;&szlig;ern" data-en-title="Opponent &ndash; tap to enlarge"></button>
         <div class="pad-frame" id="onl-gsolo-frame">
           <svg class="pad-lines" id="onl-gsolo-lines" aria-hidden="true" preserveAspectRatio="none"></svg>
           <div class="pad-zone up"    data-dir="0"><span class="pad-ic">&#9650;</span></div>
@@ -1242,10 +1271,10 @@
       <div id="onl-csolo-head" class="onl-solo-head"></div>
       <div class="board-wrap"><div id="onl-csolo-host" class="circle-host"></div></div>
       <div class="leben-bar" id="onl-csolo-leben">
-        <span class="lb-txt"><b class="lb-num">7</b> Leben</span><span class="lb-pips"></span>
+        <span class="lb-txt"><b class="lb-num">7</b> <span data-en="lives">Leben</span></span><span class="lb-pips"></span>
       </div>
       <div class="onl-solo-ctrl">
-        <button class="onl-mini" id="onl-csolo-mini" title="Gegner &ndash; tippen zum Vergr&ouml;&szlig;ern"></button>
+        <button class="onl-mini" id="onl-csolo-mini" title="Gegner &ndash; tippen zum Vergr&ouml;&szlig;ern" data-en-title="Opponent &ndash; tap to enlarge"></button>
         <div class="mp-steps" id="onl-csolo-steps" style="flex:1 1 auto; max-width:none;">
           <button data-step="-2">&minus;2</button><button data-step="-1">&minus;1</button><button data-step="0">0</button><button data-step="1">+1</button><button data-step="2">+2</button>
         </div>
@@ -1254,7 +1283,7 @@
 
     <div id="onl-result" class="mp-result hidden"></div>
     <div id="onl-rematch" class="hidden" style="text-align:center; margin-top:10px;">
-      <button class="action primary" id="onl-rematch-btn">Nochmal spielen</button>
+      <button class="action primary" id="onl-rematch-btn" data-en="Play again">Nochmal spielen</button>
       <div id="onl-rematch-status" class="hint" style="color:var(--muted); margin-top:6px; min-height:1em;"></div>
     </div>
   </div>
@@ -1264,49 +1293,49 @@
 <div id="settings-modal" class="modal-overlay hidden">
   <div class="modal-card">
     <div class="modal-head">
-      <h2>Einstellungen</h2>
-      <button class="modal-close" id="settings-close" aria-label="Schlie&szlig;en">&times;</button>
+      <h2 data-en="Settings">Einstellungen</h2>
+      <button class="modal-close" id="settings-close" aria-label="Schlie&szlig;en" data-en-aria="Close">&times;</button>
     </div>
-    <label class="small" style="margin:0 0 2px;">Animations-Tempo: <b class="speed-val">1&times;</b></label>
+    <label class="small" style="margin:0 0 2px;"><span data-en="Animation speed">Animations-Tempo</span>: <b class="speed-val">1&times;</b></label>
     <input type="range" class="speed-slider" min="0.25" max="3" step="0.25" value="1" style="width:100%;">
-    <label class="small" style="margin:14px 0 2px;">&#128266; Soundeffekte: <b id="sfx-val">100%</b></label>
+    <label class="small" style="margin:14px 0 2px;"><span data-en="&#128266; Sound effects">&#128266; Soundeffekte</span>: <b id="sfx-val">100%</b></label>
     <input type="range" id="opt-sfx" min="0" max="100" step="5" value="100" style="width:100%;">
-    <label class="small" style="margin:12px 0 2px;">&#127925; Hintergrundmusik: <b id="music-val">55%</b></label>
+    <label class="small" style="margin:12px 0 2px;"><span data-en="&#127925; Background music">&#127925; Hintergrundmusik</span>: <b id="music-val">55%</b></label>
     <input type="range" id="opt-music" min="0" max="100" step="5" value="55" style="width:100%;">
     <label class="opt-zeile">
       <input type="checkbox" id="opt-reveal" checked>
-      <span>&#128269; Knopf „Aufl&ouml;sung" zeigen</span>
+      <span data-en="&#128269; Show the &#8220;Solution&#8221; button">&#128269; Knopf „Aufl&ouml;sung" zeigen</span>
     </label>
-    <button class="action" id="sound-test" style="width:100%; margin-top:14px;">&#128264; Ton testen</button>
+    <button class="action" id="sound-test" style="width:100%; margin-top:14px;" data-en="&#128264; Test sound">&#128264; Ton testen</button>
 
     <div class="opt-gruppe">
-      <div class="opt-titel">&#128506; Feld-Modus</div>
+      <div class="opt-titel" data-en="&#128506; Field mode">&#128506; Feld-Modus</div>
       <label class="opt-zeile">
         <input type="checkbox" id="opt-grid-deathless" checked>
         <span>Deathless</span>
       </label>
-      <div class="opt-hilfe">An: Nach einer Bombe oder einem Hund geht es vom Start weiter. Aus: Ber&uuml;hrung beendet die Partie sofort.</div>
+      <div class="opt-hilfe" data-en="On: after a bomb or a dog you carry on from the start. Off: contact ends the round at once.">An: Nach einer Bombe oder einem Hund geht es vom Start weiter. Aus: Ber&uuml;hrung beendet die Partie sofort.</div>
     </div>
 
     <div class="opt-gruppe">
-      <div class="opt-titel">&#127950; Racing-Modus</div>
+      <div class="opt-titel" data-en="&#127950; Racing mode">&#127950; Racing-Modus</div>
       <label class="opt-zeile">
         <input type="checkbox" id="opt-race-grid" checked>
-        <span>K&auml;stchenbasiert</span>
+        <span data-en="Grid based">K&auml;stchenbasiert</span>
       </label>
-      <div class="opt-hilfe">An: Das Auto springt von K&auml;stchen zu K&auml;stchen. Aus: freie Fahrt &ndash; das Auto f&auml;hrt, solange du die Taste h&auml;ltst.</div>
+      <div class="opt-hilfe" data-en="On: the car hops from cell to cell. Off: free driving &ndash; the car moves as long as you hold the key.">An: Das Auto springt von K&auml;stchen zu K&auml;stchen. Aus: freie Fahrt &ndash; das Auto f&auml;hrt, solange du die Taste h&auml;ltst.</div>
     </div>
 
     <div class="opt-gruppe">
-      <div class="opt-titel">&#11093; Kreis-Modus</div>
+      <div class="opt-titel" data-en="&#11093; Circle mode">&#11093; Kreis-Modus</div>
       <label class="opt-zeile">
         <input type="checkbox" id="opt-circle-deathless">
         <span>Deathless</span>
       </label>
-      <div class="opt-hilfe">An: ohne Herzen und ohne Herzfelder &ndash; du hast beliebig viele Z&uuml;ge.</div>
+      <div class="opt-hilfe" data-en="On: no lives and no heart fields &ndash; you get as many moves as you like.">An: ohne Herzen und ohne Herzfelder &ndash; du hast beliebig viele Z&uuml;ge.</div>
     </div>
 
-    <button class="action" id="open-guide" style="width:100%; margin-top:16px;">&#128218; Anleitung</button>
+    <button class="action" id="open-guide" style="width:100%; margin-top:16px;" data-en="&#128218; How to play">&#128218; Anleitung</button>
   </div>
 </div>
 
@@ -1314,33 +1343,33 @@
 <div id="guide-modal" class="modal-overlay hidden">
   <div class="modal-card">
     <div class="modal-head">
-      <h2>Anleitung</h2>
-      <button class="modal-close" id="guide-close" aria-label="Schlie&szlig;en">&times;</button>
+      <h2 data-en="How to play">Anleitung</h2>
+      <button class="modal-close" id="guide-close" aria-label="Schlie&szlig;en" data-en-aria="Close">&times;</button>
     </div>
     <details class="ed-adv" open>
-      <summary>Feld-Modus</summary>
-      <div class="intro" style="margin-top:8px;">
-        Dr&uuml;cke Oben/Rechts/Unten/Links/Bleibt &ndash; die Figur folgt nicht immer deinem Befehl. Gr&uuml;n = Befehl ausgef&uuml;hrt, rot = die Spur f&uuml;hrt woanders hin. Die farbigen Zonen des Tatorts ver&auml;ndern den Effekt zus&auml;tzlich. In der Variante <b>Gerangel</b> sammelst du auf einem gro&szlig;en Feld alle M&uuml;nzen ein (die mittlere ist meist von einer Wand mit nur einer L&uuml;cke gesch&uuml;tzt) &ndash; im Duell teilen sich beide dasselbe Feld. In der <b>Spurensuche</b> arbeitest du dich von Zwischenziel zu Zwischenziel nach oben. &Uuml;berall lauern <b>Briefbomben</b> (Garten/B&uuml;ro) bzw. <b>Hunde</b> (Nachtleben/Friedhof): Bei Kontakt blinkt deine Figur 3&nbsp;Sekunden und kehrt zum Start zur&uuml;ck.
+      <summary data-en="Field mode">Feld-Modus</summary>
+      <div class="intro" style="margin-top:8px;" data-en="Press up/right/down/left/stay &ndash; the figure does not always obey. Green = your command went through, red = the trail leads elsewhere. The coloured zones of the crime scene twist the effect on top of that. In the <b>Scramble</b> variant you collect every coin on one large board (the middle one is usually walled in with a single gap) &ndash; in a duel both players share the same board. In <b>Trail</b> you work your way up from milestone to milestone. <b>Letter bombs</b> (garden/office) and <b>dogs</b> (nightlife/graveyard) lurk everywhere: on contact your figure blinks for 3&nbsp;seconds and returns to the start. With <b>Deathless</b> switched off in the settings, that contact ends the round instead.">
+        Dr&uuml;cke Oben/Rechts/Unten/Links/Bleibt &ndash; die Figur folgt nicht immer deinem Befehl. Gr&uuml;n = Befehl ausgef&uuml;hrt, rot = die Spur f&uuml;hrt woanders hin. Die farbigen Zonen des Tatorts ver&auml;ndern den Effekt zus&auml;tzlich. In der Variante <b>Gerangel</b> sammelst du auf einem gro&szlig;en Feld alle M&uuml;nzen ein (die mittlere ist meist von einer Wand mit nur einer L&uuml;cke gesch&uuml;tzt) &ndash; im Duell teilen sich beide dasselbe Feld. In der <b>Spurensuche</b> arbeitest du dich von Zwischenziel zu Zwischenziel nach oben. &Uuml;berall lauern <b>Briefbomben</b> (Garten/B&uuml;ro) bzw. <b>Hunde</b> (Nachtleben/Friedhof): Bei Kontakt blinkt deine Figur 3&nbsp;Sekunden und kehrt zum Start zur&uuml;ck. Schaltest du in den Einstellungen <b>Deathless</b> ab, ist die Partie bei Kontakt sofort vorbei.
       </div>
     </details>
     <details class="ed-adv">
-      <summary>Kreis-Modus</summary>
-      <div class="intro" style="margin-top:8px;">
+      <summary data-en="Circle mode">Kreis-Modus</summary>
+      <div class="intro" style="margin-top:8px;" data-en="Your figure stands on concentric rings. Pick a number each turn: the <b>figure</b> moves exactly that many steps &ndash; no matter which ring it is on. That movement is only <b>distorted</b> from <b>Nightlife</b> upwards. On top of that <b>every ring</b> turns on your input by its own rule. If your cell touches a &starf; star cell on a neighbouring ring, you are pulled straight onto it (at most one level per turn). Innermost sits a thin <b>gate ring</b> with a single &starf; &ndash; reach it and you go straight to the centre and the <b>detective</b> (Sherlock): press W or &uarr; (or click) to cycle him through three poses. Pose 1 is neutral, poses 2 and 3 each switch on a secret extra rule. In a <b>duel</b> you can pick &#8222;Scramble&#8221;: both share <b>the same</b> circle and take turns, with the extra pose <b>Sabotage</b> that shoves the <b>opponent&#8217;s figure</b> around.<br><br><b>&#9829; Lives:</b> You start with <b>7</b>. Every turn costs <b>one</b> &ndash; even a zero step, because that still turns the rings. A turn that pulls you onto a &starf; is <b>completely free</b>: you get the life back. Read the rings well and you reach the centre without losing a single one. Every ring carries <b>heart fields</b> (&#9829;): one per <b>six cells</b> of the ring, rounded down &ndash; so a 24-cell ring has four. Step on one for <b>+2</b> lives; the heart then reappears in the opposite half of the circle. The bar holds at most <b>9</b> &ndash; when it is full the heart field stays put. Run out and the round is over. In a <b>duel</b> whoever got furthest inward wins &ndash; same ring means a draw. With <b>Deathless</b> switched on in the settings there are no lives and no heart fields at all.">
         Deine Figur steht auf konzentrischen Ringen. W&auml;hle pro Zug eine Zahl: die <b>Figur</b> bewegt sich genau um diese Schrittzahl &ndash; unabh&auml;ngig vom Ring, auf dem sie steht. Eine <b>Verzerrung</b> dieser Bewegung gibt es erst ab dem <b>Nachtleben</b>. Zus&auml;tzlich dreht sich <b>jeder Ring</b> auf deine Eingabe nach seiner eigenen Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug). Ganz innen liegt ein d&uuml;nner <b>Tor-Ring</b> mit nur einem einzigen &starf; &ndash; erreichst du es, geht es direkt ins Zentrum zum <b>Detektiv</b> (Sherlock): Mit Taste W bzw. &uarr; (oder Klick) wechselt er zwischen drei Posen. Pose 1 ist neutral, Pose 2 und 3 aktivieren je eine geheime Zusatzregel. Im <b>Duell</b> kannst du „Gerangel" w&auml;hlen: Beide teilen sich <b>denselben</b> Kreis und ziehen abwechselnd, mit der zus&auml;tzlichen Pose <b>Sabotage</b>, die die <b>gegnerische Figur</b> zwangsweise verschiebt.
         <br><br>
-        <b>&#9829; Herzen:</b> Du startest mit <b>7</b> Herzen. Jeder Zug kostet <b>eines</b> &ndash; auch ein Nullschritt, denn auch der dreht die Ringe weiter. Ein Zug, der dich auf ein &starf; zieht, ist <b>ganz frei</b>: das Herz bekommst du zur&uuml;ck. Wer die Ringe durchschaut, kommt so ohne einen einzigen Verlust nach innen. Auf jedem Ring liegen <b>Herzfelder</b> (&#9829;): eines je <b>sechs Felder</b> des Rings (abgerundet) &ndash; ein Ring mit 24 Feldern hat also vier. L&auml;ufst du darauf, gibt es <b>+2</b> Herzen; das Herz taucht danach in der gegen&uuml;berliegenden Kreish&auml;lfte wieder auf. Mehr als <b>9</b> Herzen fasst die Leiste nicht &ndash; ist sie voll, bleibt das Herzfeld liegen. Sind die Herzen leer, ist die Runde vorbei. Im <b>Duell</b> gewinnt dann, wer am weitesten innen steht &ndash; bei gleichem Ring unentschieden.
+        <b>&#9829; Herzen:</b> Du startest mit <b>7</b> Herzen. Jeder Zug kostet <b>eines</b> &ndash; auch ein Nullschritt, denn auch der dreht die Ringe weiter. Ein Zug, der dich auf ein &starf; zieht, ist <b>ganz frei</b>: das Herz bekommst du zur&uuml;ck. Wer die Ringe durchschaut, kommt so ohne einen einzigen Verlust nach innen. Auf jedem Ring liegen <b>Herzfelder</b> (&#9829;): eines je <b>sechs Felder</b> des Rings (abgerundet) &ndash; ein Ring mit 24 Feldern hat also vier. L&auml;ufst du darauf, gibt es <b>+2</b> Herzen; das Herz taucht danach in der gegen&uuml;berliegenden Kreish&auml;lfte wieder auf. Mehr als <b>9</b> Herzen fasst die Leiste nicht &ndash; ist sie voll, bleibt das Herzfeld liegen. Sind die Herzen leer, ist die Runde vorbei. Im <b>Duell</b> gewinnt dann, wer am weitesten innen steht &ndash; bei gleichem Ring unentschieden. Mit <b>Deathless</b> in den Einstellungen gibt es weder Herzen noch Herzfelder.
       </div>
     </details>
     <details class="ed-adv">
-      <summary>Racing-Modus</summary>
-      <div class="intro" style="margin-top:8px;">
+      <summary data-en="Racing mode">Racing-Modus</summary>
+      <div class="intro" style="margin-top:8px;" data-en="Your car drives along the bottom edge while the road rushes towards you. <b>&#9664; / &#9654;</b> steer, <b>A</b> lifts the car 2.5 cells (then a 3-cell cooldown), <b>B</b> keeps the current colour rule for 2 rows &ndash; even if you leave the zone. Bombs and rockets end the run, coins score points. As in field and circle mode the <b>colour zones</b> twist your input, and they do it in secret: working them out is the actual job. A hit only counts once car and obstacle clearly overlap &ndash; clipping the edge is still fine.<br><br><b>Free driving</b> (switch off &#8222;Grid based&#8221; in the settings): this drops the cell grid. The car keeps moving sideways <b>as long as you hold the key</b>, and obstacles, coins and rockets sit freely on the road instead of in cells &ndash; rockets keep picking new lines. The sideways rules no longer change the number of cells but the <b>speed</b>: where it would otherwise say &#8222;two cells&#8221;, the car simply drives twice as fast. In an online duel free driving stays off so both devices race under the same rules.">
         Dein Auto f&auml;hrt am unteren Rand, die Strecke kommt dir entgegen. <b>&#9664; / &#9654;</b> lenken, <b>A</b> hebt das Auto 2,5 Felder ab (danach 3 Felder Pause), <b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei &ndash; auch wenn du die Zone wechselst. Bomben und Raketen bedeuten das Aus, M&uuml;nzen bringen Punkte. Wie im Feld- und Kreis-Modus verzerren die <b>Farbzonen</b> deine Eingaben, und zwar verborgen: Herausfinden ist die eigentliche Aufgabe. Getroffen wird erst, wenn sich Auto und Hindernis deutlich &uuml;berdecken &ndash; ein Streifen am Rand geht noch gut.<br><br>
-        <b>Freie Fahrt</b> (Variante im Hauptmen&uuml;): Damit f&auml;llt die K&auml;stchenbindung weg. Das Auto f&auml;hrt seitlich, <b>solange du die Taste gedr&uuml;ckt h&auml;ltst</b>, und Hindernisse, M&uuml;nzen und Raketen liegen frei auf der Strecke statt in Feldern &ndash; Raketen suchen sich dabei immer wieder neue Bahnen. Die Regeln zum Seitw&auml;rtsfahren wirken hier nicht mehr auf die Feldzahl, sondern auf die <b>Geschwindigkeit</b>: Wo sonst „zwei Felder" st&uuml;nde, f&auml;hrt das Auto doppelt so schnell. Im Online-Duell bleibt die freie Fahrt aus, damit beide Ger&auml;te nach denselben Regeln fahren.
+        <b>Freie Fahrt</b> (in den Einstellungen „K&auml;stchenbasiert" abschalten): Damit f&auml;llt die K&auml;stchenbindung weg. Das Auto f&auml;hrt seitlich, <b>solange du die Taste gedr&uuml;ckt h&auml;ltst</b>, und Hindernisse, M&uuml;nzen und Raketen liegen frei auf der Strecke statt in Feldern &ndash; Raketen suchen sich dabei immer wieder neue Bahnen. Die Regeln zum Seitw&auml;rtsfahren wirken hier nicht mehr auf die Feldzahl, sondern auf die <b>Geschwindigkeit</b>: Wo sonst „zwei Felder" st&uuml;nde, f&auml;hrt das Auto doppelt so schnell. Im Online-Duell bleibt die freie Fahrt aus, damit beide Ger&auml;te nach denselben Regeln fahren.
       </div>
     </details>
     <details class="ed-adv">
-      <summary>Steuerung</summary>
-      <div class="intro" style="margin-top:8px;">
+      <summary data-en="Controls">Steuerung</summary>
+      <div class="intro" style="margin-top:8px;" data-en="<b>Racing mode:</b> &larr; / &rarr; steer, A or &uarr; jumps, B or &darr; keeps the colour rule. In <b>free driving</b>: hold the key to keep moving.<br><br><b>Field mode &ndash; single player:</b> arrow keys move, space = stay. On a phone use the D-pad.<br><br><b>Field mode &ndash; duel:</b> <span class=&quot;p1&quot;>Player 1</span>: W A S D to move, X = stay &nbsp;&middot;&nbsp; <span class=&quot;p2&quot;>Player 2</span>: arrow keys, 0 = stay.<br><br><b>Circle mode &ndash; single player:</b> A / S / D = &minus;1 / 0 / +1, Shift+A or Shift+D = &minus;2 / +2, W or &uarr; changes the detective&#8217;s pose. Arrow keys work too.<br><br><b>Circle mode &ndash; duel:</b> <span class=&quot;p1&quot;>Player 1</span>: A / D = &minus;1 / +1, Shift+A / Shift+D = &minus;2 / +2, S = 0, W = pose &nbsp;&middot;&nbsp; <span class=&quot;p2&quot;>Player 2</span>: &larr; / &rarr; = &minus;1 / +1, &darr; = 0, hold &#8222;0&#8221; + &larr;/&rarr; = &minus;2 / +2, &uarr; = pose.">
         <b>Racing-Modus:</b> &larr; / &rarr; lenken, A bzw. &uarr; hebt ab, B bzw. &darr; speichert die Farbregel. In der <b>freien Fahrt</b> gilt: Taste halten = weiterfahren.<br><br>
         <b>Feld-Modus &ndash; Einzelspieler:</b> Pfeiltasten bewegen, Leertaste = bleiben. Auf dem Handy das Steuerkreuz.<br><br>
         <b>Feld-Modus &ndash; Duell:</b> <span class="p1">Spieler 1</span>: W A S D bewegen, X = bleiben &nbsp;·&nbsp; <span class="p2">Spieler 2</span>: Pfeiltasten, 0 = bleiben.<br><br>
@@ -1349,15 +1378,15 @@
       </div>
     </details>
     <details class="ed-adv">
-      <summary>Ton</summary>
-      <div class="intro" style="margin-top:8px;">
+      <summary data-en="Sound">Ton</summary>
+      <div class="intro" style="margin-top:8px;" data-en="Every sound and the music are generated in the browser itself &ndash; no audio files are loaded, so the game still sounds right offline. Volumes for effects and music live in the <b>settings</b>.<br><br>Mobile browsers only allow sound after the first touch. If it stays silent, tap <b>&#128266; Sound on</b> at the top left or <b>Test sound</b> in the settings. If you still hear nothing, it is usually the device: on an iPhone turn off the <b>silent switch</b> on the side and turn up the <b>media volume</b>. If that does not help either, the browser is blocking sound &ndash; low-power or reader mode does that.">
         Alle Kl&auml;nge und die Musik entstehen im Browser selbst &ndash; es werden keine Tondateien geladen, das Spiel klingt also auch offline. Lautst&auml;rke f&uuml;r Effekte und Musik stellst du in den <b>Einstellungen</b> ein.<br><br>
         Mobile Browser lassen Ton erst nach der ersten Ber&uuml;hrung zu. Bleibt es still, tippe oben links auf <b>&#128266; Ton an</b> oder in den Einstellungen auf <b>Ton testen</b>. H&ouml;rst du den Testton trotzdem nicht, liegt es meist am Ger&auml;t: beim iPhone den <b>Stummschalter</b> an der Seite ausschalten und die <b>Medien-Lautst&auml;rke</b> hochdrehen. Klappt es danach immer noch nicht, blockiert der Browser den Ton &ndash; das passiert etwa im Energiespar- oder Lesemodus.
       </div>
     </details>
     <details class="ed-adv">
-      <summary>Duell-Varianten</summary>
-      <div class="intro" style="margin-top:8px;">
+      <summary data-en="Duel variants">Duell-Varianten</summary>
+      <div class="intro" style="margin-top:8px;" data-en="<b>Field &middot; Scramble:</b> both play on the same board, placed exactly opposite and symmetrically &ndash; most points wins.<br><br><b>Field &middot; Trail:</b> both get the same hidden rule, the same start and the same goal.<br><br><b>Circle &middot; Duel:</b> separate circles, same rule &ndash; first to the centre wins.<br><br><b>Circle &middot; Scramble:</b> both share <b>the same</b> circle and take turns. The <b>Sabotage</b> pose shoves the opponent around. First to the centre wins.">
         <b>Feld &middot; Gerangel:</b> Beide spielen im selben Feld, exakt gegen&uuml;ber und symmetrisch platziert &ndash; die meisten Punkte gewinnen.<br><br>
         <b>Feld &middot; Spurensuche:</b> Beide bekommen dieselbe versteckte Regel, dasselbe Startfeld und dasselbe Ziel.<br><br>
         <b>Kreis &middot; Duell:</b> Getrennte Kreise, dieselbe Regel &ndash; wer zuerst im Zentrum ist, gewinnt.<br><br>
@@ -1372,9 +1401,9 @@
   <div class="game-head">
     <div class="stats-row" id="race-stats"></div>
     <div class="head-actions">
-      <button class="action warn mini" id="race-reveal">Aufl&ouml;sung</button>
-      <button class="action mini" id="race-reset">Neu</button>
-      <button class="action mini" id="race-back">Zur&uuml;ck</button>
+      <button class="action warn mini" id="race-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action mini" id="race-reset" data-en="New">Neu</button>
+      <button class="action mini" id="race-back" data-en="Back">Zur&uuml;ck</button>
     </div>
   </div>
   <div id="race-duel" class="race-duel hidden"></div>
@@ -1386,10 +1415,10 @@
     </div>
   </div>
   <div class="race-controls" id="race-controls">
-    <button class="race-btn dir" data-btn="L" aria-label="Links">&#9664;</button>
+    <button class="race-btn dir" data-btn="L" aria-label="Links" data-en-aria="Left">&#9664;</button>
     <button class="race-btn act" data-btn="A"><span class="rb-label">A</span></button>
     <button class="race-btn act" data-btn="B"><span class="rb-label">B</span></button>
-    <button class="race-btn dir" data-btn="R" aria-label="Rechts">&#9654;</button>
+    <button class="race-btn dir" data-btn="R" aria-label="Rechts" data-en-aria="Right">&#9654;</button>
   </div>
 </div>
 
@@ -1397,8 +1426,8 @@
 <div id="reveal-modal" class="modal-overlay hidden">
   <div class="modal-card">
     <div class="modal-head">
-      <h2>Aufl&ouml;sung</h2>
-      <button class="modal-close" id="reveal-close" aria-label="Schlie&szlig;en">&times;</button>
+      <h2 data-en="Solution">Aufl&ouml;sung</h2>
+      <button class="modal-close" id="reveal-close" aria-label="Schlie&szlig;en" data-en-aria="Close">&times;</button>
     </div>
     <div id="reveal-body"></div>
   </div>
@@ -1408,14 +1437,14 @@
 <div id="log-modal" class="modal-overlay hidden">
   <div class="modal-card">
     <div class="modal-head">
-      <h2>Zug-Protokoll</h2>
-      <button class="modal-close" id="log-close" aria-label="Schlie&szlig;en">&times;</button>
+      <h2 data-en="Move log">Zug-Protokoll</h2>
+      <button class="modal-close" id="log-close" aria-label="Schlie&szlig;en" data-en-aria="Close">&times;</button>
     </div>
     <!-- Eine Zugkarte je Seite; geblättert wird über Pfeile, Punkte oder die Pfeiltasten -->
     <div class="log-pager" id="log-pager">
-      <button id="log-prev" aria-label="&Auml;lterer Zug">&#8249;</button>
+      <button id="log-prev" aria-label="&Auml;lterer Zug" data-en-aria="Older move">&#8249;</button>
       <div class="lp-info"><span class="lp-titel" id="log-titel">&ndash;</span><span class="lp-sub" id="log-sub"></span></div>
-      <button id="log-next" aria-label="Neuerer Zug">&#8250;</button>
+      <button id="log-next" aria-label="Neuerer Zug" data-en-aria="Newer move">&#8250;</button>
     </div>
     <div id="log-body" class="log-scroll"></div>
     <div class="log-dots" id="log-dots"></div>
@@ -1426,8 +1455,8 @@
 <div id="mini-modal" class="modal-overlay hidden">
   <div class="modal-card">
     <div class="modal-head">
-      <h2 id="mini-title">Gegner</h2>
-      <button class="modal-close" id="mini-close" aria-label="Schlie&szlig;en">&times;</button>
+      <h2 id="mini-title" data-en="Opponent">Gegner</h2>
+      <button class="modal-close" id="mini-close" aria-label="Schlie&szlig;en" data-en-aria="Close">&times;</button>
     </div>
     <div id="mini-body" style="display:flex; justify-content:center;"></div>
   </div>
@@ -1456,11 +1485,14 @@
   const SECONDARIES = ['mirrorLR','mirrorUD','rotateCW','rotateCCW','swapAxes'];
   const ZONE_EFFECTS = ['invert','mirror','rotateCW','rotateCCW','swapAxes'];
   const ZONE_COLORS = [
-    { name:'Gelb', tint:'202,163,74' },
-    { name:'Grün', tint:'96,150,104' },
-    { name:'Blau', tint:'92,132,180' },
-    { name:'Grau', tint:'128,132,144' }
+    { name:'Gelb', en:'Yellow', tint:'202,163,74' },
+    { name:'Grün', en:'Green',  tint:'96,150,104' },
+    { name:'Blau', en:'Blue',   tint:'92,132,180' },
+    { name:'Grau', en:'Grey',   tint:'128,132,144' }
   ];
+  // Zonenname in der aktuellen Sprache – Zonen tragen ihn aus ZONE_COLORS mit
+  const ZONE_EN = { 'Gelb':'Yellow', 'Grün':'Green', 'Blau':'Blue', 'Grau':'Grey' };
+  function zoneName(z){ const n=(z&&z.name)||''; return T(n, z&&z.en ? z.en : (ZONE_EN[n]||n)); }
   const HAZARD_COUNT = { leicht:2, mittel:4, schwer:6, experte:8 };
   const GERANGEL_SIZE = { leicht:13, mittel:15, schwer:15, experte:17 };
   const DOG_COLOR = '#000';
@@ -1845,11 +1877,14 @@
   function svgUrl(key){ return 'data:image/svg+xml,' + encodeURIComponent(SVGS[key]); }
 
   const THEMES = {
-    leicht: { key:'leicht', title:'Der Garten', sub:'Leicht', gridSize:10, tall:[7,14], modes:['none'], accent:'34,160,64', svg:'garden', boardBg:'26,58,32' },
-    mittel: { key:'mittel', title:'Das Büro', sub:'Mittel', gridSize:12, tall:[8,16], modes:['constant'], accent:'150,185,225', svg:'office', boardBg:'104,116,138' },
-    schwer: { key:'schwer', title:'Das Nachtleben', sub:'Schwer', gridSize:14, tall:[9,18], modes:['parityPos','parityTick'], accent:'239,68,68', svg:'night', boardBg:'64,12,20' },
-    experte: { key:'experte', title:'Der Friedhof', sub:'Experte', gridSize:16, tall:[9,20], modes:['repeatInvert','delay'], accent:'138,150,138', svg:'graveyard', boardBg:'9,11,14' }
+    leicht: { key:'leicht', title:'Der Garten', titleEn:'The Garden', sub:'Leicht', subEn:'Easy', gridSize:10, tall:[7,14], modes:['none'], accent:'34,160,64', svg:'garden', boardBg:'26,58,32' },
+    mittel: { key:'mittel', title:'Das Büro', titleEn:'The Office', sub:'Mittel', subEn:'Medium', gridSize:12, tall:[8,16], modes:['constant'], accent:'150,185,225', svg:'office', boardBg:'104,116,138' },
+    schwer: { key:'schwer', title:'Das Nachtleben', titleEn:'The Nightlife', sub:'Schwer', subEn:'Hard', gridSize:14, tall:[9,18], modes:['parityPos','parityTick'], accent:'239,68,68', svg:'night', boardBg:'64,12,20' },
+    experte: { key:'experte', title:'Der Friedhof', titleEn:'The Graveyard', sub:'Experte', subEn:'Expert', gridSize:16, tall:[9,20], modes:['repeatInvert','delay'], accent:'138,150,138', svg:'graveyard', boardBg:'9,11,14' }
   };
+  // Themenname/Stufe in der aktuellen Sprache
+  function themeTitle(t){ return t ? T(t.title, t.titleEn||t.title) : ''; }
+  function themeSub(t){ return t ? T(t.sub, t.subEn||t.sub) : ''; }
 
   // ---- helpers ----
   function el(tag, cls){ const e=document.createElement(tag); if(cls) e.className=cls; return e; }
@@ -1872,6 +1907,39 @@
   const APP_VERSION = "1.45";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
+  // ===================== SPRACHE =====================
+  // Deutsch ist die Quellsprache und steht im Markup bzw. im Code. Englisch haengt daneben:
+  // statisches HTML traegt data-en (und data-en-aria/-title/-ph), dynamische Texte gehen durch T().
+  const LANG_KEY='regel-detektiv-lang';
+  let lang = localStorage.getItem(LANG_KEY)==='en' ? 'en' : 'de';
+  function T(de, en){ return lang==='en' && en!=null ? en : de; }
+  // Setzt Attribut- und Textuebersetzungen. Das Deutsche wird beim ersten Wechsel gesichert,
+  // damit der Rueckweg verlustfrei ist.
+  function applyLangTo(root){
+    (root||document).querySelectorAll('[data-en]').forEach(el=>{
+      if(el.dataset.de==null) el.dataset.de=el.innerHTML;
+      el.innerHTML = lang==='en' ? el.dataset.en : el.dataset.de;
+    });
+    [['aria','aria-label'],['title','title'],['ph','placeholder']].forEach(([suf,attr])=>{
+      (root||document).querySelectorAll('[data-en-'+suf+']').forEach(el=>{
+        const merk='de'+suf.charAt(0).toUpperCase()+suf.slice(1);
+        if(el.dataset[merk]==null) el.dataset[merk]=el.getAttribute(attr)||'';
+        el.setAttribute(attr, lang==='en' ? el.dataset['en'+suf.charAt(0).toUpperCase()+suf.slice(1)] : el.dataset[merk]);
+      });
+    });
+  }
+  // Nach einem Sprachwechsel muessen die dynamisch erzeugten Ansichten neu gezeichnet werden.
+  let langHooks=[];
+  function onLangChange(fn){ langHooks.push(fn); }
+  function setLang(code){
+    lang = code==='en' ? 'en' : 'de';
+    localStorage.setItem(LANG_KEY, lang);
+    document.documentElement.setAttribute('lang', lang);
+    applyLangTo(document);
+    document.querySelectorAll('#lang-pick button').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
+    langHooks.forEach(fn=>{ try{ fn(); }catch(e){ console.warn('Sprachwechsel:', e); } });
+  }
+
   // ---- transforms ----
   function pickSecondary(exclude){ const pool=SECONDARIES.filter(s=>s!==exclude); return pick(pool); }
   function applySecondary(name, dir){
@@ -1887,22 +1955,22 @@
   }
   function secondaryLabel(name){
     switch(name){
-      case 'mirrorLR': return 'Links und Rechts sind vertauscht';
-      case 'mirrorUD': return 'Oben und Unten sind vertauscht';
-      case 'rotateCW': return 'jede Eingabe wird um 90&deg; im Uhrzeigersinn gedreht (Oben&rarr;Rechts&rarr;Unten&rarr;Links)';
-      case 'rotateCCW': return 'jede Eingabe wird um 90&deg; gegen den Uhrzeigersinn gedreht (Oben&rarr;Links&rarr;Unten&rarr;Rechts)';
-      case 'swapAxes': return 'Oben und Rechts sind vertauscht, ebenso Unten und Links';
+      case 'mirrorLR': return T('Links und Rechts sind vertauscht','left and right are swapped');
+      case 'mirrorUD': return T('Oben und Unten sind vertauscht','up and down are swapped');
+      case 'rotateCW': return T('jede Eingabe wird um 90&deg; im Uhrzeigersinn gedreht (Oben&rarr;Rechts&rarr;Unten&rarr;Links)','every input is turned 90&deg; clockwise (up&rarr;right&rarr;down&rarr;left)');
+      case 'rotateCCW': return T('jede Eingabe wird um 90&deg; gegen den Uhrzeigersinn gedreht (Oben&rarr;Links&rarr;Unten&rarr;Rechts)','every input is turned 90&deg; counter-clockwise (up&rarr;left&rarr;down&rarr;right)');
+      case 'swapAxes': return T('Oben und Rechts sind vertauscht, ebenso Unten und Links','up and right are swapped, as are down and left');
       default: return '';
     }
   }
   function zoneEffectLabel(effect){
     switch(effect){
-      case 'normal': return 'wirkt neutral &ndash; keine zus&auml;tzliche Verzerrung.';
-      case 'invert': return 'kehrt die resultierende Richtung zus&auml;tzlich um 180&deg; um.';
-      case 'mirror': return 'vertauscht das Ergebnis zus&auml;tzlich links/rechts.';
-      case 'rotateCW': return 'dreht das Ergebnis zus&auml;tzlich um 90&deg; im Uhrzeigersinn.';
-      case 'rotateCCW': return 'dreht das Ergebnis zus&auml;tzlich um 90&deg; gegen den Uhrzeigersinn.';
-      case 'swapAxes': return 'vertauscht zus&auml;tzlich die Achsen (Oben/Rechts und Unten/Links).';
+      case 'normal': return T('wirkt neutral &ndash; keine zus&auml;tzliche Verzerrung.','is neutral &ndash; no extra distortion.');
+      case 'invert': return T('kehrt die resultierende Richtung zus&auml;tzlich um 180&deg; um.','additionally flips the resulting direction by 180&deg;.');
+      case 'mirror': return T('vertauscht das Ergebnis zus&auml;tzlich links/rechts.','additionally swaps the result left/right.');
+      case 'rotateCW': return T('dreht das Ergebnis zus&auml;tzlich um 90&deg; im Uhrzeigersinn.','additionally turns the result 90&deg; clockwise.');
+      case 'rotateCCW': return T('dreht das Ergebnis zus&auml;tzlich um 90&deg; gegen den Uhrzeigersinn.','additionally turns the result 90&deg; counter-clockwise.');
+      case 'swapAxes': return T('vertauscht zus&auml;tzlich die Achsen (Oben/Rechts und Unten/Links).','additionally swaps the axes (up/right and down/left).');
       default: return '';
     }
   }
@@ -1917,10 +1985,10 @@
   }
   function stepTransformLabel(name){
     switch(name){
-      case 'normal': return 'Die Figur bewegt sich genau so viele Felder weiter, wie du w&auml;hlst.';
-      case 'reverse': return 'Die Figur bewegt sich entgegen der Feldreihenfolge (r&uuml;ckw&auml;rts).';
-      case 'double': return 'Deine gew&auml;hlte Schrittzahl wird verdoppelt.';
-      case 'half': return 'Nur die H&auml;lfte der gew&auml;hlten Schrittzahl (Richtung 0 abgerundet) wird gegangen.';
+      case 'normal': return T('Die Figur bewegt sich genau so viele Felder weiter, wie du w&auml;hlst.','The figure moves exactly as many cells as you pick.');
+      case 'reverse': return T('Die Figur bewegt sich entgegen der Feldreihenfolge (r&uuml;ckw&auml;rts).','The figure moves against the cell order (backwards).');
+      case 'double': return T('Deine gew&auml;hlte Schrittzahl wird verdoppelt.','Your chosen step count is doubled.');
+      case 'half': return T('Nur die H&auml;lfte der gew&auml;hlten Schrittzahl (Richtung 0 abgerundet) wird gegangen.','Only half of the chosen step count is taken (rounded towards 0).');
       default: return '';
     }
   }
@@ -1939,18 +2007,18 @@
   }
   function rotTransformLabel(name){
     switch(name){
-      case 'sync': return 'dreht sich um deine gew&auml;hlte Schrittzahl (gleiches Vorzeichen).';
-      case 'counter': return 'dreht sich um deine gew&auml;hlte Schrittzahl, aber in die Gegenrichtung.';
-      case 'halfRot': return 'dreht sich um die H&auml;lfte deiner Schrittzahl (abgerundet).';
-      case 'still': return 'reagiert nicht auf deine Eingabe &ndash; bleibt immer stehen.';
-      case 'fixP1': return 'dreht sich <b>immer um +1</b> Feld &ndash; unabh&auml;ngig von deiner Eingabe.';
-      case 'fixP2': return 'dreht sich <b>immer um +2</b> Felder &ndash; unabh&auml;ngig von deiner Eingabe.';
-      case 'fixM1': return 'dreht sich <b>immer um &minus;1</b> Feld &ndash; unabh&auml;ngig von deiner Eingabe.';
-      case 'fixM2': return 'dreht sich <b>immer um &minus;2</b> Felder &ndash; unabh&auml;ngig von deiner Eingabe.';
-      case 'synP1': return 'dreht sich um deine Schrittzahl <b>+1</b> (abh&auml;ngig von der Eingabe).';
-      case 'synP2': return 'dreht sich um deine Schrittzahl <b>+2</b> (abh&auml;ngig von der Eingabe).';
-      case 'synM1': return 'dreht sich um deine Schrittzahl <b>&minus;1</b> (abh&auml;ngig von der Eingabe).';
-      case 'synM2': return 'dreht sich um deine Schrittzahl <b>&minus;2</b> (abh&auml;ngig von der Eingabe).';
+      case 'sync': return T('dreht sich um deine gew&auml;hlte Schrittzahl (gleiches Vorzeichen).','turns by your chosen step count (same sign).');
+      case 'counter': return T('dreht sich um deine gew&auml;hlte Schrittzahl, aber in die Gegenrichtung.','turns by your chosen step count, but the other way.');
+      case 'halfRot': return T('dreht sich um die H&auml;lfte deiner Schrittzahl (abgerundet).','turns by half your step count (rounded down).');
+      case 'still': return T('reagiert nicht auf deine Eingabe &ndash; bleibt immer stehen.','ignores your input &ndash; it never moves.');
+      case 'fixP1': return T('dreht sich <b>immer um +1</b> Feld &ndash; unabh&auml;ngig von deiner Eingabe.','always turns by <b>+1</b> cell &ndash; whatever you press.');
+      case 'fixP2': return T('dreht sich <b>immer um +2</b> Felder &ndash; unabh&auml;ngig von deiner Eingabe.','always turns by <b>+2</b> cells &ndash; whatever you press.');
+      case 'fixM1': return T('dreht sich <b>immer um &minus;1</b> Feld &ndash; unabh&auml;ngig von deiner Eingabe.','always turns by <b>&minus;1</b> cell &ndash; whatever you press.');
+      case 'fixM2': return T('dreht sich <b>immer um &minus;2</b> Felder &ndash; unabh&auml;ngig von deiner Eingabe.','always turns by <b>&minus;2</b> cells &ndash; whatever you press.');
+      case 'synP1': return T('dreht sich um deine Schrittzahl <b>+1</b> (abh&auml;ngig von der Eingabe).','turns by your step count <b>+1</b> (depends on your input).');
+      case 'synP2': return T('dreht sich um deine Schrittzahl <b>+2</b> (abh&auml;ngig von der Eingabe).','turns by your step count <b>+2</b> (depends on your input).');
+      case 'synM1': return T('dreht sich um deine Schrittzahl <b>&minus;1</b> (abh&auml;ngig von der Eingabe).','turns by your step count <b>&minus;1</b> (depends on your input).');
+      case 'synM2': return T('dreht sich um deine Schrittzahl <b>&minus;2</b> (abh&auml;ngig von der Eingabe).','turns by your step count <b>&minus;2</b> (depends on your input).');
       default: return '';
     }
   }
@@ -1977,24 +2045,24 @@
     const fixedSec = (ov&&ov.ruleSec&&ov.ruleSec!=='random') ? ov.ruleSec : null;
     const pickSec = (excl)=> fixedSec || pickSecondary(excl);
     if (mode === 'none'){
-      return { raw:(req)=>req, explain:()=>`Es gibt keine Grundregel &ndash; deine Eingabe wirkt direkt (nur die Zonen k&ouml;nnen sie ver&auml;ndern).` };
+      return { raw:(req)=>req, explain:()=>T('Es gibt keine Grundregel &ndash; deine Eingabe wirkt direkt (nur die Zonen k&ouml;nnen sie ver&auml;ndern).','There is no base rule &ndash; your input acts directly (only the zones can change it).') };
     } else if (mode === 'constant'){
       const sec = pickSec();
-      return { raw:(req)=>applySecondary(sec,req), explain:()=>`Deine Eingaben werden immer gleich verzerrt: ${secondaryLabel(sec)}.` };
+      return { raw:(req)=>applySecondary(sec,req), explain:()=>T('Deine Eingaben werden immer gleich verzerrt: ','Your inputs are always distorted the same way: ')+secondaryLabel(sec)+'.' };
     } else if (mode === 'parityPos'){
       const sec = pickSec();
       return { raw:(req,ctx)=>((ctx.x+ctx.y)%2===0)?req:applySecondary(sec,req),
-        explain:()=>`Auf Feldern mit gerader Spalte+Zeile-Summe wirkt deine Eingabe normal. Auf Feldern mit ungerader Summe gilt: ${secondaryLabel(sec)}.` };
+        explain:()=>T('Auf Feldern mit gerader Spalte+Zeile-Summe wirkt deine Eingabe normal. Auf Feldern mit ungerader Summe gilt: ','On cells where column+row is even your input acts normally. Where the sum is odd: ')+secondaryLabel(sec)+'.' };
     } else if (mode === 'parityTick'){
       const sec = pickSec();
       return { raw:(req,ctx)=>(ctx.tick%2===0)?req:applySecondary(sec,req),
-        explain:()=>`Bei jedem geraden Zug (0., 2., 4., ...) wirkt deine Eingabe normal. Bei jedem ungeraden Zug gilt: ${secondaryLabel(sec)}.` };
+        explain:()=>T('Bei jedem geraden Zug (0., 2., 4., ...) wirkt deine Eingabe normal. Bei jedem ungeraden Zug gilt: ','On every even move (0th, 2nd, 4th, ...) your input acts normally. On every odd move: ')+secondaryLabel(sec)+'.' };
     } else if (mode === 'repeatInvert'){
       return { raw:(req,ctx)=>{ const out=(req!==null && req===ctx.mem.lastReq)?(req+2)%4:req; ctx.mem.lastReq=req; return out; },
-        explain:()=>`Dr&uuml;ckst du zweimal direkt hintereinander dieselbe Richtung, wird der zweite Versuch umgekehrt. Ein Richtungswechsel oder "Bleibt" setzt das zur&uuml;ck.` };
+        explain:()=>T('Dr&uuml;ckst du zweimal direkt hintereinander dieselbe Richtung, wird der zweite Versuch umgekehrt. Ein Richtungswechsel oder "Bleibt" setzt das zur&uuml;ck.','Press the same direction twice in a row and the second try is reversed. Changing direction or pressing &#8222;stay&#8221; resets it.') };
     } else { // delay
       return { raw:(req,ctx)=>{ const has=('delayPrev' in ctx.mem); const out=has?ctx.mem.delayPrev:null; ctx.mem.delayPrev=req; return out; },
-        explain:()=>`Deine Eingaben werden verz&ouml;gert ausgewertet: Die erste Eingabe bewirkt nichts. Danach f&uuml;hrt die Figur immer deine <b>vorherige</b> Eingabe aus.` };
+        explain:()=>T('Deine Eingaben werden verz&ouml;gert ausgewertet: Die erste Eingabe bewirkt nichts. Danach f&uuml;hrt die Figur immer deine <b>vorherige</b> Eingabe aus.','Your inputs are evaluated with a delay: the first press does nothing. After that the figure always performs your <b>previous</b> input.') };
     }
   }
 
@@ -2115,14 +2183,19 @@
   }
 
   function gridExplain(shared){
-    const jump = shared.stepPattern ? ` Au&szlig;erdem geht die Figur pro Zug nach dem festen, sich wiederholenden Muster [${shared.stepPattern.join(', ')}] Felder (statt immer 1).` : '';
-    let html = `<b>Grundregel:</b> ${shared.rule.explain({movesUsed:0})}${jump}<br><br><b>Zonen-Einfluss (nach Farbe):</b><ul>`;
-    shared.zones.forEach(z => html += `<li><b>${z.name}</b>: ${zoneEffectLabel(z.effect)}</li>`);
+    const jump = shared.stepPattern
+      ? T(` Au&szlig;erdem geht die Figur pro Zug nach dem festen, sich wiederholenden Muster [${shared.stepPattern.join(', ')}] Felder (statt immer 1).`,
+          ` On top of that the figure moves by the fixed, repeating pattern [${shared.stepPattern.join(', ')}] cells per move (instead of always 1).`) : '';
+    let html = `<b>${T('Grundregel','Base rule')}:</b> ${shared.rule.explain({movesUsed:0})}${jump}<br><br><b>${T('Zonen-Einfluss (nach Farbe)','Zone effect (by colour)')}:</b><ul>`;
+    shared.zones.forEach(z => html += `<li><b>${zoneName(z)}</b>: ${zoneEffectLabel(z.effect)}</li>`);
     html += `</ul>`;
-    if(shared.layoutKind==='bands') html += `<b>Spurensuche:</b> Sammle nacheinander die Zwischenziele ein &ndash; das n&auml;chste erscheint erst, wenn du das aktuelle erreichst. Die letzte Spur liegt in der obersten Ebene.<br>`;
-    if(shared.goalKind==='coins') html += `<b>Gerangel:</b> Sammle alle M&uuml;nzen ein${(shared.wallSet&&shared.wallSet.size)?' &ndash; die mittlere M&uuml;nze ist von einer Wand mit nur einer L&uuml;cke gesch&uuml;tzt':''}.<br>`;
-    const hz = shared.hazardType==='dog'?'Hunde':'Briefbomben';
-    if(shared.hazards.length) html += `<b>${hz}:</b> ${shared.hazards.length} auf dem Feld. Bei Kontakt blinkt deine Figur 3&nbsp;Sekunden und kehrt zum Start zur&uuml;ck. ${shared.hazardType==='dog'?'Hunde wandern umher.':'Briefbomben verschwinden nach der Kollision.'}`;
+    if(shared.layoutKind==='bands') html += `<b>${T('Spurensuche','Trail')}:</b> ${T('Sammle nacheinander die Zwischenziele ein &ndash; das n&auml;chste erscheint erst, wenn du das aktuelle erreichst. Die letzte Spur liegt in der obersten Ebene.','Collect the milestones one by one &ndash; the next only appears once you reach the current one. The last trail lies in the topmost band.')}<br>`;
+    if(shared.goalKind==='coins') html += `<b>${T('Gerangel','Scramble')}:</b> ${T('Sammle alle M&uuml;nzen ein','Collect every coin')}${(shared.wallSet&&shared.wallSet.size)?T(' &ndash; die mittlere M&uuml;nze ist von einer Wand mit nur einer L&uuml;cke gesch&uuml;tzt',' &ndash; the middle coin is walled in with a single gap'):''}.<br>`;
+    const hz = shared.hazardType==='dog'?T('Hunde','Dogs'):T('Briefbomben','Letter bombs');
+    const folge = shared.deathless===false
+      ? T('Bei Kontakt ist die Partie sofort vorbei.','Contact ends the round at once.')
+      : T('Bei Kontakt blinkt deine Figur 3&nbsp;Sekunden und kehrt zum Start zur&uuml;ck.','On contact your figure blinks for 3&nbsp;seconds and returns to the start.');
+    if(shared.hazards.length) html += `<b>${hz}:</b> ${shared.hazards.length} ${T('auf dem Feld','on the board')}. ${folge} ${shared.hazardType==='dog'?T('Hunde wandern umher.','Dogs wander around.'):T('Briefbomben verschwinden nach der Kollision.','Letter bombs vanish after the hit.')}`;
     return html;
   }
 
@@ -2314,13 +2387,22 @@
     if(r<0.72) return { target, kind:'chadd', amount:pick([-2,-1,1,2]) };   // abhängig: Schrittzahl ±1/±2
     return { target, kind:'reverse' };
   }
+  // Posename fuers Protokoll. Im Gerangel steht er im Eintrag, sonst wird er aus dem Index gebildet.
+  function poseName(name, idx){
+    if(!name) return T('Pose ','Pose ')+(idx+1);
+    if(name==='Sabotage') return T('Sabotage','Sabotage');
+    const m=/^Pose (\d+)$/.exec(name);
+    return m ? T('Pose '+m[1],'Pose '+m[1]) : name;
+  }
   function poseEffectLabel(e){
-    if(e.kind==='neutral') return 'wirkt neutral &ndash; kein Einfluss.';
-    if(e.kind==='sabotage') return 'verschiebt die <b>gegnerische Figur</b> zwangsweise um deine gew&auml;hlte Schrittzahl &ndash; sie kann dabei &uuml;ber Sternenfelder eine Ebene wechseln, im Extremfall bis ins Zentrum (dann gewinnt der Gegner!).';
-    const tgt = e.target==='move' ? 'die Bewegung der Spielfigur' : 'die Rotation des Rings, auf dem die Figur steht';
-    if(e.kind==='reverse') return `kehrt ${tgt} um (Richtungsumkehr).`;
-    if(e.kind==='chadd') return `verschiebt ${tgt} um deine Schrittzahl <b>${fmtDelta(e.amount)}</b> (abh&auml;ngig von der Eingabe).`;
-    return `ver&auml;ndert ${tgt} <b>fest um ${fmtDelta(e.amount)}</b> Feld${Math.abs(e.amount)>1?'er':''} (unabh&auml;ngig von der Eingabe).`;
+    if(e.kind==='neutral') return T('wirkt neutral &ndash; kein Einfluss.','is neutral &ndash; no effect.');
+    if(e.kind==='sabotage') return T('verschiebt die <b>gegnerische Figur</b> zwangsweise um deine gew&auml;hlte Schrittzahl &ndash; sie kann dabei &uuml;ber Sternenfelder eine Ebene wechseln, im Extremfall bis ins Zentrum (dann gewinnt der Gegner!).',
+      'shoves the <b>opponent&#8217;s figure</b> by your chosen step count &ndash; it can hop a level over star cells, in the worst case all the way into the centre (and then they win!).');
+    const tgt = e.target==='move' ? T('die Bewegung der Spielfigur','the movement of the figure') : T('die Rotation des Rings, auf dem die Figur steht','the rotation of the ring the figure stands on');
+    if(e.kind==='reverse') return T(`kehrt ${tgt} um (Richtungsumkehr).`, `reverses ${tgt}.`);
+    if(e.kind==='chadd') return T(`verschiebt ${tgt} um deine Schrittzahl <b>${fmtDelta(e.amount)}</b> (abh&auml;ngig von der Eingabe).`, `shifts ${tgt} by your step count <b>${fmtDelta(e.amount)}</b> (depends on your input).`);
+    return T(`ver&auml;ndert ${tgt} <b>fest um ${fmtDelta(e.amount)}</b> Feld${Math.abs(e.amount)>1?'er':''} (unabh&auml;ngig von der Eingabe).`,
+             `changes ${tgt} by <b>a fixed ${fmtDelta(e.amount)}</b> cell${Math.abs(e.amount)>1?'s':''} (whatever you press).`);
   }
   function detectiveSvg(pose, heightPx){
     const common = `
@@ -2496,14 +2578,15 @@
     return st;
   }
   function circleExplain(rings, poseEffects, figRule){
-    let html = '<b>Figur:</b> ' + ((figRule && figRule!=='normal') ? stepTransformLabel(figRule) : 'Die Figur bewegt sich genau um deine gew&auml;hlte Schrittzahl &ndash; unabh&auml;ngig davon, auf welchem Ring sie steht.');
-    html += '<br><br><b>Ring-Rotationen (von innen nach au&szlig;en):</b><ul>';
-    rings.forEach((ring,i)=> html += `<li><b>Ring ${i+1}${ring.gate?' &middot; Tor':''}</b>: ${rotTransformLabel(ring.rotRule)}</li>`);
-    html += '</ul>Jeder Ring dreht sich auf deine Eingabe nach eigener Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug; innen und au&szlig;en zugleich &rarr; Zufall). Der innerste <b>Tor-Ring</b> ist nur ein einzelnes &starf; &ndash; erreichst du es, geht es direkt ins Zentrum.';
+    let html = `<b>${T('Figur','Figure')}:</b> ` + ((figRule && figRule!=='normal') ? stepTransformLabel(figRule) : T('Die Figur bewegt sich genau um deine gew&auml;hlte Schrittzahl &ndash; unabh&auml;ngig davon, auf welchem Ring sie steht.','The figure moves exactly by the step count you pick &ndash; no matter which ring it stands on.'));
+    html += `<br><br><b>${T('Ring-Rotationen (von innen nach au&szlig;en)','Ring rotations (inside out)')}:</b><ul>`;
+    rings.forEach((ring,i)=> html += `<li><b>${T('Ring','Ring')} ${i+1}${ring.gate?' &middot; '+T('Tor','gate'):''}</b>: ${rotTransformLabel(ring.rotRule)}</li>`);
+    html += '</ul>'+T('Jeder Ring dreht sich auf deine Eingabe nach eigener Regel. Ber&uuml;hrt dein Feld ein &starf;-Sternenfeld eines Nachbarrings, wirst du genau darauf gezogen (h&ouml;chstens eine Ebene pro Zug; innen und au&szlig;en zugleich &rarr; Zufall). Der innerste <b>Tor-Ring</b> ist nur ein einzelnes &starf; &ndash; erreichst du es, geht es direkt ins Zentrum.',
+      'Every ring turns on your input by its own rule. If your cell touches a &starf; star cell on a neighbouring ring, you are pulled straight onto it (at most one level per turn; inward and outward at once &rarr; random). The innermost <b>gate ring</b> is a single &starf; &ndash; reach it and you go straight to the centre.');
     if(poseEffects){
-      const POSE_COLNAMES=['Gelb','Grün','Blau','Rot'];
-      html += '<br><br><b>Detektivs Posen (erkennbar an der Farbe des Zentrums):</b><ul>';
-      poseEffects.forEach((e,i)=> html += `<li><span class="pose-dot pose-c${i}"></span> <b>${POSE_COLNAMES[i]||('#'+(i+1))}</b>${i===0?' (Start)':''}: ${poseEffectLabel(e)}</li>`);
+      const POSE_COLNAMES=[T('Gelb','Yellow'),T('Grün','Green'),T('Blau','Blue'),T('Rot','Red')];
+      html += `<br><br><b>${T('Detektivs Posen (erkennbar an der Farbe des Zentrums)','The detective&#8217;s poses (told apart by the colour of the centre)')}:</b><ul>`;
+      poseEffects.forEach((e,i)=> html += `<li><span class="pose-dot pose-c${i}"></span> <b>${POSE_COLNAMES[i]||('#'+(i+1))}</b>${i===0?' ('+T('Start','start')+')':''}: ${poseEffectLabel(e)}</li>`);
       html += '</ul>';
     }
     return html;
@@ -2722,18 +2805,18 @@
 
   function logChip(label,val,cls){ return `<span class="log-chip ${cls||''}"><span class="k">${label}</span><span class="v">${val}</span></span>`; }
   function renderLogEntry(e){
-    const modeTag = e.mode==='move'?'<span class="log-mode">nur Figur</span>' : e.mode==='rotate'?'<span class="log-mode">nur Rotation</span>':'';
-    const poseTag = e.pose ? `<span class="pose-dot pose-c${e.pose-1}" title="Pose-Farbe"></span>` : '';
-    let html=`<div class="log-entry"><div class="log-head"><span class="log-move">Zug ${e.move}</span>${logChip('Auswahl',fmtDelta(e.choice),'choice')}${poseTag}${modeTag}</div><div class="log-vals">`;
-    html+=logChip('Figur',fmtDelta(e.figActual),'fig')+`<span class="log-sep"></span>`;
+    const modeTag = e.mode==='move'?`<span class="log-mode">${T('nur Figur','figure only')}</span>` : e.mode==='rotate'?`<span class="log-mode">${T('nur Rotation','rotation only')}</span>`:'';
+    const poseTag = e.pose ? `<span class="pose-dot pose-c${e.pose-1}" title="${T('Pose-Farbe','pose colour')}"></span>` : '';
+    let html=`<div class="log-entry"><div class="log-head"><span class="log-move">${T('Zug','Move')} ${e.move}</span>${logChip(T('Auswahl','Pick'),fmtDelta(e.choice),'choice')}${poseTag}${modeTag}</div><div class="log-vals">`;
+    html+=logChip(T('Figur','Figure'),fmtDelta(e.figActual),'fig')+`<span class="log-sep"></span>`;
     e.rotActuals.forEach((d,i)=> html+=logChip('R'+(i+1),fmtDelta(d),d===0?'zero':'rot'));
     if(e.hearts!=null) html+=`<span class="log-sep"></span>`+logChip('♥', e.hearts + (e.heart?' (+2)':''), e.heart?'rot':'zero');
     html+=`</div>`;
-    if(e.outcome==='center') html+=`<div class="log-out win">→ ins Zentrum!</div>`;
-    else if(e.outcome) html+=`<div class="log-out hop">→ Sprung Ring ${e.outcome.from+1}→${e.outcome.to+1}${e.outcome.randomTie?' (Zufall)':''}</div>`;
+    if(e.outcome==='center') html+=`<div class="log-out win">${T('→ ins Zentrum!','→ into the centre!')}</div>`;
+    else if(e.outcome) html+=`<div class="log-out hop">${T('→ Sprung Ring','→ hop ring')} ${e.outcome.from+1}→${e.outcome.to+1}${e.outcome.randomTie?' ('+T('Zufall','random')+')':''}</div>`;
     return html+`</div>`;
   }
-  function renderLog(container, log){ container.innerHTML = log.length ? log.map(renderLogEntry).join('') : '<span style="color:var(--muted)">Noch keine Z&uuml;ge.</span>'; }
+  function renderLog(container, log){ container.innerHTML = log.length ? log.map(renderLogEntry).join('') : `<span style="color:var(--muted)">${T('Noch keine Z&uuml;ge.','No moves yet.')}</span>`; }
 
   // ===================== AUFLÖSUNGS-POPUP =====================
   // Auflösung pausiert das laufende Spiel – nur online nicht, da wuerde der Gegner weiterspielen.
@@ -2805,23 +2888,23 @@
     return h+'</div>';
   }
   function zugKarte(e){
-    if(!e) return '<div class="zk-leer">Kein Zug.</div>';
+    if(!e) return `<div class="zk-leer">${T('Kein Zug.','No move.')}</div>`;
     const p=(e.pose||1)-1;
     let h='<div class="zug-karte"><div class="zk-kopf">'
-      + `<span class="log-move">Zug ${e.move}</span>`
-      + logChip('Auswahl', fmtDelta(e.choice), 'choice');
+      + `<span class="log-move">${T('Zug','Move')} ${e.move}</span>`
+      + logChip(T('Auswahl','Pick'), fmtDelta(e.choice), 'choice');
     if(e.hearts!=null) h+=logChip('&#9829;', e.hearts+(e.heart?' (+2)':''), e.heart?'rot':'zero');
-    if(e.mode==='move') h+='<span class="log-mode">nur Figur</span>';
-    else if(e.mode==='rotate') h+='<span class="log-mode">nur Rotation</span>';
+    if(e.mode==='move') h+=`<span class="log-mode">${T('nur Figur','figure only')}</span>`;
+    else if(e.mode==='rotate') h+=`<span class="log-mode">${T('nur Rotation','rotation only')}</span>`;
     h+='</div>'+zugKarteRinge(e)+'<div class="zk-fuss">'
-      + `<span class="zk-pose pose-c${p}"><span class="pose-dot"></span>${e.poseName||('Pose '+(p+1))}</span>`;
-    if(e.von!=null) h+=logChip('Katze', `Ring ${(e.ring||0)+1} &middot; Feld ${e.von+1} &rarr; ${e.nach+1}`, 'fig');
-    else h+=logChip('Katze', fmtDelta(e.figActual), 'fig');
+      + `<span class="zk-pose pose-c${p}"><span class="pose-dot"></span>${poseName(e.poseName, p)}</span>`;
+    if(e.von!=null) h+=logChip(T('Katze','Cat'), `${T('Ring','Ring')} ${(e.ring||0)+1} &middot; ${T('Feld','cell')} ${e.von+1} &rarr; ${e.nach+1}`, 'fig');
+    else h+=logChip(T('Katze','Cat'), fmtDelta(e.figActual), 'fig');
     h+='</div>';
-    if(e.sabotage){ let t=`Sabotage &rarr; Gegner ${fmtDelta(e.sabotage.amount)}`; if(e.sabotage.hop) t+=` (Ebene ${e.sabotage.hop.from}&rarr;${e.sabotage.hop.to})`; h+=`<div class="zk-out sabo">${t}</div>`; }
-    if(e.outcome==='center') h+='<div class="zk-out win">&rarr; ins Zentrum!</div>';
-    else if(e.outcome) h+=`<div class="zk-out hop">&rarr; Sprung Ring ${e.outcome.from+1}&rarr;${e.outcome.to+1}${e.outcome.randomTie?' (Zufall)':''}`
-      + (e.frei?' <span class="zk-gratis">&#9829; kostenlos</span>':'') + '</div>';
+    if(e.sabotage){ let t=`${T('Sabotage','Sabotage')} &rarr; ${T('Gegner','opponent')} ${fmtDelta(e.sabotage.amount)}`; if(e.sabotage.hop) t+=` (${T('Ebene','level')} ${e.sabotage.hop.from}&rarr;${e.sabotage.hop.to})`; h+=`<div class="zk-out sabo">${t}</div>`; }
+    if(e.outcome==='center') h+=`<div class="zk-out win">${T('&rarr; ins Zentrum!','&rarr; into the centre!')}</div>`;
+    else if(e.outcome) h+=`<div class="zk-out hop">${T('&rarr; Sprung Ring','&rarr; hop ring')} ${e.outcome.from+1}&rarr;${e.outcome.to+1}${e.outcome.randomTie?' ('+T('Zufall','random')+')':''}`
+      + (e.frei?` <span class="zk-gratis">&#9829; ${T('kostenlos','free')}</span>`:'') + '</div>';
     return h+'</div>';
   }
   function openLog(get){ logView={ get, folgen:true, idx:0, zug:null }; logDraw(); $('log-modal').classList.remove('hidden'); }
@@ -2834,7 +2917,7 @@
     const anzahl=gruppen.reduce((m,g)=>Math.max(m,(g.log||[]).length),0);
     const body=$('log-body'), pager=$('log-pager'), dots=$('log-dots');
     if(!anzahl){
-      body.innerHTML='<div class="zk-leer">Noch keine Z&uuml;ge.</div>';
+      body.innerHTML=`<div class="zk-leer">${T('Noch keine Z&uuml;ge.','No moves yet.')}</div>`;
       pager.classList.add('hidden'); dots.innerHTML=''; return;
     }
     // Wer den neuesten Zug ansieht, bleibt beim neuesten; wer blättert, bleibt an SEINEM Zug
@@ -2848,8 +2931,8 @@
       const kopf = g.label ? `<div class="mp-head ${g.cls||''}" style="margin-bottom:6px;">${g.label}</div>` : '';
       return kopf + zugKarte((g.log||[])[idx]);
     }).join('<div style="height:14px"></div>');
-    $('log-titel').textContent = leit[idx] ? ('Zug '+leit[idx].move) : ('Zug '+(anzahl-idx));
-    $('log-sub').textContent = idx===0 ? 'neuester Zug' : (idx===1 ? 'ein Zug zurück' : idx+' Züge zurück');
+    $('log-titel').textContent = T('Zug ','Move ') + (leit[idx] ? leit[idx].move : (anzahl-idx));
+    $('log-sub').textContent = idx===0 ? T('neuester Zug','latest move') : (idx===1 ? T('ein Zug zurück','one move back') : T(idx+' Züge zurück', idx+' moves back'));
     $('log-prev').disabled = idx>=anzahl-1;
     $('log-next').disabled = idx<=0;
     let dh='';
@@ -2908,7 +2991,7 @@
 
   let spgState=null, spcState=null, mp=null;
 
-  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
+  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); $('lang-pick').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
   function teardownActive(){
     if(race){ race.mounted=false; race.alive=false; raceClearTimers(); }
     if(spcState) spcState.mounted=false;
@@ -2920,7 +3003,7 @@
     }
   }
   function startBg(){ document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`; }
-  function backToMenu(){ musicSetTrack('menu'); raceDuel=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); startBg(); }
+  function backToMenu(){ musicSetTrack('menu'); raceDuel=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); $('lang-pick').classList.remove('hidden'); startBg(); }
   // ===================== SOUND (Web Audio, komplett synthetisiert – keine externen Dateien) =====================
   const AUDIO_KEY='regel-detektiv-audio';
   let audioCtx=null, masterGain=null, musicGain=null, sfxGain=null, sfxOn=true, musicOn=true;
@@ -3167,6 +3250,24 @@
     repeatInvert:'Dieselbe Richtung zweimal hintereinander kehrt sich um &ndash; h&auml;ltst du die Taste, dreht das Auto nach einer halben Sekunde von selbst.',
     actionPool:'Beide Aktionen sind ausgetauscht: A schiebt das Auto mit doppelter Geschwindigkeit in die zuletzt gewählte Richtung, B lässt es schlingern – drei Reihen lang unsteuerbar.'
   };
+  // Dieselben Texte auf Englisch – die Auflösung liest je nach Sprache aus der passenden Tabelle
+  const RACE_DIST_LABEL_EN={
+    none:'Neutral &ndash; the keys do exactly what they say.',
+    swapLR:'Left and right are swapped.',
+    double:'Every direction moves the car two cells at once.',
+    repeatInvert:'The same direction twice in a row reverses on the second press.',
+    delay:'Your steering is carried out one input late.',
+    swapActDir:'Action and direction keys are swapped (&larr; acts like A, &rarr; like B).',
+    swapAB:'The action keys A and B are swapped with each other.',
+    actionPool:'Both actions are replaced: A shoves the car 2 cells in the last chosen direction, B makes it skid &ndash; 3 cells with no steering.',
+    brake:'The car stops again after a moment &ndash; even if you keep the key held.'
+  };
+  const RACE_DIST_LABEL_FREE_EN={
+    double:'Every direction pushes the car at double sideways speed.',
+    brake:'The car stops again after a moment even with the key held &ndash; it gets no further than one cell.',
+    repeatInvert:'The same direction twice in a row reverses &ndash; hold the key and the car turns by itself after half a second.',
+    actionPool:'Both actions are replaced: A pushes the car at double speed in the last chosen direction, B makes it skid &ndash; three rows with no steering.'
+  };
   // Hintergrund-Auswahl im Editor -> passende Strecke (Tempo/Optik)
   const BG_TO_DIFF={ garden:'leicht', office:'mittel', night:'schwer', graveyard:'experte' };
   // Kurzbezeichnungen fuer die Auswahl im Editor
@@ -3175,6 +3276,12 @@
     delay:'Richtung verzögert', swapActDir:'Aktion/Richtung vertauscht', swapAB:'A und B vertauscht',
     actionPool:'Aktions-Pool (A=Hop, B=Schlingern)', brake:'Bremst nach einem Feld (nur freie Fahrt)'
   };
+  const RACE_DIST_SHORT_EN={
+    swapLR:'Left/right swapped', double:'Double step', repeatInvert:'Repeat reverses',
+    delay:'Steering delayed', swapActDir:'Action/direction swapped', swapAB:'A and B swapped',
+    actionPool:'Action pool (A=hop, B=skid)', brake:'Brakes after one cell (free driving only)'
+  };
+  function raceDistShort(k){ return (lang==='en' ? RACE_DIST_SHORT_EN[k] : RACE_DIST_SHORT[k]) || RACE_DIST_SHORT[k] || k; }
   let race=null;
   // Duell-Kontext: lokal (nacheinander auf einem Geraet) oder online (beide gleichzeitig)
   let raceDuel=null;
@@ -3622,7 +3729,7 @@
       race.carEl.style.top=(race.pad+race.carRow*race.stepPx)+'px';
     }
   }
-  function raceRenderStats(){ $('race-stats').innerHTML=`Punkte <b>${race.score}</b> &middot; M&uuml;nzen <b>${race.coins}</b> &middot; <b>${ZONE_COLORS[raceCarRowData().zone].name}</b>`; raceRenderDuel(); }
+  function raceRenderStats(){ $('race-stats').innerHTML=`${T('Punkte','Score')} <b>${race.score}</b> &middot; ${T('M&uuml;nzen','Coins')} <b>${race.coins}</b> &middot; <b>${zoneName(ZONE_COLORS[raceCarRowData().zone])}</b>`; raceRenderDuel(); }
   function raceClearTimers(){ if(race){ clearTimeout(race.timer); cancelAnimationFrame(race.raf); race.raf=null; } }
   // ---- Weltuhr ----
   // Strecke, Kaestchen, Boden und die freien Objekte haengen an EINER stetig laufenden Position.
@@ -3969,11 +4076,12 @@
     spawnExplosion(race.cells[(race.carRow+1)*RACE_COLS+clamp(Math.round(race.carX),0,RACE_COLS-1)]);
     if(raceDuel){ raceDuelCrashed(); return; }
     const ov=$('race-overlay'); ov.classList.remove('hidden');
-    $('race-overlay-msg').innerHTML=`<b>Crash!</b><br>Du hast <b>${race.score}</b> Zeilen geschafft (${race.coins} M&uuml;nzen eingesammelt).`;
+    $('race-overlay-msg').innerHTML=`<b>Crash!</b><br>`+T(`Du hast <b>${race.score}</b> Zeilen geschafft (${race.coins} M&uuml;nzen eingesammelt).`,
+      `You made <b>${race.score}</b> rows (${race.coins} coins collected).`);
     const acts=$('race-overlay-actions'); acts.innerHTML='';
     // race.ov mitgeben, sonst faellt eine Editor-Partie auf die Standardregeln zurueck
-    const again=el('button','action primary'); again.textContent='Nochmal'; again.onclick=()=>raceStart(race.diffKey, race.ov); acts.appendChild(again);
-    const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
+    const again=el('button','action primary'); again.textContent=T('Nochmal','Again'); again.onclick=()=>raceStart(race.diffKey, race.ov); acts.appendChild(again);
+    const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
   }
 
   // ===================== RACING-DUELL =====================
@@ -3993,20 +4101,21 @@
     if(raceDuel.kind==='local'){
       const p=raceDuel.current, other=raceDuel.scores[1-p];
       const lead = other!=null && mine>other;
-      bar.innerHTML=`<div class="rd me${lead?' lead':''}"><span>Spieler ${p+1} f&auml;hrt</span><b>${mine}</b></div>`
-        +`<div class="rd opp${other==null?' out':''}"><span>Spieler ${2-p}${other==null?' wartet':' (fertig)'}</span><b>${other==null?'&ndash;':other}</b></div>`;
+      bar.innerHTML=`<div class="rd me${lead?' lead':''}"><span>${T('Spieler','Player')} ${p+1} ${T('f&auml;hrt','driving')}</span><b>${mine}</b></div>`
+        +`<div class="rd opp${other==null?' out':''}"><span>${T('Spieler','Player')} ${2-p}${other==null?T(' wartet',' waiting'):T(' (fertig)',' (done)')}</span><b>${other==null?'&ndash;':other}</b></div>`;
     } else {
       const op=raceDuel.oppScore||0;
-      bar.innerHTML=`<div class="rd me${mine>op?' lead':''}"><span>Du${race&&!race.alive?' &ndash; ausgeschieden':''}</span><b>${mine}</b></div>`
-        +`<div class="rd opp${raceDuel.oppAlive?'':' out'}"><span>Gegner${raceDuel.oppAlive?'':' &ndash; ausgeschieden'}</span><b>${op}</b></div>`;
+      bar.innerHTML=`<div class="rd me${mine>op?' lead':''}"><span>${T('Du','You')}${race&&!race.alive?T(' &ndash; ausgeschieden',' &ndash; out'):''}</span><b>${mine}</b></div>`
+        +`<div class="rd opp${raceDuel.oppAlive?'':' out'}"><span>${T('Gegner','Opponent')}${raceDuel.oppAlive?'':T(' &ndash; ausgeschieden',' &ndash; out')}</span><b>${op}</b></div>`;
     }
   }
   // Lokales Duell: nacheinander auf einem Geraet
   function raceStartLocalDuel(diffKey, ov){
     raceDuel={ kind:'local', diffKey, ov:ov||null, scores:[null,null], current:0 };
     raceStart(diffKey, ov);
-    raceOverlay(`<b>Spieler 1 f&auml;ngt an</b><br>Fahre so weit du kannst &ndash; Spieler 2 muss deine Punktzahl danach &uuml;bertreffen.`,
-      [{label:'Los!', primary:true, fn:()=>{ $('race-overlay').classList.add('hidden'); raceSchedule(); }}]);
+    raceOverlay(T(`<b>Spieler 1 f&auml;ngt an</b><br>Fahre so weit du kannst &ndash; Spieler 2 muss deine Punktzahl danach &uuml;bertreffen.`,
+                  `<b>Player 1 goes first</b><br>Drive as far as you can &ndash; player 2 then has to beat your score.`),
+      [{label:T('Los!','Go!'), primary:true, fn:()=>{ $('race-overlay').classList.add('hidden'); raceSchedule(); }}]);
     raceClearTimers();                       // erst nach "Los!" starten
   }
   function raceDuelCrashed(){
@@ -4015,18 +4124,20 @@
     raceDuel.scores[p]=race.score;
     raceRenderDuel();
     if(p===0){
-      raceOverlay(`<b>Spieler 1: ${race.score} Punkte</b><br>(${race.coins} M&uuml;nzen)<br><br>Jetzt ist <b>Spieler 2</b> dran &ndash; mehr als <b>${race.score}</b> Punkte, dann gewinnt er.`,
-        [{label:"Spieler 2 starten", primary:true, fn:()=>{ raceDuel.current=1; raceStart(raceDuel.diffKey, raceDuel.ov); }},
-         {label:'Zur&uuml;ck', fn:backToMenu}]);
+      raceOverlay(T(`<b>Spieler 1: ${race.score} Punkte</b><br>(${race.coins} M&uuml;nzen)<br><br>Jetzt ist <b>Spieler 2</b> dran &ndash; mehr als <b>${race.score}</b> Punkte, dann gewinnt er.`,
+                    `<b>Player 1: ${race.score} points</b><br>(${race.coins} coins)<br><br>Now it is <b>player 2</b>&#8217;s turn &ndash; beat <b>${race.score}</b> points to win.`),
+        [{label:T('Spieler 2 starten','Start player 2'), primary:true, fn:()=>{ raceDuel.current=1; raceStart(raceDuel.diffKey, raceDuel.ov); }},
+         {label:T('Zur&uuml;ck','Back'), fn:backToMenu}]);
     } else {
       raceDuelFinish(raceDuel.scores[1]>raceDuel.scores[0] ? 1 : 0);
     }
   }
   function raceDuelFinish(winner){
     const s=raceDuel.scores;
-    raceOverlay(`<div class="win-line">Spieler ${winner+1} gewinnt!</div>Spieler 1: <b>${s[0]}</b> Punkte &middot; Spieler 2: <b>${s[1]==null?'&ndash;':s[1]}</b> Punkte.`,
-      [{label:'Nochmal', primary:true, fn:()=>raceStartLocalDuel(raceDuel.diffKey, raceDuel.ov)},
-       {label:'Zur&uuml;ck zur Auswahl', fn:backToMenu}]);
+    raceOverlay(T(`<div class="win-line">Spieler ${winner+1} gewinnt!</div>Spieler 1: <b>${s[0]}</b> Punkte &middot; Spieler 2: <b>${s[1]==null?'&ndash;':s[1]}</b> Punkte.`,
+                  `<div class="win-line">Player ${winner+1} wins!</div>Player 1: <b>${s[0]}</b> points &middot; Player 2: <b>${s[1]==null?'&ndash;':s[1]}</b> points.`),
+      [{label:T('Nochmal','Again'), primary:true, fn:()=>raceStartLocalDuel(raceDuel.diffKey, raceDuel.ov)},
+       {label:T('Zur&uuml;ck zur Auswahl','Back to the menu'), fn:backToMenu}]);
   }
   // Spieler 2 gewinnt sofort, sobald er die Vorgabe uebertrifft
   function raceCheckDuelWin(){
@@ -4039,10 +4150,11 @@
   }
   function raceReveal(){
     // Die Steuerung steht in der Anleitung – hier interessiert nur, was verborgen war.
-    let html='<b>Die Farbzonen verzerren die Steuerung (verborgen &ndash; finde sie heraus!):</b><ul style="margin:4px 0 0 18px;">';
+    let html=`<b>${T('Die Farbzonen verzerren die Steuerung (verborgen &ndash; finde sie heraus!)','The colour zones twist the controls (hidden &ndash; work them out!)')}:</b><ul style="margin:4px 0 0 18px;">`;
     ZONE_COLORS.slice(0, race.zoneCount).forEach((zc,i)=>{ const k=race.zoneDistort[i];
-      const txt=(race.free && RACE_DIST_LABEL_FREE[k]) || RACE_DIST_LABEL[k];
-      html+=`<li><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgb(${zc.tint});vertical-align:middle;margin-right:6px;"></span><b>${zc.name}</b>: ${txt}</li>`; });
+      const tab=(race.free && RACE_DIST_LABEL_FREE[k]) ? (lang==='en'?RACE_DIST_LABEL_FREE_EN:RACE_DIST_LABEL_FREE) : (lang==='en'?RACE_DIST_LABEL_EN:RACE_DIST_LABEL);
+      const txt=tab[k] || (lang==='en'?RACE_DIST_LABEL_EN[k]:RACE_DIST_LABEL[k]);
+      html+=`<li><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgb(${zc.tint});vertical-align:middle;margin-right:6px;"></span><b>${zoneName(zc)}</b>: ${txt}</li>`; });
     html+='</ul>';
     openReveal(html);
   }
@@ -4173,7 +4285,7 @@
       const host=$('mpg-dual'); host.innerHTML='';
       [0,1].forEach(i=>{
         const wrap=el('div','pad-wrap');
-        const lbl=el('span','pad-lbl '+(i===0?'p1':'p2')); lbl.style.color=`var(--${i===0?'p1':'p2'})`; lbl.textContent='Spieler '+(i+1);
+        const lbl=el('span','pad-lbl '+(i===0?'p1':'p2')); lbl.style.color=`var(--${i===0?'p1':'p2'})`; lbl.textContent=T('Spieler ','Player ')+(i+1);
         wrap.appendChild(lbl); wrap.appendChild(buildPadFrame(i===0?'p1':'p2', d=>mpGridMove(i,d)));
         host.appendChild(wrap);
       });
@@ -4190,9 +4302,9 @@
   function spgRender(){
     const {shared,board}=spgState; const f=board.figs[0];
     let s2;
-    if(shared.layoutKind==='bands'){ const ag=shared.checkpoints[f.checkpointIdx]; s2=`Abstand <b>${Math.abs(f.x-ag.x)+Math.abs(f.y-ag.y)}</b> · Optimal <b>${shared.optimal}</b>`; }
-    else { const left=board.coins.length+(board.centerItem&&!board.centerItem.taken?1:0); s2=`Münzen <b>${left}</b>`; }
-    $('spg-stats').innerHTML = `Züge <b>${f.moves}</b> · ${s2} · <b>${shared.zones[shared.zoneOf(f.x,f.y)].name}</b>`;
+    if(shared.layoutKind==='bands'){ const ag=shared.checkpoints[f.checkpointIdx]; s2=`${T('Abstand','Distance')} <b>${Math.abs(f.x-ag.x)+Math.abs(f.y-ag.y)}</b> · ${T('Optimal','Optimum')} <b>${shared.optimal}</b>`; }
+    else { const left=board.coins.length+(board.centerItem&&!board.centerItem.taken?1:0); s2=`${T('Münzen','Coins')} <b>${left}</b>`; }
+    $('spg-stats').innerHTML = `${T('Züge','Moves')} <b>${f.moves}</b> · ${s2} · <b>${zoneName(shared.zones[shared.zoneOf(f.x,f.y)])}</b>`;
     $('spg-frame').classList.toggle('done', f.done);
     layoutSpgPad();
     const ov=$('spg-overlay');
@@ -4200,19 +4312,23 @@
       stopDogTimer(board);
       ov.classList.remove('hidden');
       const acts=$('spg-overlay-actions'); acts.innerHTML='';
-      const note=spgState.revealed?`Aufl&ouml;sung genutzt (ab Zug ${spgState.revealedAtMove}).`:'Ohne Aufl&ouml;sung gel&ouml;st &ndash; stark!';
+      const note=spgState.revealed
+        ? T(`Aufl&ouml;sung genutzt (ab Zug ${spgState.revealedAtMove}).`, `Solution used (from move ${spgState.revealedAtMove}).`)
+        : T('Ohne Aufl&ouml;sung gel&ouml;st &ndash; stark!','Solved without the solution &ndash; nice!');
       if(f.dead){
-        const was = shared.hazardType==='dog' ? 'Ein Hund' : 'Eine Briefbombe';
-        $('spg-overlay-msg').innerHTML=`<b>Erwischt!</b><br>${was} hat dich in Zug <b>${f.moves}</b> gestellt.`;
+        const was = shared.hazardType==='dog' ? T('Ein Hund','A dog') : T('Eine Briefbombe','A letter bomb');
+        $('spg-overlay-msg').innerHTML=`<b>${T('Erwischt!','Caught!')}</b><br>`
+          + T(`${was} hat dich in Zug <b>${f.moves}</b> gestellt.`, `${was} got you on move <b>${f.moves}</b>.`);
       }
       else if(shared.layoutKind==='bands'){
         const eff=Math.min(100,Math.round(100*shared.optimal/Math.max(1,f.moves)));
-        $('spg-overlay-msg').innerHTML=`Letzte Spur gefunden in <b>${f.moves}</b> Z&uuml;gen (optimal <b>${shared.optimal}</b>) &ndash; Effizienz <b>${eff}%</b>.<br>${note}`;
+        $('spg-overlay-msg').innerHTML=T(`Letzte Spur gefunden in <b>${f.moves}</b> Z&uuml;gen (optimal <b>${shared.optimal}</b>) &ndash; Effizienz <b>${eff}%</b>.`,
+          `Last trail found in <b>${f.moves}</b> moves (optimum <b>${shared.optimal}</b>) &ndash; efficiency <b>${eff}%</b>.`)+`<br>${note}`;
       } else {
-        $('spg-overlay-msg').innerHTML=`Alle M&uuml;nzen eingesammelt in <b>${f.moves}</b> Z&uuml;gen!<br>${note}`;
+        $('spg-overlay-msg').innerHTML=T(`Alle M&uuml;nzen eingesammelt in <b>${f.moves}</b> Z&uuml;gen!`,`All coins collected in <b>${f.moves}</b> moves!`)+`<br>${note}`;
       }
-      const n=el('button','action primary'); n.textContent='Nächste Runde'; n.onclick=()=>spgStart(shared.diffKey, shared.variant, spgState.ov); acts.appendChild(n);
-      const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
+      const n=el('button','action primary'); n.textContent=T('Nächste Runde','Next round'); n.onclick=()=>spgStart(shared.diffKey, shared.variant, spgState.ov); acts.appendChild(n);
+      const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
     } else ov.classList.add('hidden');
   }
   function spgMove(dir){ if(!spgState||spgState.board.figs[0].done) return; const r=gridBoardSubmit(spgState.board,0,dir); if(!r||r.type===null) sfx('move'); spgRender(); }
@@ -4231,24 +4347,28 @@
     const cs=spcState; circleMarkerFlash(cs);
     $('spc-moves').textContent=cs.moves;
     setLebenBar($('spc-leben'), cs.hearts);
-    $('spc-ring').textContent = cs.phase==='won'?'Zentrum':(cs.ringIdx+1)+' / '+cs.rings.length;
+    $('spc-ring').textContent = cs.phase==='won'?T('Zentrum','Centre'):(cs.ringIdx+1)+' / '+cs.rings.length;
     $('spc-field').textContent = cs.phase==='won'?'–':(cs.index+1);
     logRefresh();                                    // offenes Protokoll live nachziehen
     document.querySelectorAll('#circle-steps button').forEach(b=>b.disabled=cs.phase!=='playing'||cs.animating);
     const ov=$('spc-overlay');
     if(cs.phase==='won'){
       ov.classList.remove('hidden');
-      const note=cs.revealed?`Aufl&ouml;sung genutzt (ab Zug ${cs.revealedAtMove}).`:'Ohne Aufl&ouml;sung gel&ouml;st &ndash; stark!';
-      $('spc-overlay-msg').innerHTML=`Detektiv erreicht in <b>${cs.moves}</b> Z&uuml;gen!<br>${note}`;
+      const note=cs.revealed
+        ? T(`Aufl&ouml;sung genutzt (ab Zug ${cs.revealedAtMove}).`, `Solution used (from move ${cs.revealedAtMove}).`)
+        : T('Ohne Aufl&ouml;sung gel&ouml;st &ndash; stark!','Solved without the solution &ndash; nice!');
+      $('spc-overlay-msg').innerHTML=T(`Detektiv erreicht in <b>${cs.moves}</b> Z&uuml;gen!`,`Detective reached in <b>${cs.moves}</b> moves!`)+`<br>${note}`;
       const acts=$('spc-overlay-actions'); acts.innerHTML='';
-      const n=el('button','action primary'); n.textContent='Nächste Runde'; n.onclick=()=>spcStart(cs.diffKey, cs.ov); acts.appendChild(n);
-      const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
+      const n=el('button','action primary'); n.textContent=T('Nächste Runde','Next round'); n.onclick=()=>spcStart(cs.diffKey, cs.ov); acts.appendChild(n);
+      const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
     } else if(cs.phase==='out'){
       ov.classList.remove('hidden');
-      $('spc-overlay-msg').innerHTML=`<b>Keine Herzen mehr!</b><br>Die Katze kam bis Ring <b>${cs.ringIdx+1}</b> von ${cs.rings.length} &ndash; in ${cs.moves} Z&uuml;gen.`;
+      $('spc-overlay-msg').innerHTML=`<b>${T('Keine Herzen mehr!','Out of lives!')}</b><br>`
+        + T(`Die Katze kam bis Ring <b>${cs.ringIdx+1}</b> von ${cs.rings.length} &ndash; in ${cs.moves} Z&uuml;gen.`,
+            `The cat got to ring <b>${cs.ringIdx+1}</b> of ${cs.rings.length} &ndash; in ${cs.moves} moves.`);
       const acts=$('spc-overlay-actions'); acts.innerHTML='';
-      const n=el('button','action primary'); n.textContent='Nächste Runde'; n.onclick=()=>spcStart(cs.diffKey, cs.ov); acts.appendChild(n);
-      const bk=el('button','action'); bk.textContent='Zurück zur Auswahl'; bk.onclick=backToMenu; acts.appendChild(bk);
+      const n=el('button','action primary'); n.textContent=T('Nächste Runde','Next round'); n.onclick=()=>spcStart(cs.diffKey, cs.ov); acts.appendChild(n);
+      const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
     } else ov.classList.add('hidden');
   }
   async function spcMove(choice){
@@ -4307,23 +4427,26 @@
     const isGrid = mp.mode==='grid';
     const resEl = $(isGrid?'mpg-result':'mpc-result');
     let line;
+    const sieg=(i)=>`<div class="win-line">${T(`Spieler ${i+1} gewinnt!`,`Player ${i+1} wins!`)}</div>`;
+    const remis=`<div class="win-line">${T('Unentschieden!','Draw!')}</div>`;
     if(mp.reason==='hearts'){
-      const tief=i=>`Ring ${mpTiefe(i)+1}`;
+      const tief=i=>`${T('Ring','ring')} ${mpTiefe(i)+1}`;
       line = mp.winner==='tie'
-        ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (${tief(0)}).`
-        : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Herzen leer &ndash; am weitesten innen: ${tief(mp.winner)} gegen ${tief(1-mp.winner)}.`;
+        ? remis + T(`Beiden gingen die Herzen aus &ndash; gleich weit innen (${tief(0)}).`, `Both ran out of lives &ndash; equally far in (${tief(0)}).`)
+        : sieg(mp.winner) + T(`Herzen leer &ndash; am weitesten innen: ${tief(mp.winner)} gegen ${tief(1-mp.winner)}.`, `Out of lives &ndash; furthest in: ${tief(mp.winner)} against ${tief(1-mp.winner)}.`);
     }
     else if(mp.reason==='dead'){
       line = mp.winner==='tie'
-        ? `<div class="win-line">Unentschieden!</div>Beide wurden erwischt &ndash; gleich weit gekommen.`
-        : (mpTot(mp.winner)
-            ? `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Beide wurden erwischt &ndash; aber Spieler ${mp.winner+1} kam weiter.`
-            : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Spieler ${2-mp.winner} wurde erwischt.`);
+        ? remis + T('Beide wurden erwischt &ndash; gleich weit gekommen.','Both were caught &ndash; equally far along.')
+        : sieg(mp.winner) + (mpTot(mp.winner)
+            ? T(`Beide wurden erwischt &ndash; aber Spieler ${mp.winner+1} kam weiter.`, `Both were caught &ndash; but player ${mp.winner+1} got further.`)
+            : T(`Spieler ${2-mp.winner} wurde erwischt.`, `Player ${2-mp.winner} was caught.`));
     }
-    else if(mp.winner==='tie') line=`<div class="win-line">Unentschieden!</div>Beide brauchten ${mpMoves(0)} Z&uuml;ge.`;
-    else { const w=mp.winner+1;
-      if(winCond==='fastest') line=`<div class="win-line">Spieler ${w} gewinnt!</div>Zuerst am Ziel in ${mpMoves(mp.winner)} Z&uuml;gen (Gegner: ${mpMoves(1-mp.winner)}${mpDone(1-mp.winner)?'':', noch unterwegs'}).`;
-      else line=`<div class="win-line">Spieler ${w} gewinnt!</div>Weniger Z&uuml;ge: ${mpMoves(mp.winner)} gegen ${mpMoves(1-mp.winner)}.`;
+    else if(mp.winner==='tie') line=remis + T(`Beide brauchten ${mpMoves(0)} Z&uuml;ge.`, `Both needed ${mpMoves(0)} moves.`);
+    else {
+      if(winCond==='fastest') line=sieg(mp.winner) + T(`Zuerst am Ziel in ${mpMoves(mp.winner)} Z&uuml;gen (Gegner: ${mpMoves(1-mp.winner)}${mpDone(1-mp.winner)?'':', noch unterwegs'}).`,
+        `First to the goal in ${mpMoves(mp.winner)} moves (opponent: ${mpMoves(1-mp.winner)}${mpDone(1-mp.winner)?'':', still going'}).`);
+      else line=sieg(mp.winner) + T(`Weniger Z&uuml;ge: ${mpMoves(mp.winner)} gegen ${mpMoves(1-mp.winner)}.`, `Fewer moves: ${mpMoves(mp.winner)} against ${mpMoves(1-mp.winner)}.`);
     }
     resEl.innerHTML=line; resEl.classList.remove('hidden'); sfx('win');
     mpUpdateHeads();
@@ -4337,8 +4460,10 @@
       const s=$((isGrid?'mpg-s':'mpc-s')+(i+1));
       const p=mp.players[i]; const doneAt=p.cs?p.cs.doneAtMove:p.board.figs[0].doneAtMove;
       if(p.cs) setLebenBar($('mpc-leben'+(i+1)), p.cs.hearts);
-      if(p.cs && p.cs.heartsLeer){ s.textContent='✗ keine Herzen mehr'; s.classList.add('done'); }
-      else if(mpDone(i)&&doneAt){ s.textContent=`✓ fertig (${doneAt} Z.)`; s.classList.add('done'); }
+      const tot = p.board && p.board.figs[0].dead;
+      if(p.cs && p.cs.heartsLeer){ s.textContent=T('✗ keine Herzen mehr','✗ out of lives'); s.classList.add('done'); }
+      else if(tot){ s.textContent=T('✗ erwischt','✗ caught'); s.classList.add('done'); }
+      else if(mpDone(i)&&doneAt){ s.textContent=T(`✓ fertig (${doneAt} Z.)`,`✓ done (${doneAt} moves)`); s.classList.add('done'); }
       else { s.textContent=''; s.classList.remove('done'); }
     });
     refreshMpTouchButtons();
@@ -4363,7 +4488,7 @@
   function mpgRenderScores(){
     const b=mp.board;
     const left=b.coins.length+(b.centerItem&&!b.centerItem.taken?1:0);
-    $('mpg-score').innerHTML=`<span style="color:var(--p1)">Spieler 1: <b>${b.figs[0].score}</b></span> &nbsp;·&nbsp; <span style="color:var(--p2)">Spieler 2: <b>${b.figs[1].score}</b></span> &nbsp;·&nbsp; M&uuml;nzen &uuml;brig: <b>${left}</b>`;
+    $('mpg-score').innerHTML=`<span style="color:var(--p1)">${T('Spieler','Player')} 1: <b>${b.figs[0].score}</b></span> &nbsp;·&nbsp; <span style="color:var(--p2)">${T('Spieler','Player')} 2: <b>${b.figs[1].score}</b></span> &nbsp;·&nbsp; ${T('M&uuml;nzen &uuml;brig','Coins left')}: <b>${left}</b>`;
     if(!mp.finished && gerangelDone(b)) mpGerangelEnd();
     refreshMpTouchButtons();
   }
@@ -4374,16 +4499,20 @@
     const s0=f0.score, s1=f1.score;
     const res=$('mpg-result');
     // Ohne Deathless entscheidet die Beruehrung: wer noch steht, gewinnt. Beide erwischt -> Punkte.
+    const sieg=(i)=>`<div class="win-line">${T(`Spieler ${i+1} gewinnt!`,`Player ${i+1} wins!`)}</div>`;
+    const remis=`<div class="win-line">${T('Unentschieden!','Draw!')}</div>`;
     if(f0.dead||f1.dead){
       mp.winner = (f0.dead && f1.dead) ? (s0>s1?0:s1>s0?1:'tie') : (f0.dead?1:0);
       res.innerHTML = mp.winner==='tie'
-        ? `<div class="win-line">Unentschieden!</div>Beide wurden erwischt &ndash; ${s0} Punkte je.`
-        : (f0.dead&&f1.dead
-            ? `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Beide wurden erwischt &ndash; ${s0} : ${s1} Punkte.`
-            : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>Spieler ${(f0.dead?1:2)} wurde erwischt.`);
+        ? remis + T(`Beide wurden erwischt &ndash; ${s0} Punkte je.`, `Both were caught &ndash; ${s0} points each.`)
+        : sieg(mp.winner) + (f0.dead&&f1.dead
+            ? T(`Beide wurden erwischt &ndash; ${s0} : ${s1} Punkte.`, `Both were caught &ndash; ${s0} : ${s1} points.`)
+            : T(`Spieler ${(f0.dead?1:2)} wurde erwischt.`, `Player ${(f0.dead?1:2)} was caught.`));
     } else {
       mp.winner = s0>s1?0:s1>s0?1:'tie';
-      res.innerHTML = mp.winner==='tie' ? `<div class="win-line">Unentschieden!</div>Beide ${s0} Punkte.` : `<div class="win-line">Spieler ${mp.winner+1} gewinnt!</div>${s0} : ${s1} Punkte.`;
+      res.innerHTML = mp.winner==='tie'
+        ? remis + T(`Beide ${s0} Punkte.`, `${s0} points each.`)
+        : sieg(mp.winner) + T(`${s0} : ${s1} Punkte.`, `${s0} : ${s1} points.`);
     }
     res.classList.remove('hidden'); sfx('win');
   }
@@ -4406,7 +4535,7 @@
       board.onChange=mpgRenderScores; board.onDead=mpGerangelEnd;
       mp={ mode:'grid', variant:'gerangel', shared, board, ov, finished:false, winner:null };
       renderGridBoard(board); startDogTimer(board);
-      $('mpg-title').innerHTML=`${shared.theme.title} &middot; Gerangel &middot; <small>Sammle die meisten Punkte &ndash; M&uuml;nze 1, Schl&uuml;ssel 3</small>`;
+      $('mpg-title').innerHTML=`${themeTitle(shared.theme)} &middot; ${T('Gerangel','Scramble')} &middot; <small>${T('Sammle die meisten Punkte &ndash; M&uuml;nze 1, Schl&uuml;ssel 3','Collect the most points &ndash; coin 1, key 3')}</small>`;
       mountMpPads(true);
       mpgRenderScores();
     } else {
@@ -4420,7 +4549,7 @@
       b1.onDead=()=>mpOnFinish(0,'dead'); b2.onDead=()=>mpOnFinish(1,'dead');
       mp={ mode:'grid', variant:'spurensuche', shared, ov, finished:false, winner:null, players:[{board:b1},{board:b2}] };
       renderGridBoard(b1); renderGridBoard(b2); startDogTimer(b1); startDogTimer(b2);
-      $('mpg-title').innerHTML=`${shared.theme.title} &middot; Spurensuche &middot; <small>${winCond==='fastest'?'Schnellster ins Ziel':'Wenigste Züge'} &ndash; identische Regel für beide</small>`;
+      $('mpg-title').innerHTML=`${themeTitle(shared.theme)} &middot; ${T('Spurensuche','Trail')} &middot; <small>${winCond==='fastest'?T('Schnellster ins Ziel','First to the goal'):T('Wenigste Züge','Fewest moves')} &ndash; ${T('identische Regel für beide','same rule for both')}</small>`;
       mountMpPads(false);
       mpUpdateHeads();
     }
@@ -4442,7 +4571,7 @@
     mp={ mode:'circle', circVar:'duell', config, ov, finished:false, winner:null, reason:null, loser:null, players:[{cs:cs1},{cs:cs2}] };
     renderDetectiveCenter($('mpc-host1'), cs1.gandalfPose, 'W', ()=>mpCyclePose(0), 0.66);
     renderDetectiveCenter($('mpc-host2'), cs2.gandalfPose, '↑', ()=>mpCyclePose(1), 0.66);
-    $('mpc-title').innerHTML=`${config.theme.title} &middot; <small>${winCond==='fastest'?'Schnellster ins Zentrum':'Wenigste Züge'} &ndash; identische Regeln für beide</small>`;
+    $('mpc-title').innerHTML=`${themeTitle(config.theme)} &middot; <small>${winCond==='fastest'?T('Schnellster ins Zentrum','First to the centre'):T('Wenigste Züge','Fewest moves')} &ndash; ${T('identische Regeln für beide','same rules for both')}</small>`;
     $('mpc-result').classList.add('hidden'); closeReveal();
     renderLog($('mpc-log1'), []); renderLog($('mpc-log2'), []);
     mpUpdateHeads();
@@ -4615,7 +4744,7 @@
     else if(e.outcome) html+=`<div class="log-out hop">&rarr; Sprung Ring ${e.outcome.from+1}&rarr;${e.outcome.to+1}${e.outcome.randomTie?' (Zufall)':''}</div>`;
     return html+`</div>`;
   }
-  function renderGerLog(container, log){ container.innerHTML = log.length ? log.map(renderGerLogEntry).join('') : '<span style="color:var(--muted)">Noch keine Z&uuml;ge.</span>'; }
+  function renderGerLog(container, log){ container.innerHTML = log.length ? log.map(renderGerLogEntry).join('') : `<span style="color:var(--muted)">${T('Noch keine Z&uuml;ge.','No moves yet.')}</span>`; }
   function renderGerDetective(gs, pi){
     const pl=gs.players[pi]; const host=$('mpcg-det'+(pi+1)); if(!host) return;
     const active = gs.turn===pi && !mp.finished && !pl.done;
@@ -4629,11 +4758,11 @@
     $('mpcg-m1').textContent=gs.players[0].moves; $('mpcg-m2').textContent=gs.players[1].moves;
     [0,1].forEach(i=>{ const s=$('mpcg-s'+(i+1)); const pl=gs.players[i];
       setLebenBar($('mpcg-leben'+(i+1)), pl.hearts);
-      if(pl.heartsLeer){ s.textContent='✗ keine Herzen mehr'; s.classList.add('done'); }
-      else if(pl.done){ s.textContent=`✓ im Zentrum (${pl.doneAtMove} Z.)`; s.classList.add('done'); }
+      if(pl.heartsLeer){ s.textContent=T('✗ keine Herzen mehr','✗ out of lives'); s.classList.add('done'); }
+      else if(pl.done){ s.textContent=T(`✓ im Zentrum (${pl.doneAtMove} Z.)`,`✓ in the centre (${pl.doneAtMove} moves)`); s.classList.add('done'); }
       else { s.textContent=''; s.classList.remove('done'); } });
     const turnEl=$('mpcg-turn'); turnEl.classList.remove('p1','p2'); turnEl.classList.add(gs.turn===0?'p1':'p2');
-    turnEl.innerHTML = mp.finished ? 'Runde beendet.' : `<b>Spieler ${gs.turn+1}</b> ist am Zug`;
+    turnEl.innerHTML = mp.finished ? T('Runde beendet.','Round over.') : T(`<b>Spieler ${gs.turn+1}</b> ist am Zug`,`<b>Player ${gs.turn+1}</b> to move`);
     renderGerDetective(gs,0); renderGerDetective(gs,1);
     // Nur die Schritt-Buttons des aktiven Spielers aktiv lassen
     document.querySelectorAll('#mpcg .mp-steps[data-cg]').forEach(row=>{
@@ -4659,7 +4788,7 @@
     mp={ mode:'circleGer', gs, ov, finished:false, winner:null };
     buildGerangelCircle(gs, $('mpcg-host'), 0.9);
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
-    $('mpcg-title').innerHTML=`${config.theme.title} &middot; Kreis-Gerangel &middot; <small>Gemeinsamer Kreis &ndash; abwechselnd; wer zuerst ins Zentrum kommt, gewinnt.</small>`;
+    $('mpcg-title').innerHTML=`${themeTitle(config.theme)} &middot; ${T('Kreis-Gerangel','Circle scramble')} &middot; <small>${T('Gemeinsamer Kreis &ndash; abwechselnd; wer zuerst ins Zentrum kommt, gewinnt.','One shared circle, taking turns; first to the centre wins.')}</small>`;
     $('mpcg-result').classList.add('hidden'); closeReveal();
     renderGerLog($('mpcg-log1'), []); renderGerLog($('mpcg-log2'), []);
     mpcgUpdate();
@@ -4692,13 +4821,15 @@
   function mpcgShowResult(){
     const gs=mp.gs, w=mp.winner;
     let line;
+    const sieg=(i)=>`<div class="win-line">${T(`Spieler ${i+1} gewinnt!`,`Player ${i+1} wins!`)}</div>`;
     if(mp.reason==='hearts'){
-      const ring=i=>`Ring ${gs.players[i].ringIdx+1}`;
+      const ring=i=>`${T('Ring','ring')} ${gs.players[i].ringIdx+1}`;
       line = w==='tie'
-        ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (${ring(0)}).`
-        : `<div class="win-line">Spieler ${w+1} gewinnt!</div>Herzen leer &ndash; am weitesten innen: ${ring(w)} gegen ${ring(1-w)}.`;
+        ? `<div class="win-line">${T('Unentschieden!','Draw!')}</div>` + T(`Beiden gingen die Herzen aus &ndash; gleich weit innen (${ring(0)}).`,`Both ran out of lives &ndash; equally far in (${ring(0)}).`)
+        : sieg(w) + T(`Herzen leer &ndash; am weitesten innen: ${ring(w)} gegen ${ring(1-w)}.`,`Out of lives &ndash; furthest in: ${ring(w)} against ${ring(1-w)}.`);
     } else {
-      line=`<div class="win-line">Spieler ${w+1} gewinnt!</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove} Z&uuml;gen (Gegner: ${gs.players[1-w].moves} Z&uuml;ge).`;
+      line=sieg(w) + T(`Zuerst im Zentrum in ${gs.players[w].doneAtMove} Z&uuml;gen (Gegner: ${gs.players[1-w].moves} Z&uuml;ge).`,
+                       `First to the centre in ${gs.players[w].doneAtMove} moves (opponent: ${gs.players[1-w].moves} moves).`);
     }
     $('mpcg-result').innerHTML=line;
     $('mpcg-result').classList.remove('hidden'); sfx('win');
@@ -4821,14 +4952,14 @@
         .map(code=>({ code, ts:val[code].ts||0, theme:val[code].theme||'', label:val[code].label||'', mode:onlModeOf(val[code]), variant:onlVariantOf(val[code]) }))
         .filter(r=> now-r.ts < 3*60*1000)    // Heartbeat: alle 12 s erneuert, 3 min Toleranz
         .sort((a,b)=>b.ts-a.ts);
-      if(!rooms.length){ const d=el('div','empty'); d.textContent='Gerade keine offenen Räume – erstelle selbst einen.'; hostEl.appendChild(d); return; }
+      if(!rooms.length){ const d=el('div','empty'); d.textContent=T('Gerade keine offenen Räume – erstelle selbst einen.','No open rooms right now – create one yourself.'); hostEl.appendChild(d); return; }
       rooms.forEach(r=>{
         const row=el('div','room-item');
         const left=el('div');
         const c=el('div','rc'); c.textContent=r.code;
-        const t=el('div','rt'); t.textContent=r.label || ((THEMES[r.theme]?THEMES[r.theme].title:'')+' · '+onlVariantLabel(r.mode,r.variant));
+        const t=el('div','rt'); t.textContent=r.label || (themeTitle(THEMES[r.theme])+' · '+onlVariantLabel(r.mode,r.variant));
         left.appendChild(c); left.appendChild(t);
-        const b=el('button','action'); b.textContent='Beitreten'; b.onclick=()=>onlJoin(r.code);
+        const b=el('button','action'); b.textContent=T('Beitreten','Join'); b.onclick=()=>onlJoin(r.code);
         row.appendChild(left); row.appendChild(b); hostEl.appendChild(row);
       });
     });
@@ -4916,7 +5047,7 @@
       const shared=onl.gridShared;
       setThemeBg(shared.theme);
       $('onl-circle-wrap').classList.add('hidden'); $('onl-grid-wrap').classList.remove('hidden');
-      $('onl-title').innerHTML=`Online &middot; ${shared.theme.title} &middot; <small>Feld-Gerangel &middot; Raum ${onl.code}</small>`;
+      $('onl-title').innerHTML=`Online &middot; ${themeTitle(shared.theme)} &middot; <small>${T('Feld-Gerangel','Field scramble')} &middot; ${T('Raum','Room')} ${onl.code}</small>`;
       const cell=fitCell(Math.max(20, Math.round(500/shared.cols)), shared.cols, shared.rows);
       onl.board=createGridBoard($('onl-grid-host'), shared, cell, [
         {startX:shared.starts[0].x, startY:shared.starts[0].y, colorClass:'p1'},
@@ -4931,7 +5062,7 @@
     const gs=onl.gs;
     setThemeBg(gs.theme);
     $('onl-grid-wrap').classList.add('hidden'); $('onl-circle-wrap').classList.remove('hidden');
-    $('onl-title').innerHTML=`Online &middot; ${gs.theme.title} &middot; <small>Kreis-Gerangel &middot; Raum ${onl.code}</small>`;
+    $('onl-title').innerHTML=`Online &middot; ${themeTitle(gs.theme)} &middot; <small>${T('Kreis-Gerangel','Circle scramble')} &middot; ${T('Raum','Room')} ${onl.code}</small>`;
     buildGerangelCircle(gs, $('onl-host'), 0.9);
     markerFlashG(gs.players[0]); markerFlashG(gs.players[1]);
     onlRenderUi();
@@ -5015,7 +5146,7 @@
     else if(w===onl.myIdx){ line='<div class="win-line">Du gewinnst!</div>'; if(!onl.resultSfx){ onl.resultSfx=true; sfx('win'); } }
     else line='<div class="win-line">Gegner gewinnt!</div>';
     raceOverlay(line+`Du: <b>${mine}</b> Punkte &middot; Gegner: <b>${op}</b> Punkte.`,
-      [{label:'Zur&uuml;ck zur Lobby', primary:true, fn:onlLeave}]);
+      [{label:T('Zur&uuml;ck zur Lobby','Back to the lobby'), primary:true, fn:onlLeave}]);
     raceRenderDuel();
   }
 
@@ -5052,7 +5183,7 @@
       onl.gridShared=onlBuildGridShared(cfg); const shared=onl.gridShared;
       setThemeBg(shared.theme);
       $('onl-gsolo-wrap').classList.remove('hidden');
-      $('onl-title').innerHTML=`Online &middot; ${shared.theme.title} &middot; <small>Spurensuche &middot; Raum ${onl.code}</small>`;
+      $('onl-title').innerHTML=`Online &middot; ${themeTitle(shared.theme)} &middot; <small>${T('Spurensuche','Trail')} &middot; ${T('Raum','Room')} ${onl.code}</small>`;
       // kleineres Brett als im Einzelspieler: darunter müssen Minikarte + Steuerkreuz Platz haben
       const base = shared.layoutKind==='bands' ? 26 : Math.max(20, Math.round(440/shared.cols));
       const cell=fitCell(base, shared.cols, shared.rows, Math.round((window.innerHeight||800)*0.40));
@@ -5064,7 +5195,7 @@
       onl.cs=makeCircleState(onlSoloCircleConfig(cfg));
       setThemeBg(onl.cs.theme);
       $('onl-csolo-wrap').classList.remove('hidden');
-      $('onl-title').innerHTML=`Online &middot; ${onl.cs.theme.title} &middot; <small>Kreis-Duell &middot; Raum ${onl.code}</small>`;
+      $('onl-title').innerHTML=`Online &middot; ${themeTitle(onl.cs.theme)} &middot; <small>${T('Kreis-Duell','Circle duel')} &middot; ${T('Raum','Room')} ${onl.code}</small>`;
       circleBuildRings(onl.cs, $('onl-csolo-host'), 0.78);
       renderDetectiveCenter($('onl-csolo-host'), onl.cs.gandalfPose, 'W / ↑', ()=>onlSoloPose(), 0.78);
     }
@@ -5155,15 +5286,15 @@
     const opp=onl.oppSnap||{};
     const head=onl.mode==='grid'?$('onl-gsolo-head'):$('onl-csolo-head');
     const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
-    const wc = onl.winCond==='fewest'?'Wenigste Züge':'Schnellster';
+    const wc = onl.winCond==='fewest'?T('Wenigste Züge','Fewest moves'):T('Schnellster','Fastest');
     // Herzen nur im Kreis – im Feld gibt es sie nicht
     const herz=(n)=> (onl.mode!=='circle'||n==null||n<0) ? '' : ` <span class="herz-anzeige${n<=2?' knapp':''}">&#9829;&nbsp;<b>${n}</b></span>`;
     const oppHerz = (opp.hearts==null?null:opp.hearts);
     const meOut = meTot || !!(onl.cs&&onl.cs.phase==='out'), oppOut=!!opp.out;
     // Die eigenen Leben stehen gross zwischen Kreis und Steuerung, im Kopf nur die des Gegners
     if(onl.mode==='circle') setLebenBar($('onl-csolo-leben'), onl.cs?onl.cs.hearts:null);
-    if(head) head.innerHTML=`<span style="color:var(--${meCol})">Du &middot; Z&uuml;ge <b>${meMoves}</b>${meDone?' &#10003;':(meOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; `
-      +`<span style="color:var(--${oppCol})">Gegner &middot; Z&uuml;ge <b>${opp.moves||0}</b>${herz(oppHerz)}${opp.done?' &#10003;':(oppOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; <small>${wc}</small>`;
+    if(head) head.innerHTML=`<span style="color:var(--${meCol})">${T('Du','You')} &middot; ${T('Z&uuml;ge','Moves')} <b>${meMoves}</b>${meDone?' &#10003;':(meOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; `
+      +`<span style="color:var(--${oppCol})">${T('Gegner','Opponent')} &middot; ${T('Z&uuml;ge','Moves')} <b>${opp.moves||0}</b>${herz(oppHerz)}${opp.done?' &#10003;':(oppOut?' &#10007;':'')}</span> &nbsp;&middot;&nbsp; <small>${wc}</small>`;
     logRefresh();
     const blocked = onl.finished || meDone || meOut;
     document.querySelectorAll('#onl-gsolo-frame .pad-zone, #onl-gsolo-frame .pad-stay').forEach(e=>e.style.pointerEvents=blocked?'none':'');
@@ -5174,7 +5305,7 @@
     const host = onl.mode==='grid' ? $('onl-gsolo-mini') : $('onl-csolo-mini');
     onl.miniBoard=null; onl.miniCs=null;
     host.innerHTML='';
-    const label=el('div','onl-mini-label'); label.textContent='Gegner'; host.appendChild(label);
+    const label=el('div','onl-mini-label'); label.textContent=T('Gegner','Opponent'); host.appendChild(label);
     const wrap=el('div'); wrap.style.width='100%'; wrap.style.display='flex'; wrap.style.justifyContent='center';
     if(onl.mode==='circle') wrap.className='circle-host';
     host.appendChild(wrap);
@@ -5228,7 +5359,7 @@
       mode = (m==='circle'||m==='racing') ? m : 'grid';
       variant=$('onl-gvariant').value || (mode==='racing'?'duell':'gerangel');
       diffKey=$('onl-theme').value;
-      label=(THEMES[diffKey]?THEMES[diffKey].title:'')+' · '+onlVariantLabel(mode,variant);
+      label=themeTitle(THEMES[diffKey])+' · '+onlVariantLabel(mode,variant);
     }
     // Racing faehrt jeder auf seiner eigenen Strecke (aus demselben Seed) – nie ein geteiltes Brett
     const shared = mode!=='racing' && variant==='gerangel';
@@ -5236,17 +5367,17 @@
     return { mode, variant, shared, diffKey, ov, winCond, label };
   }
   function onlVariantLabel(mode, variant){
-    return variant==='spurensuche'?'Spurensuche' : variant==='duell'?'Duell' : (mode==='grid'?'Feld-Gerangel':'Kreis-Gerangel');
+    return variant==='spurensuche'?T('Spurensuche','Trail') : variant==='duell'?T('Duell','Duel') : (mode==='grid'?T('Feld-Gerangel','Field scramble'):T('Kreis-Gerangel','Circle scramble'));
   }
   // Netzoperationen bekommen eine Frist – sonst haengt ein Tastendruck am Handy stumm fest
   function onlTimed(promise, ms, label){
     return Promise.race([ Promise.resolve(promise),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error(label||'Zeitüberschreitung')), ms||9000)) ]);
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error(label||T('Zeitüberschreitung','Timed out'))), ms||9000)) ]);
   }
   async function onlCreate(){
-    if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst.', true); return; }
+    if(!fbInit()){ onlMsg(T('Keine Verbindung zum Online-Dienst.','No connection to the online service.'), true); return; }
     const btn=$('onl-create'); if(btn.disabled) return;
-    btn.disabled=true; onlMsg('Raum wird erstellt …');
+    btn.disabled=true; onlMsg(T('Raum wird erstellt …','Creating room …'));
     const sel=onlReadLobbySelection();
     let code=onlGenCode(), roomRef=null;
     try{
@@ -5261,7 +5392,7 @@
       onlSetupPresence(); onlStartHeartbeat();      // Raum bleibt bei kurzen Aussetzern bestehen
       onlDetachLobby(); onlMsg('');
       $('onl-wait-code').textContent=code;
-      $('onl-wait-status').textContent='Warte auf Mitspieler …';
+      $('onl-wait-status').textContent=T('Warte auf Mitspieler …','Waiting for the other player …');
       onlShow('onl-wait');
       const gRef=roomRef.child('players/guest');
       const cb=gRef.on('value', snap=>{
@@ -5274,7 +5405,7 @@
       console.warn('Raum erstellen fehlgeschlagen:', e);
       try{ if(roomRef){ roomRef.remove(); fbDb.ref('lobby/'+code).remove(); } }catch(e2){}
       onl=null; onlStopHeartbeat();
-      onlMsg('Der Raum konnte nicht erstellt werden – die Verbindung war zu langsam oder unterbrochen. Bitte nochmal versuchen.', true);
+      onlMsg(T('Der Raum konnte nicht erstellt werden – die Verbindung war zu langsam oder unterbrochen. Bitte nochmal versuchen.','The room could not be created – the connection was too slow or dropped. Please try again.'), true);
       onlShow('onl-lobby');
     }finally{ btn.disabled=false; }
   }
@@ -5290,24 +5421,24 @@
   }
 
   async function onlJoin(code){
-    if(!fbInit()){ onlMsg('Keine Verbindung zum Online-Dienst.', true); return; }
+    if(!fbInit()){ onlMsg(T('Keine Verbindung zum Online-Dienst.','No connection to the online service.'), true); return; }
     code=(code||'').toUpperCase().trim();
-    if(code.length!==4){ onlMsg('Bitte einen 4-stelligen Raumcode eingeben.', true); return; }
+    if(code.length!==4){ onlMsg(T('Bitte einen 4-stelligen Raumcode eingeben.','Please enter a 4-character room code.'), true); return; }
     const joinBtn=$('onl-join'); if(joinBtn.disabled) return;
-    joinBtn.disabled=true; onlMsg('Trete Raum '+code+' bei …');
+    joinBtn.disabled=true; onlMsg(T('Trete Raum '+code+' bei …','Joining room '+code+' …'));
     const roomRef=fbDb.ref('rooms/'+code);
     let snap;
     try{ snap=await onlTimed(roomRef.once('value'), 8000); }
-    catch(e){ joinBtn.disabled=false; onlMsg('Keine Antwort vom Online-Dienst – Verbindung prüfen und nochmal versuchen.', true); return; }
-    if(!snap.exists()){ joinBtn.disabled=false; onlMsg('Raum '+code+' wurde nicht gefunden.', true); return; }
+    catch(e){ joinBtn.disabled=false; onlMsg(T('Keine Antwort vom Online-Dienst – Verbindung prüfen und nochmal versuchen.','No answer from the online service – check the connection and try again.'), true); return; }
+    if(!snap.exists()){ joinBtn.disabled=false; onlMsg(T('Raum '+code+' wurde nicht gefunden.','Room '+code+' was not found.'), true); return; }
     const v=snap.val();
     const guestBusy = v.players && v.players.guest && v.players.guest.online!==false;
-    if(!v.meta || (v.meta.status!=='waiting' && !v.config) || guestBusy){ joinBtn.disabled=false; onlMsg('Raum '+code+' ist bereits belegt.', true); return; }
+    if(!v.meta || (v.meta.status!=='waiting' && !v.config) || guestBusy){ joinBtn.disabled=false; onlMsg(T('Raum '+code+' ist bereits belegt.','Room '+code+' is already taken.'), true); return; }
     const myId=onlGenId();
     try{
       await onlTimed(roomRef.child('players/guest').set({ id:myId, online:true }), 8000);
       await onlTimed(fbDb.ref('lobby/'+code).remove(), 6000);
-    }catch(e){ joinBtn.disabled=false; onlMsg('Beitreten hat nicht geklappt – Verbindung prüfen und nochmal versuchen.', true); return; }
+    }catch(e){ joinBtn.disabled=false; onlMsg(T('Beitreten hat nicht geklappt – Verbindung prüfen und nochmal versuchen.','Joining failed – check the connection and try again.'), true); return; }
     joinBtn.disabled=false;
     onl={ code, role:'guest', myIdx:1, roomRef, myId, diffKey:v.meta.diffKey, mode:onlModeOf(v.meta), variant:onlVariantOf(v.meta), shared:onlSharedOf(v.meta), stateSeq:0, started:false, finished:false, winner:null, listeners:[] };
     onlSetupPresence(); onlStartHeartbeat();
@@ -5325,7 +5456,7 @@
       onl.mode=onlModeOf(cfg);
       // Schutz vor einem Gastgeber mit neuerer Version, dessen Config wir nicht lesen koennen.
       if(onl.mode==='grid' && typeof cfg.seed!=='number'){
-        onlMsg('Dieser Raum braucht eine neuere Version des Spiels. Lade die Seite neu.', true);
+        onlMsg(T('Dieser Raum braucht eine neuere Version des Spiels. Lade die Seite neu.','This room needs a newer version of the game. Please reload the page.'), true);
         onlShow('onl-lobby'); return;
       }
       const seq=cfg.matchSeq||1;
@@ -5407,8 +5538,8 @@
   function onlUpdateRematchStatus(meReady, oppReady){
     const el=$('onl-rematch-status'); if(!el) return;
     if(meReady) $('onl-rematch-btn').disabled=true;
-    if(meReady && !oppReady) el.textContent='Warte auf Mitspieler …';
-    else if(!meReady && oppReady) el.textContent='Mitspieler möchte nochmal – tippe auf „Nochmal spielen".';
+    if(meReady && !oppReady) el.textContent=T('Warte auf Mitspieler …','Waiting for the other player …');
+    else if(!meReady && oppReady) el.textContent=T('Mitspieler möchte nochmal – tippe auf „Nochmal spielen".','The other player wants a rematch – tap “Play again”.');
     else el.textContent='';
   }
 
@@ -5559,19 +5690,20 @@
     if(onl.mode==='grid'){ onlRenderGridUi(); return; }
     const gs=onl.gs; if(!gs) return;
     const me=gs.players[onl.myIdx], opp=gs.players[1-onl.myIdx];
-    const meLbl=onl.myIdx===0?'Spieler 1':'Spieler 2', oppLbl=onl.myIdx===0?'Spieler 2':'Spieler 1';
+    const spieler=(i)=>T('Spieler ','Player ')+i;
+    const meLbl=spieler(onl.myIdx===0?1:2), oppLbl=spieler(onl.myIdx===0?2:1);
     const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
     const herz=(p)=> p.hearts==null ? '' : ` <span class="herz-anzeige${p.hearts<=2?' knapp':''}">&#9829;&nbsp;<b>${p.hearts}</b></span>`;
-    const stat=(p)=> p.heartsLeer ? '<span class="mp-status lost">✗ keine Herzen mehr</span>' : (p.done?'<span class="mp-status done">✓ im Zentrum</span>':'');
+    const stat=(p)=> p.heartsLeer ? `<span class="mp-status lost">${T('✗ keine Herzen mehr','✗ out of lives')}</span>` : (p.done?`<span class="mp-status done">${T('✓ im Zentrum','✓ in the centre')}</span>`:'');
     $('onl-me-head').className='mp-head '+meCol;
-    $('onl-me-head').innerHTML=`<b>Du</b> (${meLbl}) &middot; Z&uuml;ge <b>${me.moves}</b> ${stat(me)}`;
+    $('onl-me-head').innerHTML=`<b>${T('Du','You')}</b> (${meLbl}) &middot; ${T('Z&uuml;ge','Moves')} <b>${me.moves}</b> ${stat(me)}`;
     setLebenBar($('onl-leben'), me.hearts);   // eigene Leben gross ueber der Steuerung
     $('onl-opp-head').className='mp-head '+oppCol;
-    $('onl-opp-head').innerHTML=`Gegner (${oppLbl}) &middot; Z&uuml;ge <b>${opp.moves}</b>${herz(opp)} ${stat(opp)}`;
+    $('onl-opp-head').innerHTML=`${T('Gegner','Opponent')} (${oppLbl}) &middot; ${T('Z&uuml;ge','Moves')} <b>${opp.moves}</b>${herz(opp)} ${stat(opp)}`;
     const t=$('onl-turn'); t.classList.remove('mine','theirs','over');
-    if(onl.finished){ t.classList.add('over'); t.textContent='Runde beendet.'; }
-    else if(gs.turn===onl.myIdx){ t.classList.add('mine'); t.textContent='Du bist dran!'; }
-    else { t.classList.add('theirs'); t.textContent='Gegner ist dran …'; }
+    if(onl.finished){ t.classList.add('over'); t.textContent=T('Runde beendet.','Round over.'); }
+    else if(gs.turn===onl.myIdx){ t.classList.add('mine'); t.textContent=T('Du bist dran!','Your turn!'); }
+    else { t.classList.add('theirs'); t.textContent=T('Gegner ist dran …','Opponent’s turn …'); }
     const enabled = !onl.finished && gs.turn===onl.myIdx && !me.done;
     document.querySelectorAll('#onl-steps button').forEach(b=>b.disabled=!enabled);
     onlRenderDet();
@@ -5582,11 +5714,11 @@
     const meCol=onl.myIdx===0?'p1':'p2', oppCol=onl.myIdx===0?'p2':'p1';
     const left=(b.coins?b.coins.length:0)+(b.centerItem && !b.centerItem.taken ? 1 : 0);
     $('onl-grid-score').innerHTML=
-      `<span style="color:var(--${meCol})">Du <b>${me.score}</b>${me.dead?' ✗':''}</span> &nbsp;·&nbsp; `
-      + `<span style="color:var(--${oppCol})">Gegner <b>${opp.score}</b>${opp.dead?' ✗':''}</span> &nbsp;·&nbsp; M&uuml;nzen <b>${left}</b>`;
+      `<span style="color:var(--${meCol})">${T('Du','You')} <b>${me.score}</b>${me.dead?' ✗':''}</span> &nbsp;·&nbsp; `
+      + `<span style="color:var(--${oppCol})">${T('Gegner','Opponent')} <b>${opp.score}</b>${opp.dead?' ✗':''}</span> &nbsp;·&nbsp; ${T('M&uuml;nzen','Coins')} <b>${left}</b>`;
     const t=$('onl-turn'); t.classList.remove('mine','theirs','over');
-    if(onl.finished){ t.classList.add('over'); t.textContent='Runde beendet.'; }
-    else { t.classList.add('mine'); t.textContent='Ihr zieht gleichzeitig – sammle die Münzen!'; }
+    if(onl.finished){ t.classList.add('over'); t.textContent=T('Runde beendet.','Round over.'); }
+    else { t.classList.add('mine'); t.textContent=T('Ihr zieht gleichzeitig – sammle die Münzen!','You both move at once – grab the coins!'); }
     const blocked = onl.finished || me.done || Date.now()<me.blinkUntil;
     document.querySelectorAll('#onl-pad button').forEach(btn=>btn.disabled=blocked);
   }
@@ -5610,21 +5742,24 @@
     if(!onl.shared){
       const meMoves = onl.mode==='grid' ? (onl.board?onl.board.figs[0].moves:0) : (onl.cs?onl.cs.moves:0);
       const oppMoves = onl.oppSnap?onl.oppSnap.moves:0;
+      const sieg=`<div class="win-line">${w===onl.myIdx?T('Du gewinnst!','You win!'):T('Gegner gewinnt!','Opponent wins!')}</div>`;
+      const remis=`<div class="win-line">${T('Unentschieden!','Draw!')}</div>`;
       if(onl.reason==='hearts'){
         const meRing=(onl.cs?onl.cs.ringIdx:0)+1, oppRing=((onl.oppSnap&&onl.oppSnap.ringIdx!=null?onl.oppSnap.ringIdx:0)+1);
         $('onl-result').innerHTML = w==='tie'
-          ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (Ring ${meRing}).`
-          : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Herzen leer &ndash; Du Ring ${meRing} &middot; Gegner Ring ${oppRing}.`;
+          ? remis + T(`Beiden gingen die Herzen aus &ndash; gleich weit innen (Ring ${meRing}).`,`Both ran out of lives &ndash; equally far in (ring ${meRing}).`)
+          : sieg + T(`Herzen leer &ndash; Du Ring ${meRing} &middot; Gegner Ring ${oppRing}.`,`Out of lives &ndash; you ring ${meRing} &middot; opponent ring ${oppRing}.`);
       }
       else if(onl.reason==='dead'){
         const ichTot=!!(onl.board&&onl.board.figs[0].dead);
         $('onl-result').innerHTML = w==='tie'
-          ? `<div class="win-line">Unentschieden!</div>Beide wurden erwischt &ndash; gleich weit gekommen.`
-          : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>${ichTot&&w!==onl.myIdx?'Du wurdest erwischt.':(ichTot?'Beide erwischt &ndash; du kamst weiter.':'Der Gegner wurde erwischt.')}`;
+          ? remis + T('Beide wurden erwischt &ndash; gleich weit gekommen.','Both were caught &ndash; equally far along.')
+          : sieg + (ichTot&&w!==onl.myIdx ? T('Du wurdest erwischt.','You were caught.')
+              : (ichTot ? T('Beide erwischt &ndash; du kamst weiter.','Both caught &ndash; you got further.') : T('Der Gegner wurde erwischt.','The opponent was caught.')));
       }
       else $('onl-result').innerHTML = w==='tie'
-        ? `<div class="win-line">Unentschieden!</div>Beide ${meMoves} Z&uuml;ge.`
-        : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Du ${meMoves} &middot; Gegner ${oppMoves} Z&uuml;ge.`;
+        ? remis + T(`Beide ${meMoves} Z&uuml;ge.`,`${meMoves} moves each.`)
+        : sieg + T(`Du ${meMoves} &middot; Gegner ${oppMoves} Z&uuml;ge.`,`You ${meMoves} &middot; opponent ${oppMoves} moves.`);
       $('onl-result').classList.remove('hidden');
       onlSoloRenderHead(); onlShowRematchPanel();
       return;
@@ -5633,31 +5768,34 @@
       const b=onl.board; if(!b) return;
       const me=b.figs[onl.myIdx].score, opp=b.figs[1-onl.myIdx].score;
       const ichTot=!!b.figs[onl.myIdx].dead, erTot=!!b.figs[1-onl.myIdx].dead;
+      const sieg=`<div class="win-line">${w===onl.myIdx?T('Du gewinnst!','You win!'):T('Gegner gewinnt!','Opponent wins!')}</div>`;
+      const remis=`<div class="win-line">${T('Unentschieden!','Draw!')}</div>`;
       if(onl.reason==='dead'){
         $('onl-result').innerHTML = w==='tie'
-          ? `<div class="win-line">Unentschieden!</div>Beide wurden erwischt &ndash; ${me} Punkte je.`
-          : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>`
-            + (ichTot&&erTot ? `Beide erwischt &ndash; Du ${me} : ${opp} Gegner.` : (ichTot?'Du wurdest erwischt.':'Der Gegner wurde erwischt.'));
+          ? remis + T(`Beide wurden erwischt &ndash; ${me} Punkte je.`,`Both were caught &ndash; ${me} points each.`)
+          : sieg + (ichTot&&erTot ? T(`Beide erwischt &ndash; Du ${me} : ${opp} Gegner.`,`Both caught &ndash; you ${me} : ${opp} opponent.`)
+              : (ichTot?T('Du wurdest erwischt.','You were caught.'):T('Der Gegner wurde erwischt.','The opponent was caught.')));
       }
       else $('onl-result').innerHTML = w==='tie'
-        ? `<div class="win-line">Unentschieden!</div>Beide ${me} Punkte.`
-        : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Du ${me} : ${opp} Gegner.`;
+        ? remis + T(`Beide ${me} Punkte.`,`${me} points each.`)
+        : sieg + T(`Du ${me} : ${opp} Gegner.`,`You ${me} : ${opp} opponent.`);
       $('onl-result').classList.remove('hidden');
       onlShowRematchPanel();
       return;
     }
     const gs=onl.gs;
+    const gewinn=`<div class="win-line">${w===onl.myIdx?T('Du gewinnst!','You win!'):T('Gegner gewinnt!','Opponent wins!')}</div>`;
     if(onl.reason==='hearts'){
-      const ring=i=>`Ring ${gs.players[i].ringIdx+1}`;
+      const ring=i=>`${T('Ring','ring')} ${gs.players[i].ringIdx+1}`;
       $('onl-result').innerHTML = w==='tie'
-        ? `<div class="win-line">Unentschieden!</div>Beiden gingen die Herzen aus &ndash; gleich weit innen (${ring(0)}).`
-        : `<div class="win-line">${w===onl.myIdx?'Du gewinnst!':'Gegner gewinnt!'}</div>Herzen leer &ndash; am weitesten innen: ${ring(w)} gegen ${ring(1-w)}.`;
+        ? `<div class="win-line">${T('Unentschieden!','Draw!')}</div>` + T(`Beiden gingen die Herzen aus &ndash; gleich weit innen (${ring(0)}).`,`Both ran out of lives &ndash; equally far in (${ring(0)}).`)
+        : gewinn + T(`Herzen leer &ndash; am weitesten innen: ${ring(w)} gegen ${ring(1-w)}.`,`Out of lives &ndash; furthest in: ${ring(w)} against ${ring(1-w)}.`);
       $('onl-result').classList.remove('hidden');
       onlShowRematchPanel();
       return;
     }
-    const mine=(w===onl.myIdx);
-    $('onl-result').innerHTML=`<div class="win-line">${mine?'Du gewinnst!':'Gegner gewinnt!'}</div>Zuerst im Zentrum in ${gs.players[w].doneAtMove||gs.players[w].moves} Z&uuml;gen.`;
+    $('onl-result').innerHTML=gewinn + T(`Zuerst im Zentrum in ${gs.players[w].doneAtMove||gs.players[w].moves} Z&uuml;gen.`,
+                                         `First to the centre in ${gs.players[w].doneAtMove||gs.players[w].moves} moves.`);
     $('onl-result').classList.remove('hidden');
     onlShowRematchPanel();
   }
@@ -5671,9 +5809,9 @@
     if(raceDuel && raceDuel.kind==='online' && race){
       race.alive=false; raceClearTimers(); clearTimeout(race.resultFallbackT);
       raceRenderDuel();
-      raceOverlay(`<b>${hostLeft?'Der Gastgeber hat den Raum geschlossen.':'Dein Gegner hat den Raum verlassen.'}</b>`
-        +`<br>Dein Stand: <b>${race.score}</b> Punkte.`,
-        [{label:'Zur&uuml;ck zur Lobby', primary:true, fn:onlLeave}]);
+      raceOverlay(`<b>${hostLeft?T('Der Gastgeber hat den Raum geschlossen.','The host closed the room.'):T('Dein Gegner hat den Raum verlassen.','Your opponent left the room.')}</b>`
+        +T(`<br>Dein Stand: <b>${race.score}</b> Punkte.`,`<br>Your score: <b>${race.score}</b> points.`),
+        [{label:T('Zur&uuml;ck zur Lobby','Back to the lobby'), primary:true, fn:onlLeave}]);
       return;                                   // Racing hat seinen eigenen Bildschirm
     }
     if(hostLeft){ try{ onl.roomRef.child('players/'+onl.role).remove(); onl.roomRef.child('meta').remove(); onl.roomRef.child('state/'+onl.role).remove(); }catch(e){} }
@@ -5681,7 +5819,7 @@
     if(onl.cs) onl.cs.mounted=false;
     $('onl-rematch').classList.add('hidden');   // ohne Mitspieler kein Rematch
     const t=$('onl-turn'); t.classList.remove('mine','theirs'); t.classList.add('over'); t.classList.remove('hidden');
-    t.textContent = hostLeft ? 'Der Gastgeber hat den Raum geschlossen.' : 'Dein Gegner hat den Raum verlassen.';
+    t.textContent = hostLeft ? T('Der Gastgeber hat den Raum geschlossen.','The host closed the room.') : T('Dein Gegner hat den Raum verlassen.','Your opponent left the room.');
     document.querySelectorAll('#onl-steps button, #onl-pad button, #onl-csolo-steps button').forEach(b=>b.disabled=true);
     document.querySelectorAll('#onl-gsolo-frame .pad-zone, #onl-gsolo-frame .pad-stay').forEach(e=>e.style.pointerEvents='none');
   }
@@ -5726,7 +5864,9 @@
     const circGer = currentMode==='circle' && circleVariant==='gerangel';
     $('winmode-block').classList.toggle('hidden', racing || playerCount!==2 || gerangel || circGer);
     $('open-online').classList.remove('hidden');
-    const dc=$('diff-caption'); if(dc) dc.textContent = racing ? 'Strecke' : 'Schwierigkeit';
+    const dc=$('diff-caption');
+    if(dc) dc.innerHTML = (racing ? T('Strecke','Track') : T('Schwierigkeit','Difficulty'))
+      + ` <span class="cap-hint">${T('&ndash; wischen, dann antippen','&ndash; swipe, then tap')}</span>`;
   }
   // Die Vorschau zeigt die gewaehlte Variante – nach einem Wechsel neu aufbauen.
   function refreshPreviews(){
@@ -5796,8 +5936,20 @@
   DIFF_KEYS.forEach(key=>{
     const theme=THEMES[key];
     const btn=el('button','diff-card'); btn.style.backgroundImage=`url("${svgUrl(theme.svg)}")`;
-    btn.innerHTML=`<b class="stufe">${theme.sub}</b><span class="ort">${theme.title}</span>`;
+    btn.dataset.diffKey=key;
+    btn.innerHTML=`<b class="stufe">${themeSub(theme)}</b><span class="ort">${themeTitle(theme)}</span>`;
     diffGrid.appendChild(btn);
+  });
+  // Nach einem Sprachwechsel nur beschriften – Karten neu zu bauen wuerde das Karussell zuruecksetzen
+  onLangChange(()=>{
+    diffGrid.querySelectorAll('.diff-card').forEach(btn=>{
+      const theme=THEMES[btn.dataset.diffKey]; if(!theme) return;
+      btn.innerHTML=`<b class="stufe">${themeSub(theme)}</b><span class="ort">${themeTitle(theme)}</span>`;
+    });
+    // Themenliste der Online-Lobby traegt dieselben Namen
+    const ts=$('onl-theme'); if(ts){ const merk=ts.value;
+      Array.from(ts.options).forEach(o=>{ const th=THEMES[o.value]; if(th) o.textContent=themeTitle(th)+' ('+themeSub(th)+')'; });
+      ts.value=merk; }
   });
   function startDiff(key){
     sfx('click');
@@ -5838,28 +5990,35 @@
 
   // ===================== EDITOR =====================
   const ED_KEY='regel-detektiv-users';
-  const POSE_OPTS=[['random','Zufällig'],['neutral','Neutral'],
-    ['move:1','Bewegung +1 (fest)'],['move:2','Bewegung +2 (fest)'],['move:-1','Bewegung −1 (fest)'],['move:-2','Bewegung −2 (fest)'],
-    ['move:c1','Bewegung Schrittzahl +1'],['move:c-1','Bewegung Schrittzahl −1'],['move:rev','Bewegung umkehren'],
-    ['rot:1','Rotation +1 (fest)'],['rot:-1','Rotation −1 (fest)'],['rot:c1','Rotation Schrittzahl +1'],['rot:c-1','Rotation Schrittzahl −1'],['rot:rev','Rotation umkehren']];
+  // Editor-Auswahllisten. Zweite Spalte deutsch, dritte englisch – gefuellt wird in der aktuellen Sprache.
+  const POSE_OPTS=[['random','Zufällig','Random'],['neutral','Neutral','Neutral'],
+    ['move:1','Bewegung +1 (fest)','Movement +1 (fixed)'],['move:2','Bewegung +2 (fest)','Movement +2 (fixed)'],['move:-1','Bewegung −1 (fest)','Movement −1 (fixed)'],['move:-2','Bewegung −2 (fest)','Movement −2 (fixed)'],
+    ['move:c1','Bewegung Schrittzahl +1','Movement step count +1'],['move:c-1','Bewegung Schrittzahl −1','Movement step count −1'],['move:rev','Bewegung umkehren','Reverse movement'],
+    ['rot:1','Rotation +1 (fest)','Rotation +1 (fixed)'],['rot:-1','Rotation −1 (fest)','Rotation −1 (fixed)'],['rot:c1','Rotation Schrittzahl +1','Rotation step count +1'],['rot:c-1','Rotation Schrittzahl −1','Rotation step count −1'],['rot:rev','Rotation umkehren','Reverse rotation']];
   function poseFromVal(v){ if(v==='random') return null; if(v==='neutral') return {kind:'neutral'}; const p=v.split(':'); const target=p[0]==='move'?'move':'rotate'; if(p[1]==='rev') return {target,kind:'reverse'}; if(p[1][0]==='c') return {target,kind:'chadd',amount:parseInt(p[1].slice(1),10)}; return {target,kind:'offset',amount:parseInt(p[1],10)}; }
   function edUsersLoad(){ try{ return JSON.parse(localStorage.getItem(ED_KEY))||{}; }catch(e){ return {}; } }
   function edUsersSave(u){ localStorage.setItem(ED_KEY, JSON.stringify(u)); }
   let edUsers=edUsersLoad();
-  [ 'ed-pose2','ed-pose3' ].forEach(id=>{ const s=$(id); POSE_OPTS.forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=t; s.appendChild(o); }); });
-
-  const ZONE_EFFECT_OPTS=[['random','Zufällig'],['normal','Neutral (keine)'],['invert','180° Umkehr'],['mirror','Links/Rechts spiegeln'],['rotateCW','90° im Uhrzeigersinn'],['rotateCCW','90° gegen Uhrzeigersinn'],['swapAxes','Achsen tauschen']];
-  const STEP_OPTS=[['random','Zufällig'],['normal','so viele wie gewählt'],['reverse','rückwärts'],['half','halbe Schrittzahl'],['double','doppelte Schrittzahl']];
-  const ROT_OPTS=[['random','Zufällig'],['still','steht still'],['sync','mit (gleiches Vorz.)'],['counter','Gegenrichtung'],['halfRot','halbe Rotation'],
-    ['fixP1','immer +1 (fest)'],['fixP2','immer +2 (fest)'],['fixM1','immer −1 (fest)'],['fixM2','immer −2 (fest)'],
-    ['synP1','Schrittzahl +1'],['synP2','Schrittzahl +2'],['synM1','Schrittzahl −1'],['synM2','Schrittzahl −2']];
-  function fillSel(sel, opts, prefix){ opts.forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=(prefix||'')+t; sel.appendChild(o); }); }
+  const ZONE_EFFECT_OPTS=[['random','Zufällig','Random'],['normal','Neutral (keine)','Neutral (none)'],['invert','180° Umkehr','180° flip'],['mirror','Links/Rechts spiegeln','Mirror left/right'],['rotateCW','90° im Uhrzeigersinn','90° clockwise'],['rotateCCW','90° gegen Uhrzeigersinn','90° counter-clockwise'],['swapAxes','Achsen tauschen','Swap axes']];
+  const STEP_OPTS=[['random','Zufällig','Random'],['normal','so viele wie gewählt','as many as picked'],['reverse','rückwärts','backwards'],['half','halbe Schrittzahl','half the step count'],['double','doppelte Schrittzahl','double the step count']];
+  const ROT_OPTS=[['random','Zufällig','Random'],['still','steht still','stands still'],['sync','mit (gleiches Vorz.)','with you (same sign)'],['counter','Gegenrichtung','opposite direction'],['halfRot','halbe Rotation','half rotation'],
+    ['fixP1','immer +1 (fest)','always +1 (fixed)'],['fixP2','immer +2 (fest)','always +2 (fixed)'],['fixM1','immer −1 (fest)','always −1 (fixed)'],['fixM2','immer −2 (fest)','always −2 (fixed)'],
+    ['synP1','Schrittzahl +1','step count +1'],['synP2','Schrittzahl +2','step count +2'],['synM1','Schrittzahl −1','step count −1'],['synM2','Schrittzahl −2','step count −2']];
+  // Leert die Liste und fuellt sie in der aktuellen Sprache neu (Auswahl bleibt erhalten)
+  function fillSel(sel, opts, prefix){
+    const merk=sel.value; sel.innerHTML='';
+    opts.forEach(([v,de,en])=>{ const o=el('option'); o.value=v; o.textContent=(prefix||'')+T(de,en||de); sel.appendChild(o); });
+    if(merk) sel.value=merk;
+  }
+  [ 'ed-pose2','ed-pose3' ].forEach(id=>fillSel($(id), POSE_OPTS));
   fillSel($('ed-fig'), STEP_OPTS, '');
+  // Nach einem Sprachwechsel die im Code gebauten Listen neu beschriften
+  onLangChange(()=>{ ['ed-pose2','ed-pose3'].forEach(id=>fillSel($(id), POSE_OPTS)); fillSel($('ed-fig'), STEP_OPTS, ''); });
   function edBuildZoneRows(){
     const host=$('ed-zone-rows'); const prev=Array.from(host.querySelectorAll('select')).map(s=>s.value); host.innerHTML='';
     ZONE_COLORS.forEach((zc,i)=>{
       const row=el('div','ed-adv-item'); const sw=el('span','swatch'); sw.style.background=`rgb(${zc.tint})`;
-      const lbl=el('span','lbl'); lbl.textContent=zc.name; const sel=el('select'); fillSel(sel,ZONE_EFFECT_OPTS);
+      const lbl=el('span','lbl'); lbl.textContent=zoneName(zc); const sel=el('select'); fillSel(sel,ZONE_EFFECT_OPTS);
       if(prev[i]) sel.value=prev[i]; row.appendChild(sw); row.appendChild(lbl); row.appendChild(sel); host.appendChild(row);
     });
   }
@@ -5868,8 +6027,8 @@
     const pr=Array.from(host.querySelectorAll('select.rot')).map(s=>s.value);
     host.innerHTML='';
     for(let i=0;i<n;i++){
-      const row=el('div','ed-adv-item'); const lbl=el('span','lbl'); lbl.textContent='Ring '+(i+1);
-      const s2=el('select'); s2.className='rot'; fillSel(s2,ROT_OPTS,'Dreht: ');
+      const row=el('div','ed-adv-item'); const lbl=el('span','lbl'); lbl.textContent=T('Ring ','Ring ')+(i+1);
+      const s2=el('select'); s2.className='rot'; fillSel(s2,ROT_OPTS,T('Dreht: ','Turns: '));
       if(pr[i]) s2.value=pr[i];
       row.appendChild(lbl); row.appendChild(s2); host.appendChild(row);
     }
@@ -5888,7 +6047,7 @@
     for(let i=0;i<n;i++){
       const wrap=el('label','ed-jump-cell'); wrap.style.display='inline-flex'; wrap.style.flexDirection='column'; wrap.style.fontSize='0.72rem'; wrap.style.color='var(--muted)';
       wrap.textContent='Eingabe '+(i+1);
-      const sel=el('select'); [['1','1 Feld'],['2','2 Felder']].forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=t; sel.appendChild(o); });
+      const sel=el('select'); [['1',T('1 Feld','1 cell')],['2',T('2 Felder','2 cells')]].forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=t; sel.appendChild(o); });
       sel.value=prev[i]||'1'; wrap.appendChild(sel); host.appendChild(wrap);
     }
   }
@@ -5926,7 +6085,7 @@
   function edBuildRaceRows(){
     const host=$('ed-race-rows'); const n=clamp(edN('ed-rzones')||2,1,4);
     const prev=Array.from(host.querySelectorAll('select')).map(s=>s.value); host.innerHTML='';
-    const opts=[['random','Zufällig'],['none','Neutral (keine)']].concat(RACE_DIST_POOL.map(k=>[k, RACE_DIST_SHORT[k]||k]));
+    const opts=[['random','Zufällig'],['none','Neutral (keine)']].concat(RACE_DIST_POOL.map(k=>[k, raceDistShort(k)]));
     ZONE_COLORS.slice(0,n).forEach((zc,i)=>{
       const row=el('div','ed-adv-item'); const sw=el('span','swatch'); sw.style.background=`rgb(${zc.tint})`;
       const lbl=el('span','lbl'); lbl.textContent=zc.name;
@@ -5989,7 +6148,7 @@
   }
   function edPopulateUsers(){
     const s=$('ed-user'); s.innerHTML=''; const names=Object.keys(edUsers);
-    if(!names.length){ const o=el('option'); o.value=''; o.textContent='(kein Profil)'; s.appendChild(o); }
+    if(!names.length){ const o=el('option'); o.value=''; o.textContent=T('(kein Profil)','(no profile)'); s.appendChild(o); }
     names.forEach(n=>{ const o=el('option'); o.value=n; o.textContent=n; s.appendChild(o); });
   }
   function openEditor(){ musicSetTrack('menu'); teardownActive(); hideAllScreens(); $('editor-screen').classList.remove('hidden'); document.body.style.backgroundImage=''; edPopulateUsers(); edRefresh(); }
@@ -6041,9 +6200,9 @@
   $('open-editor').addEventListener('click', openEditor);
 
   // ---- Online-Modus verkabeln ----
-  Object.keys(THEMES).forEach(k=>{ const o=el('option'); o.value=k; o.textContent=THEMES[k].title+' ('+THEMES[k].sub+')'; $('onl-theme').appendChild(o); });
+  Object.keys(THEMES).forEach(k=>{ const o=el('option'); o.value=k; o.textContent=themeTitle(THEMES[k])+' ('+themeSub(THEMES[k])+')'; $('onl-theme').appendChild(o); });
   $('onl-theme').value='mittel';
-  const ONL_VARIANTS={ grid:[['gerangel','Gerangel'],['spurensuche','Spurensuche']], circle:[['gerangel','Gerangel'],['duell','Duell']], racing:[['duell','Duell']] };
+  function onlVariants(){ return { grid:[['gerangel',T('Gerangel','Scramble')],['spurensuche',T('Spurensuche','Trail')]], circle:[['gerangel',T('Gerangel','Scramble')],['duell',T('Duell','Duel')]], racing:[['duell',T('Duell','Duel')]] }; }
   function onlLobbyRefresh(){
     const prof=$('onl-profile').value;
     // Bei gewähltem Editor-Profil bestimmen dessen Regeln Modus/Variante/Theme – Selects sperren.
@@ -6052,8 +6211,8 @@
     if(!locked){
       const mode=$('onl-mode').value;
       const cur=$('onl-gvariant').value;
-      $('onl-gvariant').innerHTML=''; ONL_VARIANTS[mode].forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=t; $('onl-gvariant').appendChild(o); });
-      if(ONL_VARIANTS[mode].some(([v])=>v===cur)) $('onl-gvariant').value=cur;
+      $('onl-gvariant').innerHTML=''; const OV=onlVariants(); OV[mode].forEach(([v,t])=>{ const o=el('option'); o.value=v; o.textContent=t; $('onl-gvariant').appendChild(o); });
+      if(OV[mode].some(([v])=>v===cur)) $('onl-gvariant').value=cur;
     }
     const spec = locked ? ovFromSpec(edUsers[prof]) : null;
     const variant = locked ? spec.variant : $('onl-gvariant').value;
@@ -6064,8 +6223,8 @@
   }
   function onlPopulateProfiles(){
     const s=$('onl-profile'); const names=Object.keys(edUsers=edUsersLoad());
-    s.innerHTML='<option value="">— Standard —</option>';
-    names.forEach(n=>{ const o=el('option'); o.value=n; o.textContent='Editor: '+n; s.appendChild(o); });
+    s.innerHTML='<option value=""'+'>'+T('— Standard —','— Default —')+'</option>';
+    names.forEach(n=>{ const o=el('option'); o.value=n; o.textContent=T('Editor: ','Editor: ')+n; s.appendChild(o); });
   }
   $('onl-mode').addEventListener('change', onlLobbyRefresh);
   $('onl-gvariant').addEventListener('change', onlLobbyRefresh);
@@ -6099,8 +6258,8 @@
   ['ed-mode','ed-variant','ed-rule','ed-haz'].forEach(id=>$(id).addEventListener('change', edRefresh));
   ['ed-size','ed-hazn','ed-haztick','ed-coins','ed-mile','ed-rings'].forEach(id=>$(id).addEventListener('input', edRefresh));
   $('ed-back').addEventListener('click', backToMenu);
-  $('ed-add').addEventListener('click', ()=>{ const name=$('ed-newname').value.trim(); if(!name) return; if(!edUsers[name] && Object.keys(edUsers).length>=10){ alert('Maximal 10 Profile.'); return; } edUsers[name]=edCollect(); edUsersSave(edUsers); $('ed-newname').value=''; edPopulateUsers(); $('ed-user').value=name; });
-  $('ed-save').addEventListener('click', ()=>{ const n=$('ed-user').value; if(!n) return; edUsers[n]=edCollect(); edUsersSave(edUsers); $('ed-save').textContent='Gespeichert ✓'; setTimeout(()=>$('ed-save').textContent='Speichern',1200); });
+  $('ed-add').addEventListener('click', ()=>{ const name=$('ed-newname').value.trim(); if(!name) return; if(!edUsers[name] && Object.keys(edUsers).length>=10){ alert(T('Maximal 10 Profile.','Up to 10 profiles.')); return; } edUsers[name]=edCollect(); edUsersSave(edUsers); $('ed-newname').value=''; edPopulateUsers(); $('ed-user').value=name; });
+  $('ed-save').addEventListener('click', ()=>{ const n=$('ed-user').value; if(!n) return; edUsers[n]=edCollect(); edUsersSave(edUsers); $('ed-save').textContent=T('Gespeichert ✓','Saved ✓'); setTimeout(()=>$('ed-save').textContent=T('Speichern','Save'),1200); });
   $('ed-load').addEventListener('click', ()=>{ const n=$('ed-user').value; if(n&&edUsers[n]) edApply(edUsers[n]); });
   $('ed-del').addEventListener('click', ()=>{ const n=$('ed-user').value; if(n&&edUsers[n]){ delete edUsers[n]; edUsersSave(edUsers); edPopulateUsers(); } });
   $('ed-user').addEventListener('change', ()=>{ const n=$('ed-user').value; if(n&&edUsers[n]) edApply(edUsers[n]); });
@@ -6159,9 +6318,9 @@
   $('mpc-reveal').addEventListener('click',mpShowReveal);
   $('mpc-again').addEventListener('click',()=>{ if(mp) mpStart(mp.config.diffKey, mp.ov, mp.circVar||'duell'); });
   $('mpc-back').addEventListener('click',backToMenu);
-  $('mpc-log-btn').addEventListener('click',()=>{ if(mp&&mp.players) openLog(()=>[{label:'Spieler 1',cls:'p1',log:mp.players[0].cs.log},{label:'Spieler 2',cls:'p2',log:mp.players[1].cs.log}]); });
+  $('mpc-log-btn').addEventListener('click',()=>{ if(mp&&mp.players) openLog(()=>[{label:T('Spieler 1','Player 1'),cls:'p1',log:mp.players[0].cs.log},{label:T('Spieler 2','Player 2'),cls:'p2',log:mp.players[1].cs.log}]); });
   $('mpcg-reveal').addEventListener('click',mpcgShowReveal);
-  $('mpcg-log-btn').addEventListener('click',()=>{ if(mp&&mp.gs) openLog(()=>[{label:'Spieler 1',cls:'p1',log:mp.gs.players[0].log},{label:'Spieler 2',cls:'p2',log:mp.gs.players[1].log}]); });
+  $('mpcg-log-btn').addEventListener('click',()=>{ if(mp&&mp.gs) openLog(()=>[{label:T('Spieler 1','Player 1'),cls:'p1',log:mp.gs.players[0].log},{label:T('Spieler 2','Player 2'),cls:'p2',log:mp.gs.players[1].log}]); });
   $('mpcg-again').addEventListener('click',()=>{ if(mp&&mp.gs){ teardownActive(); hideAllScreens(); mpcgStart(mp.gs.diffKey, mp.ov); } });
   $('mpcg-back').addEventListener('click',backToMenu);
 
@@ -6196,6 +6355,13 @@
   })();
   applyRevealOption();
   wireModeOpts();
+
+  // Sprachwahl aktivieren. Die Menue-Ansichten bauen sich nach dem Wechsel neu auf.
+  document.querySelectorAll('#lang-pick button').forEach(b=>{
+    b.addEventListener('click',()=>{ if(b.dataset.lang===lang) return; setLang(b.dataset.lang); });
+  });
+  onLangChange(()=>{ updateMenuVisibility(); refreshPreviews(); edRefresh(); onlPopulateProfiles(); onlLobbyRefresh(); });
+  setLang(lang);
 
   // ===================== KEYBOARD =====================
   let zeroHeld=false;
