@@ -65,6 +65,10 @@
   .opt-zeile{margin:8px 0 0; display:flex; align-items:center; gap:9px; cursor:pointer; font-size:0.9rem;}
   .opt-zeile input[type=checkbox]{width:17px; height:17px; accent-color:var(--gold); flex:0 0 auto;}
   .opt-hilfe{margin:5px 0 0 26px; font-size:0.76rem; line-height:1.45; color:var(--muted);}
+  /* Waehrend einer Partie bleiben nur die Optionen stehen, die sofort wirken. */
+  .nur-menue-hinweis{display:none;}
+  body.playing #settings-modal .nur-menue{display:none;}
+  body.playing #settings-modal .nur-menue-hinweis{display:block; margin-left:0;}
 
   /* ===== gear / settings modal ===== */
   #gear-btn{
@@ -261,6 +265,12 @@
   .race-cell{border-radius:3px; position:relative; z-index:1; background:transparent;}
   /* Gitterlinien tragen die Brettfarbe des Schwierigkeitsgrads – wie das Feld-Brett auch */
   .race-grid:not(.free) .race-cell{box-shadow:0 0 0 1px rgba(var(--board-rgb,8,12,20),0.92);}
+  /* Ziellinie: eine Zeile im Karomuster, quer ueber die ganze Strecke */
+  .race-cell.ziel{
+    background:
+      repeating-conic-gradient(#f8fafc 0% 25%, #1e293b 0% 50%) 0 0/50% 50%;
+    box-shadow:0 0 0 1px rgba(var(--board-rgb,8,12,20),0.92), 0 0 12px rgba(250,204,21,0.55);
+  }
   /* Untergrund je Farbzone. Die Muster liegen ueber der Zonenfarbe; ihre Position wird je Zeile
      mitgefuehrt (row.py), damit sie nahtlos ueber die Kaestchengrenzen laufen und mitscrollen.
      Mehrere Lagen mit teilerfremden Kachelgroessen ergeben ein unregelmaessiges, fragmentiertes Bild. */
@@ -985,6 +995,7 @@
     <div class="ed-row"><label class="small"><span data-en="Bomb density">Bomben-Dichte</span>: <b id="ed-rbomb-val"></b> %</label><input type="range" id="ed-rbomb" min="0" max="50" step="2"></div>
     <div class="ed-row"><label class="small"><span data-en="Coin frequency">M&uuml;nz-H&auml;ufigkeit</span>: <b id="ed-rcoin-val"></b> %</label><input type="range" id="ed-rcoin" min="0" max="40" step="2"></div>
     <div class="ed-row"><label><input type="checkbox" id="ed-rgrid" checked> <span data-en="Grid based (off = free driving)">K&auml;stchenbasiert (aus = freie Fahrt)</span></label></div>
+    <div class="ed-row"><label><input type="checkbox" id="ed-rendless"> <span data-en="Endless (off = finish line after 2:30)">Endlos (aus = Ziellinie nach 2:30)</span></label></div>
     <div class="ed-row"><label><input type="checkbox" id="ed-rrockets"> <span data-en="Rockets (they dodge sideways)">Raketen (weichen seitlich aus)</span></label></div>
     <div class="ed-row" id="ed-rthrust-row"><label><input type="checkbox" id="ed-rthrust"> <span data-en="Powered rockets (they come at you)">Raketen mit Antrieb (kommen dir entgegen)</span></label></div>
     <details class="ed-adv"><summary data-en="Advanced: rule per colour zone">Erweitert: Regel je Farbzone</summary>
@@ -1313,7 +1324,9 @@
     <div class="opt-hilfe" data-en="Off: the &#8220;?&#8221; button only explains the controls. On: it also reveals the hidden rules &ndash; and turns orange as a warning.">Aus: Der „?"-Knopf erkl&auml;rt nur die Steuerung. An: Er verr&auml;t zus&auml;tzlich die verborgenen Regeln &ndash; und wird zur Warnung orange.</div>
     <button class="action" id="sound-test" style="width:100%; margin-top:14px;" data-en="&#128264; Test sound">&#128264; Ton testen</button>
 
-    <div class="opt-gruppe">
+    <div class="nur-menue-hinweis opt-hilfe" style="margin:16px 0 0 0;" data-en="Rule options are hidden while a round is running &ndash; they only take effect from the next round anyway.">Regel-Optionen sind w&auml;hrend einer laufenden Partie ausgeblendet &ndash; sie gelten ohnehin erst ab der n&auml;chsten Runde.</div>
+
+    <div class="opt-gruppe nur-menue">
       <div class="opt-titel" data-en="&#128506; Field mode">&#128506; Feld-Modus</div>
       <label class="opt-zeile">
         <input type="checkbox" id="opt-grid-deathless" checked>
@@ -1322,22 +1335,27 @@
       <div class="opt-hilfe" data-en="On: after a bomb or a dog you carry on from the start. Off: contact ends the round at once.">An: Nach einer Bombe oder einem Hund geht es vom Start weiter. Aus: Ber&uuml;hrung beendet die Partie sofort.</div>
     </div>
 
-    <div class="opt-gruppe">
+    <div class="opt-gruppe nur-menue">
       <div class="opt-titel" data-en="&#127950; Racing mode">&#127950; Racing-Modus</div>
       <label class="opt-zeile">
         <input type="checkbox" id="opt-race-grid" checked>
         <span data-en="Grid based">K&auml;stchenbasiert</span>
       </label>
       <div class="opt-hilfe" data-en="On: the car hops from cell to cell. Off: free driving &ndash; the car moves as long as you hold the key.">An: Das Auto springt von K&auml;stchen zu K&auml;stchen. Aus: freie Fahrt &ndash; das Auto f&auml;hrt, solange du die Taste h&auml;ltst.</div>
+      <label class="opt-zeile">
+        <input type="checkbox" id="opt-race-endless">
+        <span data-en="Endless">Endlos</span>
+      </label>
+      <div class="opt-hilfe" data-en="Off: after 2:30 of driving a finish line comes in &ndash; drive through it and you have won. On: the track never ends.">Aus: Nach 2:30 Fahrzeit kommt eine Ziellinie &ndash; wer sie durchf&auml;hrt, hat gewonnen. An: Die Strecke h&ouml;rt nie auf.</div>
     </div>
 
     <div class="opt-gruppe">
       <div class="opt-titel" data-en="&#11093; Circle mode">&#11093; Kreis-Modus</div>
-      <label class="opt-zeile">
+      <label class="opt-zeile nur-menue">
         <input type="checkbox" id="opt-circle-deathless">
         <span>Deathless</span>
       </label>
-      <div class="opt-hilfe" data-en="On: no lives and no heart fields &ndash; you get as many moves as you like.">An: ohne Herzen und ohne Herzfelder &ndash; du hast beliebig viele Z&uuml;ge.</div>
+      <div class="opt-hilfe nur-menue" data-en="On: no lives and no heart fields &ndash; you get as many moves as you like.">An: ohne Herzen und ohne Herzfelder &ndash; du hast beliebig viele Z&uuml;ge.</div>
       <label class="small" style="margin:12px 0 2px; display:block;"><span data-en="Animation speed">Animations-Tempo</span>: <b class="speed-val">1&times;</b></label>
       <input type="range" class="speed-slider" min="0.25" max="3" step="0.25" value="1" style="width:100%;">
       <div class="opt-hilfe" style="margin-left:0;" data-en="How fast figure and rings turn. It also scales the walking animation in field mode.">Wie schnell Figur und Ringe drehen. Skaliert nebenbei auch die Laufanimation im Feld-Modus.</div>
@@ -1370,8 +1388,9 @@
     </details>
     <details class="ed-adv">
       <summary data-en="Racing mode">Racing-Modus</summary>
-      <div class="intro" style="margin-top:8px;" data-en="Your car drives along the bottom edge while the road rushes towards you. <b>&#9664; / &#9654;</b> steer, <b>A</b> lifts the car 2.5 cells (then a 3-cell cooldown), <b>B</b> keeps the current colour rule for 2 rows &ndash; even if you leave the zone. Bombs and rockets end the run, coins score points. As in field and circle mode the <b>colour zones</b> twist your input, and they do it in secret: working them out is the actual job. A hit only counts once car and obstacle clearly overlap &ndash; clipping the edge is still fine.<br><br><b>Free driving</b> (switch off &#8222;Grid based&#8221; in the settings): this drops the cell grid. The car keeps moving sideways <b>as long as you hold the key</b>, and obstacles, coins and rockets sit freely on the road instead of in cells &ndash; rockets keep picking new lines. The sideways rules no longer change the number of cells but the <b>speed</b>: where it would otherwise say &#8222;two cells&#8221;, the car simply drives twice as fast. In an online duel free driving stays off so both devices race under the same rules.">
+      <div class="intro" style="margin-top:8px;" data-en="Your car drives along the bottom edge while the road rushes towards you. <b>&#9664; / &#9654;</b> steer, <b>A</b> lifts the car 2.5 cells (then a 3-cell cooldown), <b>B</b> keeps the current colour rule for 2 rows &ndash; even if you leave the zone. Bombs and rockets end the run, coins score points. As in field and circle mode the <b>colour zones</b> twist your input, and they do it in secret: working them out is the actual job. A hit only counts once car and obstacle clearly overlap &ndash; clipping the edge is still fine.<br><br><b>Finish line:</b> with &#8222;Endless&#8221; switched off in the settings a chequered finish line comes in after <b>2:30</b> of driving &ndash; drive through it and you have won. With &#8222;Endless&#8221; on you drive as before, until something gets you.<br><br><b>Free driving</b> (switch off &#8222;Grid based&#8221; in the settings): this drops the cell grid. The car keeps moving sideways <b>as long as you hold the key</b>, and obstacles, coins and rockets sit freely on the road instead of in cells &ndash; rockets keep picking new lines. The sideways rules no longer change the number of cells but the <b>speed</b>: where it would otherwise say &#8222;two cells&#8221;, the car simply drives twice as fast. In an online duel free driving stays off so both devices race under the same rules.">
         Dein Auto f&auml;hrt am unteren Rand, die Strecke kommt dir entgegen. <b>&#9664; / &#9654;</b> lenken, <b>A</b> hebt das Auto 2,5 Felder ab (danach 3 Felder Pause), <b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei &ndash; auch wenn du die Zone wechselst. Bomben und Raketen bedeuten das Aus, M&uuml;nzen bringen Punkte. Wie im Feld- und Kreis-Modus verzerren die <b>Farbzonen</b> deine Eingaben, und zwar verborgen: Herausfinden ist die eigentliche Aufgabe. Getroffen wird erst, wenn sich Auto und Hindernis deutlich &uuml;berdecken &ndash; ein Streifen am Rand geht noch gut.<br><br>
+        <b>Ziellinie:</b> Ist in den Einstellungen „Endlos" aus, kommt nach <b>2:30</b> Fahrzeit eine karierte Ziellinie herein &ndash; wer sie durchf&auml;hrt, hat gewonnen. Mit „Endlos" f&auml;hrst du wie bisher, bis es dich erwischt.<br><br>
         <b>Freie Fahrt</b> (in den Einstellungen „K&auml;stchenbasiert" abschalten): Damit f&auml;llt die K&auml;stchenbindung weg. Das Auto f&auml;hrt seitlich, <b>solange du die Taste gedr&uuml;ckt h&auml;ltst</b>, und Hindernisse, M&uuml;nzen und Raketen liegen frei auf der Strecke statt in Feldern &ndash; Raketen suchen sich dabei immer wieder neue Bahnen. Die Regeln zum Seitw&auml;rtsfahren wirken hier nicht mehr auf die Feldzahl, sondern auf die <b>Geschwindigkeit</b>: Wo sonst „zwei Felder" st&uuml;nde, f&auml;hrt das Auto doppelt so schnell. Im Online-Duell bleibt die freie Fahrt aus, damit beide Ger&auml;te nach denselben Regeln fahren.
       </div>
     </details>
@@ -1920,7 +1939,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.49";
+  const APP_VERSION = "1.50";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -2998,11 +3017,11 @@
   // Optionen je Spielmodus. Sie gelten fuer die naechste Partie; eine laufende Runde
   // haelt ihren Stand selbst fest (board.shared.deathless, cs.hearts, race.free).
   const MODE_OPT_KEY='regel-detektiv-modi';
-  const MODE_OPT_DEF={ gridDeathless:true, raceGrid:true, circleDeathless:false };
+  const MODE_OPT_DEF={ gridDeathless:true, raceGrid:true, raceEndless:false, circleDeathless:false };
   let modeOpts=Object.assign({}, MODE_OPT_DEF);
   try{ Object.assign(modeOpts, JSON.parse(localStorage.getItem(MODE_OPT_KEY)||'{}')); }catch(e){}
   function saveModeOpts(){ try{ localStorage.setItem(MODE_OPT_KEY, JSON.stringify(modeOpts)); }catch(e){} }
-  const MODE_OPT_BOXES=[['opt-grid-deathless','gridDeathless'],['opt-race-grid','raceGrid'],['opt-circle-deathless','circleDeathless']];
+  const MODE_OPT_BOXES=[['opt-grid-deathless','gridDeathless'],['opt-race-grid','raceGrid'],['opt-race-endless','raceEndless'],['opt-circle-deathless','circleDeathless']];
   function wireModeOpts(){
     MODE_OPT_BOXES.forEach(([id,key])=>{
       const box=$(id); if(!box) return;
@@ -3010,18 +3029,30 @@
       box.addEventListener('change',()=>{ modeOpts[key]=box.checked; saveModeOpts(); refreshPreviews(); });
     });
   }
+  // Waehrend einer Partie zeigen die Einstellungen nur, was sofort wirkt: Ton, Tempo, der
+  // „?"-Schalter. Die Regel-Optionen greifen erst ab der naechsten Runde und blieben hier
+  // wirkungslos – statt sie zu zeigen und nichts zu tun, verschwinden sie samt Hinweis.
   function openSettings(){
     $('opt-sfx').value=Math.round(sfxVol*100); $('sfx-val').textContent=Math.round(sfxVol*100)+'%';
     $('opt-music').value=Math.round(musicVol*100); $('music-val').textContent=Math.round(musicVol*100)+'%';
+    pauseForReveal();                                  // wie bei Kurzanleitung und Aufloesung
     $('settings-modal').classList.remove('hidden');
   }
-  function closeSettings(){ $('settings-modal').classList.add('hidden'); }
+  function closeSettings(){
+    const warOffen=!$('settings-modal').classList.contains('hidden');
+    $('settings-modal').classList.add('hidden');
+    if(warOffen) resumeAfterReveal();
+  }
   $('opt-sfx').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('sfx-val').textContent=v+'%'; setSfxVol(v/100); });
   $('opt-music').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('music-val').textContent=v+'%'; setMusicVol(v/100); });
   // Hinweis: die Ton-Freigabe (#sound-fab) wird erst NACH der Audio-Variablen-Deklaration verkabelt
   // (weiter unten im Sound-Abschnitt) – sonst laufen sfxVol/musicVol in die Temporal Dead Zone.
-  function openGuide(){ $('guide-modal').classList.remove('hidden'); }
-  function closeGuide(){ $('guide-modal').classList.add('hidden'); }
+  function openGuide(){ pauseForReveal(); $('guide-modal').classList.remove('hidden'); }
+  function closeGuide(){
+    const warOffen=!$('guide-modal').classList.contains('hidden');
+    $('guide-modal').classList.add('hidden');
+    if(warOffen) resumeAfterReveal();
+  }
   $('gear-btn').addEventListener('click', openSettings);
   $('settings-close').addEventListener('click', closeSettings);
   $('settings-modal').addEventListener('click', e=>{ if(e.target===$('settings-modal')) closeSettings(); });
@@ -3036,7 +3067,9 @@
 
   let spgState=null, spcState=null, mp=null;
 
-  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('gear-btn').classList.add('hidden'); $('lang-pick').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
+  // Das Zahnrad bleibt ueberall erreichbar – im Spiel zeigt es die abgespeckten Einstellungen.
+  // Die Sprachwahl dagegen nur im Menue: mitten im Spiel wuerde sie die laufende Partie nicht neu beschriften.
+  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('lang-pick').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
   function teardownActive(){
     if(race){ race.mounted=false; race.alive=false; raceClearTimers(); }
     if(spcState) spcState.mounted=false;
@@ -3048,7 +3081,7 @@
     }
   }
   function startBg(){ document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`; }
-  function backToMenu(){ musicSetTrack('menu'); raceDuel=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); $('lang-pick').classList.remove('hidden'); startBg(); }
+  function backToMenu(){ musicSetTrack('menu'); raceDuel=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('lang-pick').classList.remove('hidden'); startBg(); }
   // ===================== SOUND (Web Audio, komplett synthetisiert – keine externen Dateien) =====================
   const AUDIO_KEY='regel-detektiv-audio';
   let audioCtx=null, masterGain=null, musicGain=null, sfxGain=null, sfxOn=true, musicOn=true;
@@ -3604,7 +3637,12 @@
     // oben an (unshift), damit Reihenfolge und Zonenwechsel dieselben sind wie im Lauf.
     const py = --race.topPy;
     const objs=new Array(RACE_COLS).fill(null);
-    if(!initial){
+    // Ziellinie: genau eine markierte Zeile, sobald die Fahrzeit erreicht ist. Sie kommt oben
+    // herein und beendet die Fahrt, wenn das Auto sie durchquert. Bewusst ohne Hindernisse –
+    // das Ziel soll nicht im letzten Moment an einer Bombe scheitern.
+    let ziel=false;
+    if(!initial && !race.endless && !race.zielGesetzt && raceElapsed()>=RACE_ZIEL_S){ ziel=true; race.zielGesetzt=true; }
+    if(!initial && !ziel){
       const rockets = (race.rockets!=null) ? race.rockets : (race.diffKey==='schwer'||race.diffKey==='experte');
       if(raceRnd()<raceBombProb()){
         const x=raceRandInt(RACE_COLS); objs[x]=(rockets && raceRnd()<0.4)?'rocket':'bomb';
@@ -3615,7 +3653,18 @@
     // Jede Zone bekommt ein eigenes Bodenband, verankert an ihrer untersten (zuerst erzeugten)
     // Zeile. Der Eingangssaum haengt unter dem Band in die Zone darunter.
     if(neueZone || !race.bands.length) race.bands.push({ zone:race.curZone, pyAnchor:py, mitSaum:neueZone, el:null, saum:null });
-    return { zone: race.curZone, objs, py };
+    return { zone: race.curZone, objs, py, ziel };
+  }
+  // Fahrzeit bis zur Ziellinie (Sekunden), wenn „Endlos" aus ist
+  const RACE_ZIEL_S=150;
+  // Die Ziellinie faerbt die Kaestchen ihrer Zeile. Weil die Zeilen wandern, wird nur der
+  // Wechsel gemalt: alte Zeile zuruecksetzen, neue setzen – nicht 91 Kaestchen je Takt.
+  function raceZielMalen(){
+    if(!race||!race.cells.length) return;
+    const idx=race.grid.findIndex(r=>r&&r.ziel);
+    if(race.zielRow===idx) return;
+    const setz=(y,an)=>{ if(y==null||y<0) return; for(let x=0;x<RACE_COLS;x++){ const c=race.cells[y*RACE_COLS+x]; if(c) c.classList.toggle('ziel',an); } };
+    setz(race.zielRow,false); setz(idx,true); race.zielRow=idx;
   }
   function raceCellSize(){ const availW=Math.min(window.innerWidth||400,440)-16; const availH=(window.innerHeight||700)-240; return Math.max(20, Math.min(48, Math.floor(Math.min(availW/RACE_COLS, availH/RACE_ROWS)))); }
   const RACE_GAP=2, RACE_PAD=4;                  // muss zum CSS von .race-grid passen
@@ -4010,6 +4059,7 @@
       race.grid.pop(); race.grid.unshift(raceSpawnRow(false));
     }
     raceGroundUpdate();                            // Baender eine Reihe weiterruecken
+    raceZielMalen();
     race.score++; race.rowsPassed++;
     if(race.skid>0){ race.carX=clamp(race.carX+race.skidDir,0,RACE_COLS-1); race.skid--; }
     if(race.airborne>0){ race.airborne--; if(race.airborne<=0){ race.airborne=0; race.jumpCd=3; } }
@@ -4018,6 +4068,9 @@
     const zoneNow=raceCarRowData().zone;
     if(zoneNow!==race.lastCarZone){ if(race.bubble>0){ race.bubble--; if(race.bubble===0) race.bubbleDist=null; } race.lastCarZone=zoneNow; }
     if(!raceCollide()) return false;
+    // Ziel durchfahren? Die markierte Zeile steht genau einen Takt lang unter dem Auto.
+    const unterm=raceCarRowData();
+    if(unterm && unterm.ziel){ raceZiel(); return false; }
     if(raceCheckDuelWin()) return false;
     raceRender(); raceRenderStats();
     if(raceDuel && raceDuel.kind==='online') raceOnlinePublish();
@@ -4149,6 +4202,22 @@
     const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
   }
 
+  // Ziellinie durchfahren: dasselbe Ende wie ein Crash, nur gewonnen. Im Duell zaehlt danach
+  // weiterhin der Punktestand – beide fahren dieselbe Strecke bis zur selben Linie.
+  function raceZiel(){
+    race.alive=false; raceClearTimers();
+    raceRender(); raceRenderStats();
+    sfx('win');
+    if(raceDuel){ raceDuelCrashed(); return; }
+    const ov=$('race-overlay'); ov.classList.remove('hidden');
+    $('race-overlay-msg').innerHTML=`<b>${T('Ziel!','Finish!')}</b><br>`
+      + T(`Du bist durchgekommen &ndash; <b>${race.score}</b> Zeilen und ${race.coins} M&uuml;nzen.`,
+          `You made it through &ndash; <b>${race.score}</b> rows and ${race.coins} coins.`);
+    const acts=$('race-overlay-actions'); acts.innerHTML='';
+    const again=el('button','action primary'); again.textContent=T('Nochmal','Again'); again.onclick=()=>raceStart(race.diffKey, race.ov); acts.appendChild(again);
+    const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
+  }
+
   // ===================== RACING-DUELL =====================
   // Punkte = zurueckgelegte Zeilen + 5 je Muenze (steckt bereits in race.score).
   // Sieg: der Gegner ist ausgeschieden UND die eigene Punktzahl liegt darueber.
@@ -4224,7 +4293,7 @@
   }
   function raceStart(diffKey, opts){
     opts=opts||{}; musicSetTrack('racing');
-    teardownActive(); hideAllScreens(); $('racing').classList.remove('hidden'); $('gear-btn').classList.remove('hidden'); document.body.classList.add('playing');
+    teardownActive(); hideAllScreens(); $('racing').classList.remove('hidden'); document.body.classList.add('playing');
     const theme=(opts.bg?themeFromBg(opts.bg):null)||THEMES[diffKey]||THEMES.leicht; setThemeBg(theme);
     const zoneCount=clamp(opts.zoneCount||RACE_ZONES[diffKey]||4, 1, 4);
     race={ diffKey, theme, grid:[], cells:[], carX:Math.floor(RACE_COLS/2), carRow:RACE_ROWS-2,
@@ -4241,6 +4310,8 @@
       rocketThrust:(opts.thrust!=null?opts.thrust:(diffKey==='experte')), rocketDrift:0,   // Friedhof: Raketen haben Antrieb
       speed:opts.speed||null, bombBase:(opts.bombProb!=null?opts.bombProb:null),
       coinProb:(opts.coinProb!=null?opts.coinProb:null), rockets:(opts.rockets!=null?opts.rockets:null),
+      // Endlos: ohne festes Ende. Aus heisst, nach RACE_ZIEL_S Fahrsekunden kommt die Ziellinie.
+      endless: (opts.endless!=null ? !!opts.endless : !!modeOpts.raceEndless), zielGesetzt:false, zielRow:-1,
       tickCount:0, startTime:performance.now(), alive:true, mounted:true, timer:null };
     // Verzerrungen und Startzone aus demselben Seed – im Online-Duell fahren beide dieselbe Strecke
     if(opts.seed!=null){ const r=mulberry32((opts.seed>>>0)^0x9e3779b9); const pool=RACE_DIST_POOL.slice();
@@ -5035,7 +5106,8 @@
   function onlBuildConfig(){
     const base={ v:3, mode:onl.mode, variant:onl.variant, shared:onl.shared, diffKey:onl.diffKey, winCond:onl.winCond||'fastest' };
     if(onl.mode==='racing'){
-      return clean(Object.assign(base, { seed:(Math.random()*4294967296)>>>0 }));
+      // Endlos festschreiben: sonst faehrt ein Geraet auf eine Ziellinie zu, das andere nicht
+      return clean(Object.assign(base, { seed:(Math.random()*4294967296)>>>0, endless:!!modeOpts.raceEndless }));
     }
     if(onl.mode==='grid'){
       // Deathless festschreiben: sonst spielt jedes Geraet nach seiner eigenen Einstellung
@@ -5142,7 +5214,7 @@
   function onlEnterRacing(cfg){
     onl.finished=false; onl.winner=null;
     raceDuel={ kind:'online', diffKey:cfg.diffKey, oppScore:0, oppAlive:true };
-    raceStart(cfg.diffKey, { seed:cfg.seed });
+    raceStart(cfg.diffKey, { seed:cfg.seed, endless:!!cfg.endless });
     onlAttachRacingListeners();
     raceOnlinePublish();
   }
@@ -6148,7 +6220,7 @@
       rSpeed0:edN('ed-rspeed0'), rSpeed1:edN('ed-rspeed1'), rZones:edN('ed-rzones'),
       rBomb:edN('ed-rbomb'), rCoin:edN('ed-rcoin'),
       rRockets:$('ed-rrockets').checked, rThrust:$('ed-rthrust').checked,
-      gDeathless:$('ed-gdeath').checked, cDeathless:$('ed-cdeath').checked, rGrid:$('ed-rgrid').checked,
+      gDeathless:$('ed-gdeath').checked, cDeathless:$('ed-cdeath').checked, rGrid:$('ed-rgrid').checked, rEndless:$('ed-rendless').checked,
       rDistorts:edReadRaceZones() };
   }
   // Verzerrung je Racing-Zone; null = alles zufaellig
@@ -6191,6 +6263,7 @@
     $('ed-gdeath').checked = sp.gDeathless!=null ? !!sp.gDeathless : true;
     $('ed-cdeath').checked = !!sp.cDeathless;
     $('ed-rgrid').checked  = sp.rGrid!=null ? !!sp.rGrid : true;
+    $('ed-rendless').checked = !!sp.rEndless;
     edBuildRaceRows(); if(sp.rDistorts){ const sels=$('ed-race-rows').querySelectorAll('select'); sp.rDistorts.forEach((v,i)=>{ if(sels[i]) sels[i].value=v; }); }
     edRefresh();
   }
@@ -6249,7 +6322,7 @@
         speed:{ s:sp.rSpeed0||800, e:sp.rSpeed1||200 }, zoneCount:clamp(sp.rZones||2,1,4),
         bombProb:(sp.rBomb!=null?sp.rBomb:12)/100, coinProb:(sp.rCoin!=null?sp.rCoin:13)/100,
         rockets:!!sp.rRockets, thrust:!!(sp.rRockets && sp.rThrust),
-        free: sp.rGrid!=null ? !sp.rGrid : false,
+        free: sp.rGrid!=null ? !sp.rGrid : false, endless: !!sp.rEndless,
         distorts:(sp.rDistorts&&sp.rDistorts.length)?sp.rDistorts.slice():null } };
     }
     ov.ringCount=sp.rings; ov.poseEffects=[poseFromVal(sp.pose2), poseFromVal(sp.pose3)];
