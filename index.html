@@ -43,6 +43,19 @@
   .ed-adv summary:hover{color:var(--text);}
   #ed-jump-rows select{background:#0b1220; color:var(--text); border:1px solid var(--cell-border); border-radius:8px; padding:5px 7px; font-family:inherit;}
 
+  /* Hilfe-Knopf: schmal wie ein Zeichen. Orange nur, wenn er die Aufloesung mitzeigt. */
+  /* Orange faerbt er sich ueber die vorhandene .warn-Klasse – dieselbe Warnfarbe wie frueher
+     am Knopf „Aufloesung". Hier steht nur die schmale Form. */
+  .hilfe-btn{min-width:0; padding-left:0; padding-right:0; width:34px; font-weight:700; font-size:1.05rem; line-height:1;}
+  .hilfe-btn.mini{width:28px; font-size:0.95rem;}
+  /* Aufklappbare Abschnitte im Hilfe-Fenster */
+  .hilfe-abschnitt{border:1px solid var(--cell-border); border-radius:var(--radius); padding:9px 12px; margin-bottom:10px;}
+  .hilfe-abschnitt > summary{cursor:pointer; font-family:'Palatino Linotype','Book Antiqua',Georgia,serif; color:var(--gold); letter-spacing:0.03em;}
+  .hilfe-abschnitt > summary::marker{color:var(--muted);}
+  .hilfe-abschnitt[open] > summary{margin-bottom:8px;}
+  .hilfe-abschnitt.verraet{border-color:#f59e0b;}
+  .hilfe-abschnitt.verraet > summary{color:#fbbf24;}
+
   /* Ohne Deathless bleibt die erwischte Figur als Schatten liegen */
   .fig.fig-tot{filter:grayscale(1) brightness(0.55); opacity:0.5;}
 
@@ -995,7 +1008,7 @@
   <div class="game-head">
     <div class="stats-row" id="spg-stats"></div>
     <div class="head-actions">
-      <button class="action warn mini" id="spg-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action mini hilfe-btn" id="spg-reveal" aria-label="Hilfe" data-en-aria="Help" title="Steuerung &amp; Regeln" data-en-title="Controls &amp; rules">?</button>
       <button class="action mini" id="spg-reset" data-en="New">Neu</button>
       <button class="action mini" id="spg-back" data-en="Back">Zur&uuml;ck</button>
     </div>
@@ -1028,7 +1041,7 @@
     </div>
     <div class="head-actions">
       <button class="action mini" id="spc-log-btn" data-en="Log">Protokoll</button>
-      <button class="action warn mini" id="spc-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action mini hilfe-btn" id="spc-reveal" aria-label="Hilfe" data-en-aria="Help" title="Steuerung &amp; Regeln" data-en-title="Controls &amp; rules">?</button>
       <button class="action mini" id="spc-reset" data-en="New">Neu</button>
       <button class="action mini" id="spc-back" data-en="Back">Zur&uuml;ck</button>
     </div>
@@ -1061,7 +1074,7 @@
   <div class="mp-top">
     <div class="mp-title" id="mpg-title"></div>
     <div class="footer-row">
-      <button class="action warn" id="mpg-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action hilfe-btn" id="mpg-reveal" aria-label="Hilfe" data-en-aria="Help" title="Steuerung &amp; Regeln" data-en-title="Controls &amp; rules">?</button>
       <button class="action" id="mpg-again" data-en="New round">Neue Runde</button>
       <button class="action" id="mpg-back" data-en="Back">Zur&uuml;ck</button>
     </div>
@@ -1094,7 +1107,7 @@
     <div class="mp-title" id="mpc-title"></div>
     <div class="footer-row">
       <button class="action" id="mpc-log-btn" data-en="Log">Protokoll</button>
-      <button class="action warn" id="mpc-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action hilfe-btn" id="mpc-reveal" aria-label="Hilfe" data-en-aria="Help" title="Steuerung &amp; Regeln" data-en-title="Controls &amp; rules">?</button>
       <button class="action" id="mpc-again" data-en="New round">Neue Runde</button>
       <button class="action" id="mpc-back" data-en="Back">Zur&uuml;ck</button>
     </div>
@@ -1130,7 +1143,7 @@
     <div class="mp-title" id="mpcg-title"></div>
     <div class="footer-row">
       <button class="action" id="mpcg-log-btn" data-en="Log">Protokoll</button>
-      <button class="action warn" id="mpcg-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action hilfe-btn" id="mpcg-reveal" aria-label="Hilfe" data-en-aria="Help" title="Steuerung &amp; Regeln" data-en-title="Controls &amp; rules">?</button>
       <button class="action" id="mpcg-again" data-en="New round">Neue Runde</button>
       <button class="action" id="mpcg-back" data-en="Back">Zur&uuml;ck</button>
     </div>
@@ -1166,7 +1179,7 @@
     <div class="mp-title" id="onl-title">Online</div>
     <div class="footer-row">
       <button class="action hidden" id="onl-log-btn" data-en="Log">Protokoll</button>
-      <button class="action warn hidden" id="onl-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action hilfe-btn hidden" id="onl-reveal" aria-label="Hilfe" data-en-aria="Help" title="Steuerung &amp; Regeln" data-en-title="Controls &amp; rules">?</button>
       <button class="action" id="onl-leave" data-en="Back">Zur&uuml;ck</button>
     </div>
   </div>
@@ -1296,16 +1309,15 @@
       <h2 data-en="Settings">Einstellungen</h2>
       <button class="modal-close" id="settings-close" aria-label="Schlie&szlig;en" data-en-aria="Close">&times;</button>
     </div>
-    <label class="small" style="margin:0 0 2px;"><span data-en="Animation speed">Animations-Tempo</span>: <b class="speed-val">1&times;</b></label>
-    <input type="range" class="speed-slider" min="0.25" max="3" step="0.25" value="1" style="width:100%;">
-    <label class="small" style="margin:14px 0 2px;"><span data-en="&#128266; Sound effects">&#128266; Soundeffekte</span>: <b id="sfx-val">100%</b></label>
+    <label class="small" style="margin:0 0 2px;"><span data-en="&#128266; Sound effects">&#128266; Soundeffekte</span>: <b id="sfx-val">100%</b></label>
     <input type="range" id="opt-sfx" min="0" max="100" step="5" value="100" style="width:100%;">
     <label class="small" style="margin:12px 0 2px;"><span data-en="&#127925; Background music">&#127925; Hintergrundmusik</span>: <b id="music-val">55%</b></label>
     <input type="range" id="opt-music" min="0" max="100" step="5" value="55" style="width:100%;">
     <label class="opt-zeile">
       <input type="checkbox" id="opt-reveal" checked>
-      <span data-en="&#128269; Show the &#8220;Solution&#8221; button">&#128269; Knopf „Aufl&ouml;sung" zeigen</span>
+      <span data-en="&#128269; Put the solution in the &#8220;?&#8221; panel">&#128269; Aufl&ouml;sung im „?"-Fenster zeigen</span>
     </label>
+    <div class="opt-hilfe" data-en="Off: the &#8220;?&#8221; button only explains the controls. On: it also reveals the hidden rules &ndash; and turns orange as a warning.">Aus: Der „?"-Knopf erkl&auml;rt nur die Steuerung. An: Er verr&auml;t zus&auml;tzlich die verborgenen Regeln &ndash; und wird zur Warnung orange.</div>
     <button class="action" id="sound-test" style="width:100%; margin-top:14px;" data-en="&#128264; Test sound">&#128264; Ton testen</button>
 
     <div class="opt-gruppe">
@@ -1333,6 +1345,9 @@
         <span>Deathless</span>
       </label>
       <div class="opt-hilfe" data-en="On: no lives and no heart fields &ndash; you get as many moves as you like.">An: ohne Herzen und ohne Herzfelder &ndash; du hast beliebig viele Z&uuml;ge.</div>
+      <label class="small" style="margin:12px 0 2px; display:block;"><span data-en="Animation speed">Animations-Tempo</span>: <b class="speed-val">1&times;</b></label>
+      <input type="range" class="speed-slider" min="0.25" max="3" step="0.25" value="1" style="width:100%;">
+      <div class="opt-hilfe" style="margin-left:0;" data-en="How fast figure and rings turn. It also scales the walking animation in field mode.">Wie schnell Figur und Ringe drehen. Skaliert nebenbei auch die Laufanimation im Feld-Modus.</div>
     </div>
 
     <button class="action" id="open-guide" style="width:100%; margin-top:16px;" data-en="&#128218; How to play">&#128218; Anleitung</button>
@@ -1369,6 +1384,7 @@
     </details>
     <details class="ed-adv">
       <summary data-en="Controls">Steuerung</summary>
+      <div class="intro" style="margin-top:8px; color:var(--muted);" data-en="A short version of this also sits behind the <b>?</b> button in every game screen &ndash; collapsed, so it stays out of the way. Switch on &#8222;put the solution in the ? panel&#8221; in the settings and that button also reveals the hidden rules; it turns orange as a reminder.">Eine Kurzfassung davon steckt auch hinter dem <b>?</b>-Knopf in jedem Spielbildschirm &ndash; eingeklappt, damit sie nicht im Weg steht. Schaltest du in den Einstellungen „Aufl&ouml;sung im ?-Fenster zeigen" ein, verr&auml;t derselbe Knopf zus&auml;tzlich die verborgenen Regeln &ndash; und wird zur Erinnerung orange.</div>
       <div class="intro" style="margin-top:8px;" data-en="<b>Racing mode:</b> &larr; / &rarr; steer, A or &uarr; jumps, B or &darr; keeps the colour rule. In <b>free driving</b>: hold the key to keep moving.<br><br><b>Field mode &ndash; single player:</b> arrow keys move, space = stay. On a phone use the D-pad.<br><br><b>Field mode &ndash; duel:</b> <span class=&quot;p1&quot;>Player 1</span>: W A S D to move, X = stay &nbsp;&middot;&nbsp; <span class=&quot;p2&quot;>Player 2</span>: arrow keys, 0 = stay.<br><br><b>Circle mode &ndash; single player:</b> A / S / D = &minus;1 / 0 / +1, Shift+A or Shift+D = &minus;2 / +2, W or &uarr; changes the detective&#8217;s pose. Arrow keys work too.<br><br><b>Circle mode &ndash; duel:</b> <span class=&quot;p1&quot;>Player 1</span>: A / D = &minus;1 / +1, Shift+A / Shift+D = &minus;2 / +2, S = 0, W = pose &nbsp;&middot;&nbsp; <span class=&quot;p2&quot;>Player 2</span>: &larr; / &rarr; = &minus;1 / +1, &darr; = 0, hold &#8222;0&#8221; + &larr;/&rarr; = &minus;2 / +2, &uarr; = pose.">
         <b>Racing-Modus:</b> &larr; / &rarr; lenken, A bzw. &uarr; hebt ab, B bzw. &darr; speichert die Farbregel. In der <b>freien Fahrt</b> gilt: Taste halten = weiterfahren.<br><br>
         <b>Feld-Modus &ndash; Einzelspieler:</b> Pfeiltasten bewegen, Leertaste = bleiben. Auf dem Handy das Steuerkreuz.<br><br>
@@ -1401,7 +1417,7 @@
   <div class="game-head">
     <div class="stats-row" id="race-stats"></div>
     <div class="head-actions">
-      <button class="action warn mini" id="race-reveal" data-en="Solution">Aufl&ouml;sung</button>
+      <button class="action mini hilfe-btn" id="race-reveal" aria-label="Hilfe" data-en-aria="Help" title="Steuerung &amp; Regeln" data-en-title="Controls &amp; rules">?</button>
       <button class="action mini" id="race-reset" data-en="New">Neu</button>
       <button class="action mini" id="race-back" data-en="Back">Zur&uuml;ck</button>
     </div>
@@ -1426,7 +1442,7 @@
 <div id="reveal-modal" class="modal-overlay hidden">
   <div class="modal-card">
     <div class="modal-head">
-      <h2 data-en="Solution">Aufl&ouml;sung</h2>
+      <h2 data-en="Help">Hilfe</h2>
       <button class="modal-close" id="reveal-close" aria-label="Schlie&szlig;en" data-en-aria="Close">&times;</button>
     </div>
     <div id="reveal-body"></div>
@@ -1904,7 +1920,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.45";
+  const APP_VERSION = "1.46";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -2848,6 +2864,38 @@
   }
   function openReveal(html){ pauseForReveal(); $('reveal-body').innerHTML=html; $('reveal-modal').classList.remove('hidden'); }
   function closeReveal(){ $('reveal-modal').classList.add('hidden'); resumeAfterReveal(); }
+
+  // ---- Hilfe-Fenster hinter dem „?" ----
+  // Oben die Steuerung, eingeklappt – die braucht man selten und sie soll nicht im Weg stehen.
+  // Darunter, nur wenn in den Einstellungen erlaubt, die Aufloesung: aufgeklappt, denn wer sie
+  // eingeschaltet hat, will sie auch sehen. Ist sie aus, bleibt es eine reine Steuerungshilfe.
+  function steuerungHtml(modus, duell){
+    if(modus==='racing') return T(
+      '<b>&#9664; / &#9654;</b> lenken, <b>A</b> bzw. <b>&uarr;</b> hebt ab, <b>B</b> bzw. <b>&darr;</b> h&auml;lt die aktuelle Farbregel zwei Reihen lang fest. In der <b>freien Fahrt</b> gilt: Taste gedr&uuml;ckt halten = weiterfahren.',
+      '<b>&#9664; / &#9654;</b> steer, <b>A</b> or <b>&uarr;</b> jumps, <b>B</b> or <b>&darr;</b> keeps the current colour rule for two rows. In <b>free driving</b>: hold the key to keep moving.');
+    if(modus==='circle') return duell ? T(
+      '<span class="p1">Spieler 1</span>: <b>A</b> / <b>D</b> = &minus;1 / +1, <b>Shift+A</b> / <b>Shift+D</b> = &minus;2 / +2, <b>S</b> = 0, <b>W</b> wechselt die Pose.<br><span class="p2">Spieler 2</span>: <b>&larr;</b> / <b>&rarr;</b> = &minus;1 / +1, <b>&darr;</b> = 0, <b>„0" halten</b> + &larr;/&rarr; = &minus;2 / +2, <b>&uarr;</b> wechselt die Pose.<br>Am Handy die Schrittknöpfe unter dem jeweiligen Kreis.',
+      '<span class="p1">Player 1</span>: <b>A</b> / <b>D</b> = &minus;1 / +1, <b>Shift+A</b> / <b>Shift+D</b> = &minus;2 / +2, <b>S</b> = 0, <b>W</b> changes the pose.<br><span class="p2">Player 2</span>: <b>&larr;</b> / <b>&rarr;</b> = &minus;1 / +1, <b>&darr;</b> = 0, <b>hold &#8222;0&#8221;</b> + &larr;/&rarr; = &minus;2 / +2, <b>&uarr;</b> changes the pose.<br>On a phone use the step buttons under each circle.')
+      : T(
+      '<b>A</b> / <b>S</b> / <b>D</b> = &minus;1 / 0 / +1, <b>Shift+A</b> bzw. <b>Shift+D</b> = &minus;2 / +2. <b>W</b> oder <b>&uarr;</b> wechselt die Detektiv-Pose (kostet keinen Zug). Die Pfeiltasten gehen ebenfalls; am Handy die Schrittknöpfe unter dem Kreis.',
+      '<b>A</b> / <b>S</b> / <b>D</b> = &minus;1 / 0 / +1, <b>Shift+A</b> or <b>Shift+D</b> = &minus;2 / +2. <b>W</b> or <b>&uarr;</b> changes the detective&#8217;s pose (costs no move). Arrow keys work too; on a phone use the step buttons under the circle.');
+    return duell ? T(
+      '<span class="p1">Spieler 1</span>: <b>W A S D</b> bewegen, <b>X</b> = bleiben.<br><span class="p2">Spieler 2</span>: <b>Pfeiltasten</b>, <b>0</b> = bleiben.<br>Am Handy hat jeder sein eigenes Steuerkreuz unter dem Brett.',
+      '<span class="p1">Player 1</span>: <b>W A S D</b> to move, <b>X</b> = stay.<br><span class="p2">Player 2</span>: <b>arrow keys</b>, <b>0</b> = stay.<br>On a phone each player gets their own D-pad under the board.')
+      : T(
+      '<b>Pfeiltasten</b> bewegen, <b>Leertaste</b> = bleiben. Am Handy das Steuerkreuz unter dem Brett &ndash; die Mitte ist „bleiben".',
+      '<b>Arrow keys</b> to move, <b>space</b> = stay. On a phone use the D-pad under the board &ndash; the middle is &#8222;stay&#8221;.');
+  }
+  // `aufloesung` ist eine Funktion, damit der Text erst gebaut wird, wenn er auch gezeigt wird.
+  function openHelp(modus, duell, aufloesung){
+    let html = `<details class="hilfe-abschnitt"><summary>${T('Steuerung','Controls')}</summary>`
+      + `<div class="intro" style="margin-top:0;">${steuerungHtml(modus, duell)}</div></details>`;
+    const zeigen = revealAn && typeof aufloesung==='function';
+    if(zeigen) html += `<details class="hilfe-abschnitt verraet" open><summary>${T('Aufl&ouml;sung','Solution')}</summary>`
+      + `<div class="intro" style="margin-top:0;">${aufloesung()}</div></details>`;
+    openReveal(html);
+    return zeigen;                                  // fuer die „ohne Aufloesung gelöst"-Notiz
+  }
   $('reveal-close').addEventListener('click', closeReveal);
   // Klick auf den abgedunkelten Hintergrund schliesst; Klick in die Karte nicht.
   $('reveal-modal').addEventListener('click', e=>{ if(e.target===$('reveal-modal')) closeReveal(); });
@@ -3713,7 +3761,10 @@
         if(cell.firstChild) cell.textContent='';
         const o=row.objs[x];
         if(o==='bomb'){ const d=el('div','bomb'); d.innerHTML=bombSvg(); cell.appendChild(d); }
-        else if(o==='rocket'){ const d=el('div','rocket'), inner=el('div','rk-in');
+        else if(o==='rocket'){
+          // ueberquerte Muenze zuerst zeichnen – die Rakete legt sich sichtbar darueber
+          if(row.unter && row.unter[x]==='coin') cell.appendChild(el('div','coin'));
+          const d=el('div','rocket'), inner=el('div','rk-in');
           inner.innerHTML=rocketSvg(race.rocketThrust); d.appendChild(inner); cell.appendChild(d);
           raceRocketGlide(d, inner, row, x, pend); }
         else if(o==='coin'){ cell.appendChild(el('div','coin')); }
@@ -3769,6 +3820,13 @@
     clearTimeout(race.timer); race.timer=setTimeout(raceStep, 120);
     cancelAnimationFrame(race.raf); race.raf=requestAnimationFrame(raceFrame);
   }
+  // ---- Raketen: was sie ueberqueren duerfen ----
+  // Eine Rakete zieht ueber Muenzen hinweg – die Muenze wird gemerkt (row.unter) und wieder
+  // freigelegt, sobald die Rakete weiterzieht. Bomben, andere Raketen und der Rand blockieren.
+  // Vorher wurde die Rakete in genau diesen Faellen stillschweigend geloescht: sie verschwand.
+  function rkFrei(row, x){ if(!row || x<0 || x>=RACE_COLS) return false; const o=row.objs[x]; return !o || o==='coin'; }
+  function rkBelegen(row, x){ if(row.objs[x]==='coin') (row.unter=row.unter||{})[x]='coin'; row.objs[x]='rocket'; }
+  function rkFreigeben(row, x){ const u=row.unter && row.unter[x]; row.objs[x]=u||null; if(row.unter) delete row.unter[x]; }
   // Jede Rakete darf pro Durchlauf genau EIN Feld zur Seite – erst alle Positionen sammeln,
   // sonst wandert dieselbe Rakete in der Schleife gleich zweimal weiter.
   function raceMoveRockets(){
@@ -3779,7 +3837,9 @@
       const anim={};                                    // Startpunkte fuer das Hinuebergleiten
       spots.forEach(x=>{
         const dir=raceRnd()<0.5?-1:1, nx=x+dir;
-        if(nx>=0 && nx<RACE_COLS && !row.objs[nx]){ row.objs[nx]='rocket'; row.objs[x]=null; anim[nx]={dx:x-nx, t0:now, ms}; }
+        if(!rkFrei(row,nx)) return;                     // blockiert: die Rakete bleibt stehen
+        rkFreigeben(row,x); rkBelegen(row,nx);
+        anim[nx]={dx:x-nx, t0:now, ms};
       });
       row.rkAnim=anim;
     }
@@ -3797,10 +3857,12 @@
       const row=race.grid[y], below=race.grid[y+1];
       for(let x=0;x<RACE_COLS;x++){
         if(row.objs[x]!=='rocket') continue;
-        row.objs[x]=null;
+        if(!below){ rkFreigeben(row,x); continue; }     // unten aus dem Bild = weg
+        if(!rkFrei(below,x)) continue;                  // Bombe/Rakete darunter: stehen bleiben
         // laufender Seitwaerts-Schritt zieht mit in die neue Zeile, sonst bricht er hier ab
         const a=row.rkAnim && row.rkAnim[x]; if(row.rkAnim) delete row.rkAnim[x];
-        if(below && !below.objs[x]){ below.objs[x]='rocket'; if(a){ (below.rkAnim=below.rkAnim||{})[x]=a; } }   // unten aus dem Bild = weg
+        rkFreigeben(row,x); rkBelegen(below,x);
+        if(a){ (below.rkAnim=below.rkAnim||{})[x]=a; }
       }
     }
   }
@@ -3825,6 +3887,10 @@
           oy+=drift;
           const a=row.rkAnim && row.rkAnim[x];
           if(a){ const k=1-(now-a.t0)/a.ms; if(k>0) ox+=a.dx*k; }
+        }
+        // Eine von einer Rakete ueberdeckte Muenze bleibt einsammelbar (im Sprung erreichbar)
+        if(o==='rocket' && row.unter && row.unter[x]==='coin' && raceHit(x, y-1+frac, RACE_HIT_COIN)){
+          delete row.unter[x]; race.coins++; race.score+=5; sfx('coin'); eingesammelt=true;
         }
         if(o==='coin'){
           if(raceHit(ox,oy,RACE_HIT_COIN)){ row.objs[x]=null; race.coins++; race.score+=5; sfx('coin'); eingesammelt=true; }
@@ -4149,14 +4215,13 @@
     return true;
   }
   function raceReveal(){
-    // Die Steuerung steht in der Anleitung – hier interessiert nur, was verborgen war.
+    // Nur die verborgenen Regeln – die Steuerung steht im Hilfe-Fenster darueber.
     let html=`<b>${T('Die Farbzonen verzerren die Steuerung (verborgen &ndash; finde sie heraus!)','The colour zones twist the controls (hidden &ndash; work them out!)')}:</b><ul style="margin:4px 0 0 18px;">`;
     ZONE_COLORS.slice(0, race.zoneCount).forEach((zc,i)=>{ const k=race.zoneDistort[i];
       const tab=(race.free && RACE_DIST_LABEL_FREE[k]) ? (lang==='en'?RACE_DIST_LABEL_FREE_EN:RACE_DIST_LABEL_FREE) : (lang==='en'?RACE_DIST_LABEL_EN:RACE_DIST_LABEL);
       const txt=tab[k] || (lang==='en'?RACE_DIST_LABEL_EN[k]:RACE_DIST_LABEL[k]);
       html+=`<li><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:rgb(${zc.tint});vertical-align:middle;margin-right:6px;"></span><b>${zoneName(zc)}</b>: ${txt}</li>`; });
-    html+='</ul>';
-    openReveal(html);
+    return html+'</ul>';
   }
   function raceStart(diffKey, opts){
     opts=opts||{}; musicSetTrack('racing');
@@ -4836,7 +4901,7 @@
   }
   function mpcgShowReveal(){
     if(!mp||mp.mode!=='circleGer') return;
-    openReveal(circleExplain(mp.gs.rings, mp.gs.poseEffects, mp.gs.figRule));
+    openHelp('circle', true, ()=>circleExplain(mp.gs.rings, mp.gs.poseEffects, mp.gs.figRule));
   }
 
   // ===================== ONLINE: KREIS-GERANGEL (zwei Geraete, Firebase) =====================
@@ -5825,9 +5890,10 @@
   }
   function onlShowReveal(){
     if(!onl) return;
-    if(onl.mode==='grid'){ if(onl.gridShared) openReveal(gridExplain(onl.gridShared)); return; }
-    if(onl.cs){ openReveal(circleExplain(onl.cs.rings, onl.cs.poseEffects, onl.cs.figRule)); return; }
-    if(onl.gs) openReveal(circleExplain(onl.gs.rings, onl.gs.poseEffects, onl.gs.figRule));
+    // Online steuert jeder sein eigenes Geraet – deshalb die Einzelspieler-Steuerung, nicht die Duell-Variante.
+    if(onl.mode==='grid'){ openHelp('grid', false, onl.gridShared ? ()=>gridExplain(onl.gridShared) : null); return; }
+    if(onl.cs){ openHelp('circle', false, ()=>circleExplain(onl.cs.rings, onl.cs.poseEffects, onl.cs.figRule)); return; }
+    openHelp('circle', false, onl.gs ? ()=>circleExplain(onl.gs.rings, onl.gs.poseEffects, onl.gs.figRule) : null);
   }
   function onlLeave(){
     onlStopHeartbeat(); onlShowConn('');
@@ -5851,7 +5917,10 @@
 
   function mpShowReveal(){
     if(!mp) return;
-    openReveal(mp.mode==='grid' ? gridExplain(mp.shared) : circleExplain(mp.players[0].cs.rings, mp.players[0].cs.poseEffects, mp.players[0].cs.figRule));
+    const istGrid = mp.mode==='grid';
+    openHelp(istGrid?'grid':'circle', true, ()=> istGrid
+      ? gridExplain(mp.shared)
+      : circleExplain(mp.players[0].cs.rings, mp.players[0].cs.poseEffects, mp.players[0].cs.figRule));
   }
 
   // ===================== START SCREEN WIRING =====================
@@ -6282,7 +6351,9 @@
   });
   let spgPadResizeT=null;
   window.addEventListener('resize',()=>{ clearTimeout(spgPadResizeT); spgPadResizeT=setTimeout(()=>{ layoutSpgPad(); layoutOnlSoloPad(); },120); });
-  $('spg-reveal').addEventListener('click',()=>{ if(!spgState) return; if(!spgState.revealed){ spgState.revealed=true; spgState.revealedAtMove=spgState.board.figs[0].moves; } openReveal(gridExplain(spgState.shared)); });
+  $('spg-reveal').addEventListener('click',()=>{ if(!spgState) return;
+    const gezeigt=openHelp('grid', false, ()=>gridExplain(spgState.shared));
+    if(gezeigt && !spgState.revealed){ spgState.revealed=true; spgState.revealedAtMove=spgState.board.figs[0].moves; } });
   $('spg-reset').addEventListener('click',()=>{ if(spgState) spgStart(spgState.shared.diffKey, spgState.shared.variant, spgState.ov); });
   $('spg-back').addEventListener('click',backToMenu);
 
@@ -6295,7 +6366,7 @@
     b.addEventListener('pointerup',()=>raceRelease(btn));
     b.addEventListener('pointercancel',()=>raceRelease(btn));
   });
-  $('race-reveal').addEventListener('click',()=>{ if(race) raceReveal(); });
+  $('race-reveal').addEventListener('click',()=>{ if(race) openHelp('racing', false, raceReveal); });
   $('race-reset').addEventListener('click',()=>{
     if(!race) return;
     if(raceDuel && raceDuel.kind==='local'){ raceStartLocalDuel(raceDuel.diffKey, raceDuel.ov); return; }
@@ -6306,7 +6377,9 @@
 
   // SP circle controls
   document.querySelectorAll('#circle-steps button[data-step]').forEach(btn=>{ btn.addEventListener('click',()=>spcMove(parseInt(btn.dataset.step,10))); });
-  $('spc-reveal').addEventListener('click',()=>{ if(!spcState) return; if(!spcState.revealed){ spcState.revealed=true; spcState.revealedAtMove=spcState.moves; } openReveal(circleExplain(spcState.rings, spcState.poseEffects, spcState.figRule)); });
+  $('spc-reveal').addEventListener('click',()=>{ if(!spcState) return;
+    const gezeigt=openHelp('circle', false, ()=>circleExplain(spcState.rings, spcState.poseEffects, spcState.figRule));
+    if(gezeigt && !spcState.revealed){ spcState.revealed=true; spcState.revealedAtMove=spcState.moves; } });
   $('spc-reset').addEventListener('click',()=>{ if(spcState && !spcState.animating) spcStart(spcState.diffKey, spcState.ov); });
   $('spc-back').addEventListener('click',backToMenu);
   $('spc-log-btn').addEventListener('click',()=>{ if(spcState) openLog(()=>[{log:spcState.log}]); });
@@ -6348,7 +6421,9 @@
   const REVEAL_KEY='regel-detektiv-reveal';
   let revealAn = localStorage.getItem(REVEAL_KEY)!=='0';
   const REVEAL_IDS=['spg-reveal','spc-reveal','mpg-reveal','mpc-reveal','mpcg-reveal','onl-reveal','race-reveal'];
-  function applyRevealOption(){ REVEAL_IDS.forEach(id=>{ const b=$(id); if(b) b.classList.toggle('hidden', !revealAn); }); }
+  // Der „?"-Knopf bleibt immer sichtbar (die Steuerung braucht man ja weiterhin). Zeigt er
+  // zusaetzlich die Aufloesung, faerbt er sich orange – man soll sehen, dass es spoilert.
+  function applyRevealOption(){ REVEAL_IDS.forEach(id=>{ const b=$(id); if(b) b.classList.toggle('warn', revealAn); }); }
   (function(){ const box=$('opt-reveal'); if(!box) return;
     box.checked=revealAn;
     box.addEventListener('change',()=>{ revealAn=box.checked; localStorage.setItem(REVEAL_KEY, revealAn?'1':'0'); applyRevealOption(); });
