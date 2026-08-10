@@ -43,6 +43,17 @@
   .ed-adv summary:hover{color:var(--text);}
   #ed-jump-rows select{background:#0b1220; color:var(--text); border:1px solid var(--cell-border); border-radius:8px; padding:5px 7px; font-family:inherit;}
 
+  /* ===== Garten-Bonus: tanzende Blume ===== */
+  /* Beide Posen liegen uebereinander; die Animation blendet im Halbsekundentakt hart um.
+     Ein gemeinsamer Takt statt eines Timers – dadurch tanzen alle Blumen synchron. */
+  @keyframes blumeTanzA{ 0%,49.99%{opacity:1;} 50%,100%{opacity:0;} }
+  @keyframes blumeTanzB{ 0%,49.99%{opacity:0;} 50%,100%{opacity:1;} }
+  .blume-p1{animation:blumeTanzA 1s linear infinite;}
+  .blume-p2{animation:blumeTanzB 1s linear infinite;}
+  @media (prefers-reduced-motion: reduce){
+    .blume-p1{animation:none; opacity:1;} .blume-p2{animation:none; opacity:0;}
+  }
+
   /* ===== Abenteuer ===== */
   /* Vorschaukachel: die drei Etappen als Kette statt eines Spielbilds */
   .ab-vorschau{display:flex; align-items:center; gap:5px; padding:8px 10px; white-space:nowrap;
@@ -1436,8 +1447,10 @@
     </details>
     <details class="ed-adv">
       <summary data-en="Adventure">Abenteuer</summary>
-      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.">
+      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.">
         Drei Einzelspieler-Partien am St&uuml;ck auf dem gew&auml;hlten Schwierigkeitsgrad, in zuf&auml;lliger Reihenfolge: <b>Spurensuche</b>, <b>Strecke</b> und <b>Kreis</b> &ndash; jede in ihrer harten Fassung: Ber&uuml;hrung t&ouml;tet, die Fahrt endet an einer Ziellinie, und die Leben der Katze z&auml;hlen. Verlierst du eine davon, beginnt der ganze Lauf von vorn. Gewinnst du alle drei, gibt es ein Feuerwerk und ein <b>Passwort</b>. In den Einstellungen unter „Freischaltungen" eingegeben schaltet es seinen Bonus frei; danach kannst du diesen Bonus beliebig an- und abschalten. Jeder Schwierigkeitsgrad hat sein eigenes Passwort.
+        <br><br>
+        <b>&#127804; Garten-Bonus</b> (aus dem Lauf im Garten): Statt Sherlock, Auto und Katze f&uuml;hrst du in <b>allen</b> Modi eine <b>tanzende Blume</b>, die im Halbsekundentakt zwischen zwei Posen wechselt. Sie zeigt weiterhin an, wohin sie l&auml;uft, springt und schlingert auf der Strecke wie gewohnt, und ihr Schal tr&auml;gt im Duell die Spielerfarbe.
       </div>
     </details>
     <details class="ed-adv">
@@ -1649,6 +1662,41 @@
     + `</svg>`; }
 
   // Auto von oben gesehen (Front oben) – für Racing-Modus und Vorschau
+  // ---- Garten-Bonus: die tanzende Blume ----
+  // Zwei Tanzposen liegen uebereinander im selben SVG; die CSS-Animation blendet im
+  // Halbsekundentakt zwischen ihnen um. Dadurch tanzen alle Blumen im Gleichtakt, ohne Timer.
+  // Der Schal am Stiel nimmt currentColor an – nur so bleiben im Duell beide Seiten unterscheidbar.
+  function blumeInner(dir){
+    const stiel='#3f8f43', blatt='#4ade80', blattD='#1f9d55',
+          kern='#fde68a', kernD='#f59e0b', petal='#f472b6', petalD='#db2777', dark='#3f2d16';
+    const koerper=(p)=>{
+      const nl = p===0 ? 'rotate(-30 8.6 14.2)' : 'rotate(4 8.6 14.2)';
+      const nr = p===0 ? 'rotate(-4 15.4 14.2)' : 'rotate(30 15.4 14.2)';
+      let s=`<path d="M12 19 Q${p===0?'10.7':'13.3'} 14.4 12 10.6" stroke="${stiel}" stroke-width="1.7" fill="none" stroke-linecap="round"/>`
+        + `<ellipse cx="8.6" cy="14.2" rx="3.1" ry="1.45" fill="${blatt}" stroke="${blattD}" stroke-width="0.4" transform="${nl}"/>`
+        + `<ellipse cx="15.4" cy="14.2" rx="3.1" ry="1.45" fill="${blatt}" stroke="${blattD}" stroke-width="0.4" transform="${nr}"/>`
+        + `<rect x="10.2" y="11.4" width="3.6" height="1.5" rx="0.75" fill="currentColor"/>`;
+      for(let i=0;i<6;i++) s+=`<ellipse cx="12" cy="4.7" rx="1.85" ry="2.7" fill="${petal}" stroke="${petalD}" stroke-width="0.35" transform="rotate(${i*60} 12 8)"/>`;
+      s+=`<circle cx="12" cy="8" r="2.7" fill="${kern}" stroke="${kernD}" stroke-width="0.5"/>`;
+      if(dir!==0){                                   // von hinten sieht man kein Gesicht
+        const dx=(dir===1||dir===3)?0.75:0;          // im Profil schaut sie zur Seite
+        s+=`<circle cx="${(11.05+dx).toFixed(2)}" cy="7.5" r="0.5" fill="${dark}"/>`
+          +`<circle cx="${(12.95+dx).toFixed(2)}" cy="7.5" r="0.5" fill="${dark}"/>`
+          +`<path d="M${(11.1+dx).toFixed(2)} 8.85 Q${(12+dx).toFixed(2)} 9.75 ${(12.9+dx).toFixed(2)} 8.85" stroke="${dark}" stroke-width="0.45" fill="none" stroke-linecap="round"/>`;
+      }
+      return s;
+    };
+    // Wurzelfuesse tragen die vorhandene Laufanimation des Feld-Modus mit
+    const fuesse=`<rect class="fig-leg l" x="9.2" y="18.4" width="2.3" height="4.8" rx="1.15" fill="${stiel}"/>`
+                +`<rect class="fig-leg r" x="12.5" y="18.4" width="2.3" height="4.8" rx="1.15" fill="${stiel}"/>`;
+    const inner=fuesse
+      + `<g class="blume-p1" transform="rotate(-6 12 22)">${koerper(0)}</g>`
+      + `<g class="blume-p2" transform="rotate(6 12 22)">${koerper(1)}</g>`;
+    return dir===3 ? `<g transform="translate(24,0) scale(-1,1)">${inner}</g>` : inner;
+  }
+  function blumeSvg(dir){ return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${blumeInner(dir==null?2:dir)}</svg>`; }
+  function gartenBlume(){ return bonusAn('garten'); }
+
   function carSvg(){ return `<svg viewBox="0 0 24 34" xmlns="http://www.w3.org/2000/svg">`
     + `<rect x="3.5" y="8.5" width="4" height="7" rx="1.5" fill="#0b1220"/><rect x="16.5" y="8.5" width="4" height="7" rx="1.5" fill="#0b1220"/>`
     + `<rect x="3.5" y="20.5" width="4" height="7" rx="1.5" fill="#0b1220"/><rect x="16.5" y="20.5" width="4" height="7" rx="1.5" fill="#0b1220"/>`
@@ -1742,7 +1790,7 @@
     const zellen=[];
     for(let i=0;i<cols*(sicht+1);i++){ const c=el('div','race-cell'); grid.appendChild(c); zellen.push(c); }
     bahn.appendChild(grid);
-    const auto=el('div','mc-car'); auto.innerHTML=carSvg();
+    const auto=el('div','mc-car'); auto.innerHTML=gartenBlume()?blumeSvg(2):carSvg();
     auto.style.width=cell+'px'; auto.style.height=cell+'px';
     auto.style.top=(autoReihe*schritt)+'px';
     bahn.appendChild(auto);
@@ -1995,7 +2043,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.51";
+  const APP_VERSION = "1.52";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -2367,7 +2415,8 @@
         fig.style.setProperty('--walk', Math.max(40, Math.round(dur(250)))+'ms');
         fig.style.setProperty('--walkN', String(f.walkSteps));
       }
-      fig.innerHTML=sherlockSvg(f.facing==null?2:f.facing);
+      const blickt=f.facing==null?2:f.facing;
+      fig.innerHTML = gartenBlume() ? blumeSvg(blickt) : sherlockSvg(blickt);
       b.cells[pi].appendChild(fig);
       glideFromCell(b, fig, f, pi, Math.max(70, Math.round(dur(230))), pend);
       if(f.lastFlash) b.cells[pi].classList.add(f.lastFlash==='good'?'flash-good':'flash-bad');
@@ -2753,6 +2802,13 @@
   function makeCatMarker(s, cls){
     const g=elNS('g'); g.setAttribute('class','ring-marker cat-marker'+(cls?' '+cls:''));
     const k=(s||1)*1.45;                       // deutlich groesser als die Ringfelder-Zahlen
+    if(gartenBlume()){
+      // Die Blume steht auf dem Feld statt zu sitzen: um ihre Fuesse herum zentriert.
+      // Die Huelle behaelt cat-body, damit die vorhandene Wackel-Animation weiterlaeuft.
+      g.innerHTML=`<g transform="scale(${(k*1.06).toFixed(3)}) translate(-12,-13.5)"><g class="cat-body">${blumeInner(2)}</g></g>`
+        +`<text class="step-label" x="0" y="${(-13*k).toFixed(1)}" font-size="${(19*(s||1)).toFixed(1)}"></text>`;
+      return g;
+    }
     g.innerHTML=`<g transform="scale(${k.toFixed(3)})">`
       +`<g class="cat-body">`
         +`<path class="cat-tail" d="M6.2 3.4 Q11.6 2 9.4 -3.2" stroke="currentColor" stroke-width="2.1" fill="none" stroke-linecap="round"/>`
@@ -3093,7 +3149,7 @@
   // wird einmal, danach ist das Flag frei schaltbar – beides steckt im localStorage. `bonusAn(id)`
   // ist der Schalter, den die Zusatzinhalte selbst abfragen.
   const BONI=[
-    { id:'garten',     pw:'flowerpower!',           de:'Garten-Bonus',      en:'Garden bonus' },
+    { id:'garten',     pw:'flowerpower!',           de:'&#127804; Tanzende Blume als Spielfigur', en:'&#127804; Dancing flower as your figure' },
     { id:'buero',      pw:'coffebreak?',            de:'B&uuml;ro-Bonus',   en:'Office bonus' },
     { id:'nachtleben', pw:'toomuchis:toomuch',      de:'Nachtleben-Bonus',  en:'Nightlife bonus' },
     { id:'friedhof',   pw:'rest_in_awesomeness_67', de:'Friedhof-Bonus',    en:'Graveyard bonus' }
@@ -3800,7 +3856,7 @@
     if(race.free){ const layer=el('div','race-objs'); view.appendChild(layer); race.objLayer=layer;
       race.objs.forEach(o=>{ o.el=null; }); }
     // Das Auto ist eine eigene Ebene ueber dem Feld: die Welt scrollt, das Auto bleibt stehen.
-    const car=el('div','race-car'); car.innerHTML=carSvg();
+    const car=el('div','race-car'); car.innerHTML=gartenBlume()?blumeSvg(2):carSvg();
     car.style.width=cs+'px'; car.style.height=cs+'px';
     view.appendChild(car);
     host.appendChild(view);
