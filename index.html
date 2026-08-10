@@ -43,6 +43,30 @@
   .ed-adv summary:hover{color:var(--text);}
   #ed-jump-rows select{background:#0b1220; color:var(--text); border:1px solid var(--cell-border); border-radius:8px; padding:5px 7px; font-family:inherit;}
 
+  /* ===== Abenteuer ===== */
+  /* Vorschaukachel: die drei Etappen als Kette statt eines Spielbilds */
+  .ab-vorschau{display:flex; align-items:center; gap:5px; padding:8px 10px; white-space:nowrap;
+    border-radius:12px; background:rgba(15,23,42,0.55); border:1px solid rgba(212,175,55,0.35);}
+  .ab-vorschau .ab-et{width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    font-size:1.25rem; line-height:1; background:rgba(148,163,184,0.16); border:1px solid rgba(148,163,184,0.3);}
+  .ab-vorschau .ab-pfeil{color:var(--gold); font-size:1.2rem; opacity:0.9;}
+  /* Passwort nach drei Siegen */
+  .pw-box{margin:12px auto 4px; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+    padding:10px 14px; border:1px solid var(--gold); border-radius:var(--radius); background:rgba(250,204,21,0.08);}
+  .pw-box .pw-label{width:100%; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted);}
+  .pw-box code{font-family:'Consolas','SFMono-Regular',monospace; font-size:1.05rem; color:var(--gold); user-select:all; word-break:break-all;}
+  .pw-hint{margin-top:6px; font-size:0.76rem; color:var(--muted);}
+  /* Feuerwerk: Funken fliegen aus der Mitte ihres Bursts und verglimmen */
+  .fw-lage{position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:8;}
+  .fw-funke{position:absolute; width:6px; height:6px; border-radius:50%; opacity:0;
+    animation:fwFlug 900ms ease-out forwards;}
+  @keyframes fwFlug{
+    0%{transform:translate(-50%,-50%) scale(0.4); opacity:1;}
+    70%{opacity:1;}
+    100%{transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.9); opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){ .fw-funke{animation-duration:1ms;} }
+
   /* Hilfe-Knopf: schmal wie ein Zeichen. Orange nur, wenn er die Aufloesung mitzeigt. */
   /* Orange faerbt er sich ueber die vorhandene .warn-Klasse – dieselbe Warnfarbe wie frueher
      am Knopf „Aufloesung". Hier steht nur die schmale Form. */
@@ -64,6 +88,7 @@
   .opt-titel{font-family:'Palatino Linotype','Book Antiqua',Georgia,serif; font-size:0.95rem; color:var(--gold); letter-spacing:0.04em; margin-bottom:7px;}
   .opt-zeile{margin:8px 0 0; display:flex; align-items:center; gap:9px; cursor:pointer; font-size:0.9rem;}
   .opt-zeile input[type=checkbox]{width:17px; height:17px; accent-color:var(--gold); flex:0 0 auto;}
+  .opt-zeile.gesperrt{opacity:0.45; cursor:default;}
   .opt-hilfe{margin:5px 0 0 26px; font-size:0.76rem; line-height:1.45; color:var(--muted);}
   /* Waehrend einer Partie bleiben nur die Optionen stehen, die sofort wirken. */
   .nur-menue-hinweis{display:none;}
@@ -871,6 +896,10 @@
       <div class="mc-preview" data-prev="circle"></div>
       <div class="mc-body"><b class="mc-title" data-en="Circle mode">Kreis-Modus</b><span class="mc-desc" data-en="Spin inward across concentric rings &ndash; every number moves both figure and rings.">Dreh dich &uuml;ber konzentrische Ringe bis ins Zentrum &ndash; jede Zahl steuert Figur und Ringe.</span></div>
     </div>
+    <div class="mode-card" data-mode="adventure">
+      <div class="mc-preview" data-prev="adventure"></div>
+      <div class="mc-body"><b class="mc-title" data-en="Adventure">Abenteuer</b><span class="mc-desc" data-en="Three rounds in a row &ndash; trail, race, circle. One defeat and the whole run starts over.">Drei Partien am St&uuml;ck &ndash; Spurensuche, Strecke, Kreis. Eine Niederlage, und der ganze Lauf beginnt von vorn.</span></div>
+    </div>
   </div>
   <div class="mode-dots" id="mode-dots"></div>
 
@@ -1042,7 +1071,7 @@
 <div id="sp-circle" class="game-screen hidden">
   <div class="game-head">
     <div class="stats-row">
-      <span><span data-en="Moves">Z&uuml;ge</span> <b id="spc-moves">0</b></span>
+      <span id="spc-ab"></span><span><span data-en="Moves">Z&uuml;ge</span> <b id="spc-moves">0</b></span>
       <span><span data-en="Ring">Ring</span> <b id="spc-ring">–</b></span>
       <span><span data-en="Cell">Feld</span> <b id="spc-field">–</b></span>
     </div>
@@ -1361,6 +1390,17 @@
       <div class="opt-hilfe" style="margin-left:0;" data-en="How fast figure and rings turn. It also scales the walking animation in field mode.">Wie schnell Figur und Ringe drehen. Skaliert nebenbei auch die Laufanimation im Feld-Modus.</div>
     </div>
 
+    <div class="opt-gruppe" id="boni-block">
+      <div class="opt-titel" data-en="&#128273; Unlocks">&#128273; Freischaltungen</div>
+      <div class="opt-hilfe" style="margin-left:0;" data-en="Finish an adventure run and you get a password. Enter it here to unlock its bonus &ndash; afterwards you can switch it on and off freely.">Bestehst du einen Abenteuer-Lauf, bekommst du ein Passwort. Hier eingegeben schaltet es seinen Bonus frei &ndash; danach kannst du ihn frei an- und abschalten.</div>
+      <div class="btn-row" style="margin-top:8px;">
+        <input id="bonus-pw" class="ed-inp" style="flex:1;" placeholder="Passwort" data-en-ph="Password" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="action" id="bonus-ok" data-en="Redeem">Einl&ouml;sen</button>
+      </div>
+      <div id="bonus-msg" class="opt-hilfe" style="margin-left:0;"></div>
+      <div id="bonus-liste"></div>
+    </div>
+
     <button class="action" id="open-guide" style="width:100%; margin-top:16px;" data-en="&#128218; How to play">&#128218; Anleitung</button>
   </div>
 </div>
@@ -1392,6 +1432,12 @@
         Dein Auto f&auml;hrt am unteren Rand, die Strecke kommt dir entgegen. <b>&#9664; / &#9654;</b> lenken, <b>A</b> hebt das Auto 2,5 Felder ab (danach 3 Felder Pause), <b>B</b> beh&auml;lt die aktuelle Farbregel 2 Reihen lang bei &ndash; auch wenn du die Zone wechselst. Bomben und Raketen bedeuten das Aus, M&uuml;nzen bringen Punkte. Wie im Feld- und Kreis-Modus verzerren die <b>Farbzonen</b> deine Eingaben, und zwar verborgen: Herausfinden ist die eigentliche Aufgabe. Getroffen wird erst, wenn sich Auto und Hindernis deutlich &uuml;berdecken &ndash; ein Streifen am Rand geht noch gut.<br><br>
         <b>Ziellinie:</b> Ist in den Einstellungen „Endlos" aus, kommt nach <b>2:30</b> Fahrzeit eine karierte Ziellinie herein &ndash; wer sie durchf&auml;hrt, hat gewonnen. Mit „Endlos" f&auml;hrst du wie bisher, bis es dich erwischt.<br><br>
         <b>Freie Fahrt</b> (in den Einstellungen „K&auml;stchenbasiert" abschalten): Damit f&auml;llt die K&auml;stchenbindung weg. Das Auto f&auml;hrt seitlich, <b>solange du die Taste gedr&uuml;ckt h&auml;ltst</b>, und Hindernisse, M&uuml;nzen und Raketen liegen frei auf der Strecke statt in Feldern &ndash; Raketen suchen sich dabei immer wieder neue Bahnen. Die Regeln zum Seitw&auml;rtsfahren wirken hier nicht mehr auf die Feldzahl, sondern auf die <b>Geschwindigkeit</b>: Wo sonst „zwei Felder" st&uuml;nde, f&auml;hrt das Auto doppelt so schnell. Im Online-Duell bleibt die freie Fahrt aus, damit beide Ger&auml;te nach denselben Regeln fahren.
+      </div>
+    </details>
+    <details class="ed-adv">
+      <summary data-en="Adventure">Abenteuer</summary>
+      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.">
+        Drei Einzelspieler-Partien am St&uuml;ck auf dem gew&auml;hlten Schwierigkeitsgrad, in zuf&auml;lliger Reihenfolge: <b>Spurensuche</b>, <b>Strecke</b> und <b>Kreis</b> &ndash; jede in ihrer harten Fassung: Ber&uuml;hrung t&ouml;tet, die Fahrt endet an einer Ziellinie, und die Leben der Katze z&auml;hlen. Verlierst du eine davon, beginnt der ganze Lauf von vorn. Gewinnst du alle drei, gibt es ein Feuerwerk und ein <b>Passwort</b>. In den Einstellungen unter „Freischaltungen" eingegeben schaltet es seinen Bonus frei; danach kannst du diesen Bonus beliebig an- und abschalten. Jeder Schwierigkeitsgrad hat sein eigenes Passwort.
       </div>
     </details>
     <details class="ed-adv">
@@ -1655,7 +1701,10 @@
     const bw=host.clientWidth, bh=host.clientHeight;
     const nw=inner.offsetWidth, nh=inner.offsetHeight;
     if(!bw||!bh||!nw||!nh) return;
-    if(mode==='circle'){                       // Kreis ganz zeigen
+    if(mode==='adventure'){                    // Symbolkette etwas ueber der Mitte, damit „Start" frei bleibt
+      inner.style.top='34%'; inner.style.bottom='auto'; inner.style.transformOrigin='center center';
+      inner.style.transform='translate(-50%,-50%)';
+    } else if(mode==='circle'){                // Kreis ganz zeigen
       const k=Math.min(bw/nw, bh/nh)*0.98;
       inner.style.top='50%'; inner.style.bottom='auto'; inner.style.transformOrigin='center center';
       inner.style.transform=`translate(-50%,-50%) scale(${k.toFixed(3)})`;
@@ -1861,6 +1910,13 @@
             .catch(()=>{}).then(()=>{ sfxStumm--; });
           return true;
         }};
+      } else if(mode==='adventure'){
+        // Kein Spielbild, sondern die drei Etappen als Symbolkette – der Modus IST die Abfolge.
+        const k=el('div','ab-vorschau');
+        k.innerHTML=`<span class="ab-et">&#128506;</span><span class="ab-pfeil">&rsaquo;</span>`
+          + `<span class="ab-et">&#127950;</span><span class="ab-pfeil">&rsaquo;</span>`
+          + `<span class="ab-et">&#11093;</span>`;
+        inner.appendChild(k);
       } else {
         demo=buildRacePreview(inner, raceFrei());
       }
@@ -1939,7 +1995,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.50";
+  const APP_VERSION = "1.51";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -3032,7 +3088,50 @@
   // Waehrend einer Partie zeigen die Einstellungen nur, was sofort wirkt: Ton, Tempo, der
   // „?"-Schalter. Die Regel-Optionen greifen erst ab der naechsten Runde und blieben hier
   // wirkungslos – statt sie zu zeigen und nichts zu tun, verschwinden sie samt Hinweis.
+  // ---- Freischaltbare Zusatzinhalte ----
+  // Jeder Bonus haengt an dem Passwort, das ein bestandener Abenteuer-Lauf ausgibt. Freigeschaltet
+  // wird einmal, danach ist das Flag frei schaltbar – beides steckt im localStorage. `bonusAn(id)`
+  // ist der Schalter, den die Zusatzinhalte selbst abfragen.
+  const BONI=[
+    { id:'garten',     pw:'flowerpower!',           de:'Garten-Bonus',      en:'Garden bonus' },
+    { id:'buero',      pw:'coffebreak?',            de:'B&uuml;ro-Bonus',   en:'Office bonus' },
+    { id:'nachtleben', pw:'toomuchis:toomuch',      de:'Nachtleben-Bonus',  en:'Nightlife bonus' },
+    { id:'friedhof',   pw:'rest_in_awesomeness_67', de:'Friedhof-Bonus',    en:'Graveyard bonus' }
+  ];
+  const BONUS_KEY='regel-detektiv-boni';
+  let boni={ frei:{}, aktiv:{} };
+  try{ const g=JSON.parse(localStorage.getItem(BONUS_KEY)||'{}'); boni.frei=g.frei||{}; boni.aktiv=g.aktiv||{}; }catch(e){}
+  function bonusSpeichern(){ try{ localStorage.setItem(BONUS_KEY, JSON.stringify(boni)); }catch(e){} }
+  function bonusAn(id){ return !!(boni.frei[id] && boni.aktiv[id]); }
+  function bonusListe(){
+    const host=$('bonus-liste'); if(!host) return;
+    host.innerHTML='';
+    BONI.forEach(b=>{
+      const frei=!!boni.frei[b.id];
+      const zeile=el('label','opt-zeile'+(frei?'':' gesperrt'));
+      const box=document.createElement('input'); box.type='checkbox'; box.checked=!!boni.aktiv[b.id]; box.disabled=!frei;
+      box.addEventListener('change',()=>{ boni.aktiv[b.id]=box.checked; bonusSpeichern(); });
+      const txt=el('span'); txt.innerHTML=(frei?'':'&#128274; ')+T(b.de,b.en);
+      zeile.appendChild(box); zeile.appendChild(txt); host.appendChild(zeile);
+    });
+  }
+  function bonusEinloesen(){
+    const feld=$('bonus-pw'), msg=$('bonus-msg');
+    const ein=(feld.value||'').trim().toLowerCase();
+    if(!ein){ msg.textContent=''; return; }
+    const treffer=BONI.filter(b=>b.pw.toLowerCase()===ein);
+    if(!treffer.length){ msg.textContent=T('Passwort passt nicht.','That password does not fit.'); return; }
+    const neu=treffer.filter(b=>!boni.frei[b.id]);
+    treffer.forEach(b=>{ boni.frei[b.id]=true; if(boni.aktiv[b.id]===undefined) boni.aktiv[b.id]=true; });
+    bonusSpeichern(); bonusListe(); feld.value='';
+    msg.textContent = neu.length
+      ? T('Freigeschaltet: ','Unlocked: ')+neu.map(b=>T(b.de,b.en).replace(/&uuml;/g,'ü')).join(', ')
+      : T('War schon freigeschaltet.','Was already unlocked.');
+    sfx('win');
+  }
   function openSettings(){
+    bonusListe();
+    $('bonus-msg').textContent='';
     $('opt-sfx').value=Math.round(sfxVol*100); $('sfx-val').textContent=Math.round(sfxVol*100)+'%';
     $('opt-music').value=Math.round(musicVol*100); $('music-val').textContent=Math.round(musicVol*100)+'%';
     pauseForReveal();                                  // wie bei Kurzanleitung und Aufloesung
@@ -3056,6 +3155,9 @@
   $('gear-btn').addEventListener('click', openSettings);
   $('settings-close').addEventListener('click', closeSettings);
   $('settings-modal').addEventListener('click', e=>{ if(e.target===$('settings-modal')) closeSettings(); });
+  $('bonus-ok').addEventListener('click', bonusEinloesen);
+  $('bonus-pw').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); bonusEinloesen(); } });
+  onLangChange(bonusListe);
   $('open-guide').addEventListener('click', ()=>{ closeSettings(); openGuide(); });
   $('guide-close').addEventListener('click', closeGuide);
   $('guide-modal').addEventListener('click', e=>{ if(e.target===$('guide-modal')) closeGuide(); });
@@ -3081,7 +3183,7 @@
     }
   }
   function startBg(){ document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`; }
-  function backToMenu(){ musicSetTrack('menu'); raceDuel=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('lang-pick').classList.remove('hidden'); startBg(); }
+  function backToMenu(){ musicSetTrack('menu'); raceDuel=null; abenteuer=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('lang-pick').classList.remove('hidden'); startBg(); }
   // ===================== SOUND (Web Audio, komplett synthetisiert – keine externen Dateien) =====================
   const AUDIO_KEY='regel-detektiv-audio';
   let audioCtx=null, masterGain=null, musicGain=null, sfxGain=null, sfxOn=true, musicOn=true;
@@ -3828,7 +3930,7 @@
       race.carEl.style.top=(race.pad+race.carRow*race.stepPx)+'px';
     }
   }
-  function raceRenderStats(){ $('race-stats').innerHTML=`${T('Punkte','Score')} <b>${race.score}</b> &middot; ${T('M&uuml;nzen','Coins')} <b>${race.coins}</b> &middot; <b>${zoneName(ZONE_COLORS[raceCarRowData().zone])}</b>`; raceRenderDuel(); }
+  function raceRenderStats(){ $('race-stats').innerHTML=abPrefix()+`${T('Punkte','Score')} <b>${race.score}</b> &middot; ${T('M&uuml;nzen','Coins')} <b>${race.coins}</b> &middot; <b>${zoneName(ZONE_COLORS[raceCarRowData().zone])}</b>`; raceRenderDuel(); }
   function raceClearTimers(){ if(race){ clearTimeout(race.timer); cancelAnimationFrame(race.raf); race.raf=null; } }
   // ---- Weltuhr ----
   // Strecke, Kaestchen, Boden und die freien Objekte haengen an EINER stetig laufenden Position.
@@ -4197,6 +4299,7 @@
     $('race-overlay-msg').innerHTML=`<b>Crash!</b><br>`+T(`Du hast <b>${race.score}</b> Zeilen geschafft (${race.coins} M&uuml;nzen eingesammelt).`,
       `You made <b>${race.score}</b> rows (${race.coins} coins collected).`);
     const acts=$('race-overlay-actions'); acts.innerHTML='';
+    if(abAktionen(acts, $('race-overlay-msg'), false)) return;
     // race.ov mitgeben, sonst faellt eine Editor-Partie auf die Standardregeln zurueck
     const again=el('button','action primary'); again.textContent=T('Nochmal','Again'); again.onclick=()=>raceStart(race.diffKey, race.ov); acts.appendChild(again);
     const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
@@ -4214,6 +4317,7 @@
       + T(`Du bist durchgekommen &ndash; <b>${race.score}</b> Zeilen und ${race.coins} M&uuml;nzen.`,
           `You made it through &ndash; <b>${race.score}</b> rows and ${race.coins} coins.`);
     const acts=$('race-overlay-actions'); acts.innerHTML='';
+    if(abAktionen(acts, $('race-overlay-msg'), true)) return;
     const again=el('button','action primary'); again.textContent=T('Nochmal','Again'); again.onclick=()=>raceStart(race.diffKey, race.ov); acts.appendChild(again);
     const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
   }
@@ -4439,7 +4543,7 @@
     let s2;
     if(shared.layoutKind==='bands'){ const ag=shared.checkpoints[f.checkpointIdx]; s2=`${T('Abstand','Distance')} <b>${Math.abs(f.x-ag.x)+Math.abs(f.y-ag.y)}</b> · ${T('Optimal','Optimum')} <b>${shared.optimal}</b>`; }
     else { const left=board.coins.length+(board.centerItem&&!board.centerItem.taken?1:0); s2=`${T('Münzen','Coins')} <b>${left}</b>`; }
-    $('spg-stats').innerHTML = `${T('Züge','Moves')} <b>${f.moves}</b> · ${s2} · <b>${zoneName(shared.zones[shared.zoneOf(f.x,f.y)])}</b>`;
+    $('spg-stats').innerHTML = abPrefix()+`${T('Züge','Moves')} <b>${f.moves}</b> · ${s2} · <b>${zoneName(shared.zones[shared.zoneOf(f.x,f.y)])}</b>`;
     $('spg-frame').classList.toggle('done', f.done);
     layoutSpgPad();
     const ov=$('spg-overlay');
@@ -4462,6 +4566,7 @@
       } else {
         $('spg-overlay-msg').innerHTML=T(`Alle M&uuml;nzen eingesammelt in <b>${f.moves}</b> Z&uuml;gen!`,`All coins collected in <b>${f.moves}</b> moves!`)+`<br>${note}`;
       }
+      if(abAktionen(acts, $('spg-overlay-msg'), !f.dead)) return;
       const n=el('button','action primary'); n.textContent=T('Nächste Runde','Next round'); n.onclick=()=>spgStart(shared.diffKey, shared.variant, spgState.ov); acts.appendChild(n);
       const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
     } else ov.classList.add('hidden');
@@ -4480,6 +4585,7 @@
   function spcCyclePose(){ if(!spcState||spcState.phase!=='playing') return; sfx('pose'); spcState.gandalfPose=(spcState.gandalfPose+1)%3; renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1); }
   function spcRender(){
     const cs=spcState; circleMarkerFlash(cs);
+    $('spc-ab').innerHTML=abPrefix();
     $('spc-moves').textContent=cs.moves;
     setLebenBar($('spc-leben'), cs.hearts);
     $('spc-ring').textContent = cs.phase==='won'?T('Zentrum','Centre'):(cs.ringIdx+1)+' / '+cs.rings.length;
@@ -4494,6 +4600,7 @@
         : T('Ohne Aufl&ouml;sung gel&ouml;st &ndash; stark!','Solved without the solution &ndash; nice!');
       $('spc-overlay-msg').innerHTML=T(`Detektiv erreicht in <b>${cs.moves}</b> Z&uuml;gen!`,`Detective reached in <b>${cs.moves}</b> moves!`)+`<br>${note}`;
       const acts=$('spc-overlay-actions'); acts.innerHTML='';
+      if(abAktionen(acts, $('spc-overlay-msg'), true)) return;
       const n=el('button','action primary'); n.textContent=T('Nächste Runde','Next round'); n.onclick=()=>spcStart(cs.diffKey, cs.ov); acts.appendChild(n);
       const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
     } else if(cs.phase==='out'){
@@ -4502,6 +4609,7 @@
         + T(`Die Katze kam bis Ring <b>${cs.ringIdx+1}</b> von ${cs.rings.length} &ndash; in ${cs.moves} Z&uuml;gen.`,
             `The cat got to ring <b>${cs.ringIdx+1}</b> of ${cs.rings.length} &ndash; in ${cs.moves} moves.`);
       const acts=$('spc-overlay-actions'); acts.innerHTML='';
+      if(abAktionen(acts, $('spc-overlay-msg'), false)) return;
       const n=el('button','action primary'); n.textContent=T('Nächste Runde','Next round'); n.onclick=()=>spcStart(cs.diffKey, cs.ov); acts.appendChild(n);
       const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
     } else ov.classList.add('hidden');
@@ -4514,6 +4622,102 @@
     if(!cs.mounted) return;
     if(cs.phase==='won') sfx('win');
     spcRender();
+  }
+
+  // ===================== ABENTEUER =====================
+  // Drei Einzelspieler-Partien am Stueck, Reihenfolge gewuerfelt: Spurensuche, Strecke, Kreis –
+  // jede in ihrer harten Fassung (Kontakt toetet, Ziellinie statt endlos, Herzen zaehlen).
+  // Eine Niederlage beendet den ganzen Lauf; drei Siege geben das Passwort des Schwierigkeitsgrads.
+  const AB_TEILE=['grid','racing','circle'];
+  const AB_PASSWORT={ leicht:'flowerpower!', mittel:'coffebreak?', schwer:'toomuchis:toomuch', experte:'rest_in_awesomeness_67' };
+  let abenteuer=null;      // { diffKey, folge:[...], idx }
+  function abLaeuft(){ return !!abenteuer; }
+  function abStart(diffKey){
+    abenteuer={ diffKey, folge:shuffle(AB_TEILE.slice()), idx:0, fertig:false };
+    abTeilStarten();
+  }
+  function abTeilStarten(){
+    const a=abenteuer; if(!a) return;
+    const teil=a.folge[a.idx];
+    if(teil==='grid')        spgStart(a.diffKey, 'spurensuche', { deathless:false });
+    else if(teil==='racing') raceStart(a.diffKey, { endless:false });
+    else                     spcStart(a.diffKey, { deathless:false });
+  }
+  // Fortschritt im Kopf der jeweiligen Partie, damit man weiss, wo man steht
+  function abPrefix(){ return abenteuer ? T(`Abenteuer ${abenteuer.idx+1}/3 &middot; `, `Adventure ${abenteuer.idx+1}/3 &middot; `) : ''; }
+  const AB_NAME={ grid:['Spurensuche','Trail'], racing:['Strecke','Track'], circle:['Kreis','Circle'] };
+  // Haengt sich in die Ende-Overlays der drei Modi. Rueckgabe true = das Abenteuer hat die
+  // Knoepfe uebernommen, der normale Ablauf soll nicht auch noch welche anhaengen.
+  function abAktionen(acts, msgEl, gewonnen){
+    const a=abenteuer; if(!a) return false;
+    // Manche Render-Funktionen laufen nach dem Ende noch einmal (Hunde-Timer, Nachzeichnen).
+    // Ohne diese Sperre wuerde der Fortschritt dabei ein zweites Mal weiterzaehlen.
+    if(a.fertig) return true;
+    a.fertig=true;
+    if(!gewonnen){
+      if(msgEl) msgEl.innerHTML += `<br><br><b>${T('Lauf verloren.','Run lost.')}</b> `
+        + T(`Der ganze Abenteuer-Lauf beginnt von vorn.`,`The whole adventure run starts over.`);
+      const neu=el('button','action primary'); neu.textContent=T('Neu starten','Start over'); neu.onclick=()=>abStart(a.diffKey); acts.appendChild(neu);
+      const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
+      return true;
+    }
+    if(a.idx < a.folge.length-1){
+      a.idx++; a.fertig=false;                        // naechster Teil zaehlt wieder mit
+      const naechste=AB_NAME[a.folge[a.idx]];
+      if(msgEl) msgEl.innerHTML += `<br><br>${T(`Geschafft &ndash; weiter zu Teil <b>${a.idx+1}</b> von 3: <b>${naechste[0]}</b>.`,
+                                                `Done &ndash; on to part <b>${a.idx+1}</b> of 3: <b>${naechste[1]}</b>.`)}`;
+      const w=el('button','action primary'); w.textContent=T('Weiter','Continue'); w.onclick=()=>abTeilStarten(); acts.appendChild(w);
+      const bk=el('button','action'); bk.textContent=T('Aufgeben','Give up'); bk.onclick=()=>{ abenteuer=null; backToMenu(); }; acts.appendChild(bk);
+      return true;
+    }
+    abSieg(acts, msgEl, a.diffKey);                   // alle drei geschafft
+    return true;
+  }
+  function abSieg(acts, msgEl, diffKey){
+    const pw=AB_PASSWORT[diffKey]||'';
+    const thema=THEMES[diffKey];
+    if(msgEl) msgEl.innerHTML = `<div class="win-line">${T('Abenteuer bestanden!','Adventure complete!')}</div>`
+      + T(`Alle drei Partien gewonnen &ndash; <b>${themeTitle(thema)}</b>.`,`All three rounds won &ndash; <b>${themeTitle(thema)}</b>.`)
+      + `<div class="pw-box"><div class="pw-label">${T('Dein Passwort','Your password')}</div>`
+      + `<code id="ab-pw">${pw}</code>`
+      + `<button class="action mini" id="ab-copy" data-en="Copy">Kopieren</button></div>`
+      + `<div class="pw-hint">${T('In den Einstellungen unter „Freischaltungen" eingeben.','Enter it under &#8222;Unlocks&#8221; in the settings.')}</div>`;
+    const kopf=msgEl && msgEl.closest('.panel');
+    feuerwerk(kopf || document.body);
+    const btn=$('ab-copy');
+    if(btn) btn.addEventListener('click',()=>{
+      const fertig=()=>{ btn.textContent=T('Kopiert ✓','Copied ✓'); setTimeout(()=>{ btn.textContent=T('Kopieren','Copy'); },1400); };
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(pw).then(fertig).catch(()=>abMarkieren()); }
+      else abMarkieren();
+    });
+    function abMarkieren(){ const c=$('ab-pw'); if(!c) return; const r=document.createRange(); r.selectNodeContents(c);
+      const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+    const neu=el('button','action primary'); neu.textContent=T('Nochmal','Again'); neu.onclick=()=>abStart(diffKey); acts.appendChild(neu);
+    const bk=el('button','action'); bk.textContent=T('Zurück zur Auswahl','Back to the menu'); bk.onclick=backToMenu; acts.appendChild(bk);
+  }
+  // Kleines Feuerwerk: ein paar Bursts aus je zwoelf Funken, die sich selbst wieder abraeumen.
+  function feuerwerk(host){
+    // Die Funken liegen absolut im Gastgeber – der muss dafuer selbst positioniert sein
+    if(getComputedStyle(host).position==='static') host.style.position='relative';
+    const lage=el('div','fw-lage'); host.appendChild(lage);
+    const farben=['#facc15','#f472b6','#38bdf8','#4ade80','#fb923c'];
+    let n=0;
+    const burst=()=>{
+      if(!lage.parentNode) return;
+      const bx=15+Math.random()*70, by=20+Math.random()*45, farbe=farben[n%farben.length];
+      for(let i=0;i<12;i++){
+        const w=(i/12)*Math.PI*2, weite=26+Math.random()*26;
+        const f=el('span','fw-funke');
+        f.style.left=bx+'%'; f.style.top=by+'%'; f.style.background=farbe;
+        f.style.setProperty('--dx', (Math.cos(w)*weite).toFixed(1)+'px');
+        f.style.setProperty('--dy', (Math.sin(w)*weite).toFixed(1)+'px');
+        lage.appendChild(f);
+      }
+      sfx('coin');
+      if(++n<5) setTimeout(burst, 380);
+      else setTimeout(()=>{ if(lage.parentNode) lage.parentNode.removeChild(lage); }, 1200);
+    };
+    burst();
   }
 
   // ===================== MULTIPLAYER =====================
@@ -6003,13 +6207,16 @@
   // ===================== START SCREEN WIRING =====================
   function updateMenuVisibility(){
     const racing = currentMode==='racing';
-    $('player-block').classList.remove('hidden');            // Racing kann jetzt auch im Duell gespielt werden
-    $('variant-block').classList.toggle('hidden', currentMode!=='grid');
-    $('circle-variant-block').classList.toggle('hidden', !(currentMode==='circle' && playerCount===2));
+    // Das Abenteuer legt seine drei Partien selbst fest – Spieleranzahl und Varianten
+    // waeren dort wirkungslos und verschwinden deshalb.
+    const abent = currentMode==='adventure';
+    $('player-block').classList.toggle('hidden', abent);
+    $('variant-block').classList.toggle('hidden', abent || currentMode!=='grid');
+    $('circle-variant-block').classList.toggle('hidden', abent || !(currentMode==='circle' && playerCount===2));
     const gerangel = currentMode==='grid' && gridVariant==='gerangel';
     const circGer = currentMode==='circle' && circleVariant==='gerangel';
-    $('winmode-block').classList.toggle('hidden', racing || playerCount!==2 || gerangel || circGer);
-    $('open-online').classList.remove('hidden');
+    $('winmode-block').classList.toggle('hidden', abent || racing || playerCount!==2 || gerangel || circGer);
+    $('open-online').classList.toggle('hidden', abent);
     const dc=$('diff-caption');
     if(dc) dc.innerHTML = (racing ? T('Strecke','Track') : T('Schwierigkeit','Difficulty'))
       + ` <span class="cap-hint">${T('&ndash; wischen, dann antippen','&ndash; swipe, then tap')}</span>`;
@@ -6099,6 +6306,8 @@
   });
   function startDiff(key){
     sfx('click');
+    if(currentMode==='adventure'){ raceDuel=null; abStart(key); return; }
+    abenteuer=null;                                   // ein normaler Start bricht einen Lauf ab
     if(currentMode==='racing'){ if(playerCount===2) raceStartLocalDuel(key); else { raceDuel=null; raceStart(key); } return; }
     if(playerCount===1){ if(currentMode==='grid') spgStart(key, gridVariant); else spcStart(key); }
     else mpStart(key);
