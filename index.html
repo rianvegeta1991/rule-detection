@@ -351,10 +351,15 @@
     border:1px solid #8a5a12;
     box-shadow:0 0 5px rgba(250,204,21,0.75), inset 0 1px 2px rgba(255,255,255,0.75), inset 0 -2px 3px rgba(120,60,10,0.5);
   }
-  /* Wertzeichen in der Mitte (Stern), damit die Muenze auch klein als Muenze lesbar ist */
+  /* Wertzeichen in der Mitte (Stern), damit die Muenze auch klein als Muenze lesbar ist.
+     Der Stern haengt an der Muenzbreite (cqw), nicht an der Schriftgroesse: sonst blieb er
+     absolut gleich gross, waehrend die Muenzen mit der Brettgroesse schrumpfen – im Feld
+     fuellte er dadurch 57 % der Muenze, im Racing nur 46 %. Jetzt ueberall dasselbe Verhaeltnis. */
+  .cell .coin, .race-cell .coin, .race-objs .fo .coin{container-type:size;}
   .cell .coin::before, .race-cell .coin::before, .race-objs .fo .coin::before{
     content:'★'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    font-size:62%; line-height:1; color:rgba(120,60,10,0.72); text-shadow:0 1px 0 rgba(255,245,200,0.65); pointer-events:none;
+    font-size:62%; font-size:50cqw;   /* erste Zeile ist der Rueckfall ohne Container-Einheiten */
+    line-height:1; color:rgba(120,60,10,0.72); text-shadow:0 1px 0 rgba(255,245,200,0.65); pointer-events:none;
   }
   .cell .coin::after, .race-cell .coin::after, .race-objs .fo .coin::after{
     content:''; position:absolute; top:-40%; bottom:-40%; left:-60%; width:55%;
@@ -432,9 +437,9 @@
   /* Mittel-Muenze: dieselbe Muenze, nur groesser und mit drei Sternen (drei Punkte) */
   .cell .coin.center{inset:9%;}
   /* Drei Sterne im Dreieck (einer oben, zwei darunter) – ueber zwei Zeilen im selben ::before.
-     font-size wird NICHT ueberschrieben: 62 % beziehen sich auf die geerbte Schriftgroesse,
-     nicht auf die Muenzbreite – die Sterne sind damit exakt so gross wie auf normalen Muenzen. */
-  .cell .coin.center::before{content:'★\A★★'; white-space:pre; text-align:center; line-height:0.9; letter-spacing:-0.03em; text-indent:-0.03em;}
+     37cqw statt 50cqw: die Mittel-Muenze ist um den Faktor 0,82/0,60 groesser, damit sind die
+     Sterne am Ende genauso gross wie auf einer normalen Muenze – und sitzen enger beisammen. */
+  .cell .coin.center::before{content:'★\A★★'; white-space:pre; text-align:center; font-size:45%; font-size:37cqw; line-height:0.94; letter-spacing:-0.03em; text-indent:-0.03em;}
   /* Hunde laufen wie die Spielfigur: sie gleiten zum Nachbarfeld und trippeln dabei mit den Beinen */
   .cell .dog{position:absolute; inset:6%; will-change:transform; z-index:3;}
   .cell .dog svg{width:100%; height:100%; display:block; overflow:visible;}
@@ -1915,7 +1920,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.48";
+  const APP_VERSION = "1.49";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
