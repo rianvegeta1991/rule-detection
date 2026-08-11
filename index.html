@@ -47,16 +47,18 @@
      Alle Ebenen (Kulisse, Strasse, naher Boden, Requisiten) haben dieselbe Feldbreite und
      denselben Takt – nur so fallen die Zonenwechsel von Strasse und Hintergrund zusammen.
      Das Tempo macht stattdessen die Mittellinie, die zusaetzlich ueber den Belag laeuft. */
+  /* Breite, Weg und Dauer setzt fahrtAufbauen – sie haengen an der Zahl der Zonen
+     (mit dem Friedhof-Bonus kommt der Weltraum dazu). */
   #fahrt-bg{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;
-    --f-boden:8%; --f-strasse:12.5%;}
+    --f-boden:8%; --f-strasse:12.5%; --f-breite:800vw; --f-weg:-400vw; --f-dauer:48s;}
   /* Schleier: die Kulissen duerfen durchscheinen, aber das Menue muss lesbar bleiben.
      Auto und Requisiten liegen darueber und bleiben dadurch farbig. */
   #fahrt-bg::after{content:''; position:absolute; inset:0; background:rgba(15,23,42,0.68);}
-  .fahrt-band, .fahrt-strasse, .fahrt-boden, .fahrt-vorne{position:absolute; left:0; width:800vw;
-    display:flex; will-change:transform; animation:fahrtRollen 48s linear infinite;}
+  .fahrt-band, .fahrt-strasse, .fahrt-boden, .fahrt-vorne{position:absolute; left:0; width:var(--f-breite);
+    display:flex; will-change:transform; animation:fahrtRollen var(--f-dauer) linear infinite;}
   .fahrt-band{bottom:calc(var(--f-boden) + var(--f-strasse)); height:100%;}
   .fahrt-kulisse{width:100vw; height:100%; flex:0 0 100vw; background-size:cover; background-position:center bottom;}
-  @keyframes fahrtRollen{ from{transform:translateX(0);} to{transform:translateX(-400vw);} }
+  @keyframes fahrtRollen{ from{transform:translateX(0);} to{transform:translateX(var(--f-weg));} }
   /* Strasse und naher Boden liegen ueber dem Schleier: sie sind die Buehne, auf der das Auto
      faehrt, und unter ihnen steht kein Text, der lesbar bleiben muesste. */
   .fahrt-strasse{bottom:var(--f-boden); height:var(--f-strasse); z-index:1;}
@@ -139,8 +141,9 @@
   #nacht-flug{position:fixed; inset:0; z-index:60; pointer-events:none; overflow:hidden;}
   .nf-tier{position:absolute; will-change:transform; animation:nachtZug var(--dauer) linear forwards;}
   @keyframes nachtZug{ from{transform:translate(0,0);} to{transform:translate(var(--dx),var(--dy));} }
-  .nf-vogel svg{width:100%; height:auto; display:block; opacity:0.9;
-    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.7));}
+  /* --saum kommt aus dem SVG: heller Saum fuer den schwarzen Vogel, dunkler fuer die hellen */
+  .nf-vogel svg{width:100%; height:auto; display:block; opacity:0.92;
+    filter:drop-shadow(0 0 2px var(--saum,rgba(0,0,0,0.7))) drop-shadow(0 1px 3px rgba(0,0,0,0.5));}
   .nf-vogel .nf-p1{animation:blumeTanzA 0.42s linear infinite;}
   .nf-vogel .nf-p2{animation:blumeTanzB 0.42s linear infinite;}
   /* Sternschnuppe: heller Kopf mit Schweif, der Schweif zeigt entgegen der Flugrichtung */
@@ -1595,16 +1598,16 @@
     </details>
     <details class="ed-adv">
       <summary data-en="Adventure">Abenteuer</summary>
-      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard. Tap the <b>magnifier</b> at the top and the menu clears out of the way; tap it again to bring it back.<br><br><b>&#10024; Nightlife bonus</b> (from the run in the nightlife): in <b>every</b> mode the cells slowly glow up and down on a three-second beat &ndash; the rings in circle mode too. Every 10 to 20 seconds a <b>bird</b> drifts across the screen, or a <b>shooting star</b> races through it. And on the track the stored colour rule (<b>B</b>) burns noticeably brighter around your vehicle.<br><br><b>&#128736; Graveyard bonus</b> (from the run in the graveyard): a fifth difficulty joins the list &ndash; <b>Crazy</b>, set in <b>outer space</b>. In field mode the dogs take only half as long per step as on Expert, and two of them are <b>giant dogs</b> blocking <b>four cells</b> (2&times;2) each. The track runs 30&nbsp;% faster with about a fifth more bombs and rockets. And in circle mode a <b>clock</b> runs: 7 seconds per move &ndash; let them pass unused and it costs a life. Any action resets it. Behind it waits one last, hidden bonus.">
+      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard. Tap the <b>magnifier</b> at the top and the menu clears out of the way; tap it again to bring it back.<br><br><b>&#10024; Nightlife bonus</b> (from the run in the nightlife): one password, <b>two switches</b>. The <b>glow</b> makes the cells slowly light up and fade again on a three-second beat in <b>every</b> mode &ndash; the rings in circle mode too; every colour only gets lighter, so the zones stay apart. On the track the stored colour rule (<b>B</b>) also burns noticeably brighter around your vehicle. The <b>flight</b> sends a <b>bird</b> drifting or a <b>shooting star</b> racing across the screen every 10 to 20 seconds &ndash; lengthwise or crosswise, white or black, and roughly every ninth one in zebra stripes.<br><br><b>&#128736; Graveyard bonus</b> (from the run in the graveyard): a fifth difficulty joins the list &ndash; <b>Crazy</b>, set in <b>outer space</b>. In field mode the dogs take only half as long per step as on Expert, and two of them are <b>giant dogs</b> blocking <b>four cells</b> (2&times;2) each. The track runs 30&nbsp;% faster with about a fifth more bombs and rockets. And in circle mode a <b>clock</b> runs: 7 seconds per move &ndash; let them pass unused and it costs a life. Any action resets it. With the <b>road trip</b> switched on, Sherlock now also drives through <b>outer space</b> &ndash; a <b>comet field</b> of small chunks streams past him there. Behind it waits one last, hidden bonus.">
         Drei Einzelspieler-Partien am St&uuml;ck auf dem gew&auml;hlten Schwierigkeitsgrad, in zuf&auml;lliger Reihenfolge: <b>Spurensuche</b>, <b>Strecke</b> und <b>Kreis</b> &ndash; jede in ihrer harten Fassung: Ber&uuml;hrung t&ouml;tet, die Fahrt endet an einer Ziellinie, und die Leben der Katze z&auml;hlen. Verlierst du eine davon, beginnt der ganze Lauf von vorn. Gewinnst du alle drei, gibt es ein Feuerwerk und ein <b>Passwort</b>. In den Einstellungen unter „Freischaltungen" eingegeben schaltet es seinen Bonus frei; danach kannst du diesen Bonus beliebig an- und abschalten. Jeder Schwierigkeitsgrad hat sein eigenes Passwort.
         <br><br>
         <b>&#127804; Garten-Bonus</b> (aus dem Lauf im Garten): Statt Sherlock, Auto und Katze f&uuml;hrst du in <b>allen</b> Modi eine <b>tanzende Blume</b>, die im Halbsekundentakt zwischen zwei Posen wechselt. Sie zeigt weiterhin an, wohin sie l&auml;uft, springt und schlingert auf der Strecke wie gewohnt, und ihr Schal tr&auml;gt im Duell die Spielerfarbe.
         <br><br>
         <b>&#128663; B&uuml;ro-Bonus</b> (aus dem Lauf im B&uuml;ro): Der Startbildschirm steht nicht mehr still &ndash; Sherlock f&auml;hrt im roten Auto vorbei, die Katze sitzt hinten drin, und die Kulisse wechselt in einer Endlosschleife zwischen Garten, B&uuml;ro, Nachtleben und Friedhof. Ein Tipp auf die <b>Lupe</b> ganz oben r&auml;umt das Men&uuml; weg und gibt den Blick frei; der n&auml;chste Tipp holt es zur&uuml;ck.
         <br><br>
-        <b>&#10024; Nachtleben-Bonus</b> (aus dem Lauf im Nachtleben): In <b>allen</b> Modi glimmen die Felder im Drei-Sekunden-Takt langsam auf und wieder ab &ndash; auch die Ringe im Kreis. Alle 10 bis 20 Sekunden zieht ein <b>Vogel</b> gem&auml;chlich oder eine <b>Sternschnuppe</b> schnell durchs Bild. Und auf der Strecke leuchtet die gespeicherte Farbregel (<b>B</b>) deutlich heller um dein Fahrzeug.
+        <b>&#10024; Nachtleben-Bonus</b> (aus dem Lauf im Nachtleben): ein Passwort, <b>zwei Schalter</b>. Das <b>Glimmen</b> l&auml;sst in <b>allen</b> Modi die Felder im Drei-Sekunden-Takt langsam aufleuchten und wieder abklingen &ndash; auch die Ringe im Kreis; jede Farbe wird dabei nur heller, bleibt also unterscheidbar. Auf der Strecke leuchtet dazu die gespeicherte Farbregel (<b>B</b>) deutlich st&auml;rker um dein Fahrzeug. Der <b>Flug</b> schickt alle 10 bis 20 Sekunden einen <b>Vogel</b> gem&auml;chlich oder eine <b>Sternschnuppe</b> schnell durchs Bild &ndash; mal l&auml;ngs, mal quer, wei&szlig; oder schwarz und etwa jeder neunte mit Zebrastreifen.
         <br><br>
-        <b>&#128736; Friedhof-Bonus</b> (aus dem Lauf auf dem Friedhof): Es kommt ein f&uuml;nfter Schwierigkeitsgrad dazu &ndash; <b>Verr&uuml;ckt</b>, im <b>Weltraum</b>. Im Feld laufen die Hunde noch einmal halb so lang pro Schritt wie auf Experte, und zwei von ihnen sind <b>Riesenhunde</b>, die je <b>vier Felder</b> (2&times;2) versperren. Auf der Strecke geht es 30&nbsp;% schneller zu, mit rund einem F&uuml;nftel mehr Bomben und Raketen. Und im Kreis l&auml;uft eine <b>Uhr</b>: 7 Sekunden je Zug &ndash; verstreichen sie ungenutzt, kostet das ein Leben. Jede Aktion stellt sie zur&uuml;ck. Dahinter wartet noch ein letzter, verborgener Bonus.
+        <b>&#128736; Friedhof-Bonus</b> (aus dem Lauf auf dem Friedhof): Es kommt ein f&uuml;nfter Schwierigkeitsgrad dazu &ndash; <b>Verr&uuml;ckt</b>, im <b>Weltraum</b>. Im Feld laufen die Hunde noch einmal halb so lang pro Schritt wie auf Experte, und zwei von ihnen sind <b>Riesenhunde</b>, die je <b>vier Felder</b> (2&times;2) versperren. Auf der Strecke geht es 30&nbsp;% schneller zu, mit rund einem F&uuml;nftel mehr Bomben und Raketen. Und im Kreis l&auml;uft eine <b>Uhr</b>: 7 Sekunden je Zug &ndash; verstreichen sie ungenutzt, kostet das ein Leben. Jede Aktion stellt sie zur&uuml;ck. Ist die <b>Spritztour</b> an, f&auml;hrt Sherlock jetzt auch durch den <b>Weltraum</b> &ndash; dort zieht ein <b>Kometenfeld</b> aus kleinen Brocken vorbei, mitten hindurch. Dahinter wartet noch ein letzter, verborgener Bonus.
       </div>
     </details>
     <details class="ed-adv">
@@ -2259,7 +2262,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.58";
+  const APP_VERSION = "1.59";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -3405,9 +3408,14 @@
       de:'&#127804; Tanzende Blume als Spielfigur', en:'&#127804; Dancing flower as your figure' },
     { id:'buero',      pw:'coffeebreak?',            zu:'B&uuml;ro-Bonus',  zuEn:'Office bonus',
       de:'&#128663; Spritztour im Startbildschirm', en:'&#128663; Road trip on the start screen' },
+    // Ein Passwort, zwei Schalter: bonusEinloesen schaltet alle Eintraege mit derselben
+    // Losung frei, an- und abschalten laesst sich danach jeder fuer sich.
     { id:'nachtleben', pw:'toomuchis:toomuch',      zu:'Nachtleben-Bonus', zuEn:'Nightlife bonus',
-      de:'&#10024; Glimmende Felder, Vogel &amp; Sternschnuppe',
-      en:'&#10024; Glowing cells, birds &amp; shooting stars' },
+      de:'&#10024; Glimmende Felder',
+      en:'&#10024; Glowing cells' },
+    { id:'flug',       pw:'toomuchis:toomuch',      zu:'Nachtleben-Bonus', zuEn:'Nightlife bonus',
+      de:'&#128038; V&ouml;gel &amp; Sternschnuppen',
+      en:'&#128038; Birds &amp; shooting stars' },
     { id:'friedhof',   pw:'rest_in_awesomeness_67', zu:'Friedhof-Bonus',   zuEn:'Graveyard bonus',
       de:'&#128736; Schwierigkeitsgrad „Verr&uuml;ckt&#8221; (Weltraum)',
       en:'&#128736; Difficulty &#8220;Crazy&#8221; (outer space)' },
@@ -3420,7 +3428,14 @@
   const BONUS_KEY='regel-detektiv-boni';
   let boni={ frei:{}, aktiv:{} };
   try{ const g=JSON.parse(localStorage.getItem(BONUS_KEY)||'{}'); boni.frei=g.frei||{}; boni.aktiv=g.aktiv||{}; }catch(e){}
+  // Bis v1.58 steckten Glimmen und Flug in einem Eintrag. Wer den schon hatte, bekommt den
+  // abgespaltenen Flug-Schalter im selben Zustand dazu.
+  let boniWandel=false;
+  if(boni.frei.nachtleben && boni.frei.flug===undefined){
+    boni.frei.flug=true; boni.aktiv.flug=(boni.aktiv.nachtleben!==false); boniWandel=true;
+  }
   function bonusSpeichern(){ try{ localStorage.setItem(BONUS_KEY, JSON.stringify(boni)); }catch(e){} }
+  if(boniWandel) bonusSpeichern();
   function bonusAn(id){ return !!(boni.frei[id] && boni.aktiv[id]); }
   function bonusListe(){
     const host=$('bonus-liste'); if(!host) return;
@@ -3521,14 +3536,20 @@
   // Vier Kulissen laufen als Endlosband nach links, das Auto steht in der Mitte und wippt.
   // Das Band traegt jede Kulisse zweimal – nach der halben Strecke sieht es aus wie am Anfang,
   // dadurch springt der Uebergang nicht.
-  const FAHRT_ZONEN=['garden','office','night','graveyard'];
+  // Mit dem Friedhof-Bonus kommt der Weltraum als fuenfte Station dazu.
+  function fahrtZonen(){
+    const z=['garden','office','night','graveyard'];
+    if(bonusAn('friedhof')) z.push('space');
+    return z;
+  }
   // Belag, Bordstein, Mittellinie und der nahe Boden davor – je Zone eigen, damit die
   // Strasse zur Kulisse passt.
   const FAHRT_WELT={
     garden:    {belag:'#7a6248', rand:'#5f8f46', linie:'#e7d7a8', boden:'#3f6c31'},
     office:    {belag:'#4b5563', rand:'#94a3b8', linie:'#e5e7eb', boden:'#6b7280'},
     night:     {belag:'#33143a', rand:'#7f1d4d', linie:'#f472b6', boden:'#1f0c26'},
-    graveyard: {belag:'#2b3038', rand:'#4b5563', linie:'#64748b', boden:'#191e25'}
+    graveyard: {belag:'#2b3038', rand:'#4b5563', linie:'#64748b', boden:'#191e25'},
+    space:     {belag:'#1c2350', rand:'#facc15', linie:'#fde68a', boden:'#0b1030'}
   };
   const propSvg=(vb,inner)=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
   // Requisiten im Vordergrund: je Zone ein paar Dinge, die dicht an der Kamera vorbeiziehen.
@@ -3581,6 +3602,21 @@
         + `</svg></div>`;
       return [{l:24,w:82,s:schild},{l:66,w:76,s:betrunken}];
     }
+    if(zone==='space'){
+      // Kein einzelnes Requisit, sondern ein ganzes Kometenfeld: viele kleine Brocken auf
+      // verschiedenen Hoehen, durch die das Auto hindurchfaehrt.
+      const komet=(kopf,schweif)=>propSvg('0 0 64 22',
+        `<path d="M2 11 L40 7.5 L40 14.5 Z" fill="${schweif}" opacity="0.55"/>`
+        + `<path d="M14 11 L42 9 L42 13 Z" fill="${schweif}" opacity="0.85"/>`
+        + `<circle cx="47" cy="11" r="8.5" fill="${kopf}" opacity="0.35"/>`
+        + `<circle cx="47" cy="11" r="5" fill="${kopf}"/>`
+        + `<circle cx="45.4" cy="9.4" r="1.7" fill="#ffffff" opacity="0.9"/>`);
+      const eis='#e0f2fe', gold='#fde68a';
+      // Platz, Breite und Hoehe wuerfelfrei verteilt – jede Runde dasselbe Bild, wie beim Rest
+      const feld=[[4,54,4],[13,34,30],[21,64,58],[30,40,12],[38,50,74],[47,30,38],
+                  [55,58,6],[63,36,62],[71,48,26],[80,32,80],[88,56,46],[94,28,16]];
+      return feld.map(([l,w,u],i)=>({ l, w, u, s: komet(i%3===0?gold:eis, i%3===0?gold:eis) }));
+    }
     // Friedhof
     const stein=propSvg('0 0 88 118',
       `<path d="M12 110 V46 q0 -32 32 -32 q32 0 32 32 v64 Z" fill="#64748b"/>`
@@ -3601,10 +3637,17 @@
     return [{l:18,w:78,s:stein},{l:58,w:150,s:skelett}];
   }
   function fahrtAufbauen(){
-    const lage=$('fahrt-bg'); if(!lage || lage.dataset.fertig) return;
+    const lage=$('fahrt-bg'); if(!lage) return;
+    const zonen=fahrtZonen(), kennung=zonen.join(',');
+    if(lage.dataset.fertig===kennung) return;          // schon so gebaut
     const band=lage.querySelector('.fahrt-band'), str=lage.querySelector('.fahrt-strasse'),
           bod=lage.querySelector('.fahrt-boden'), vor=lage.querySelector('.fahrt-vorne');
-    FAHRT_ZONEN.concat(FAHRT_ZONEN).forEach(z=>{
+    [band,str,bod,vor].forEach(n=>n.textContent='');   // bei geaenderter Zonenzahl neu aufbauen
+    // Breite, Weg und Dauer haengen an der Zonenzahl – 12 s je Zone bleiben gleich
+    lage.style.setProperty('--f-breite',(zonen.length*200)+'vw');
+    lage.style.setProperty('--f-weg','-'+(zonen.length*100)+'vw');
+    lage.style.setProperty('--f-dauer',(zonen.length*12)+'s');
+    zonen.concat(zonen).forEach(z=>{
       const w=FAHRT_WELT[z];
       const p=el('div','fahrt-kulisse'); p.style.backgroundImage=`url("${svgUrl(z)}")`; band.appendChild(p);
       const s=el('div','fahrt-spur');
@@ -3615,13 +3658,15 @@
       const b=el('div','fahrt-spur'); b.style.background=w.boden; bod.appendChild(b);
       const v=el('div','fahrt-vfeld');
       fahrtProps(z).forEach(pr=>{
-        const d=el('div','fahrt-prop'); d.style.left=pr.l+'%'; d.style.width=pr.w+'px'; d.innerHTML=pr.s;
+        const d=el('div','fahrt-prop'); d.style.left=pr.l+'%'; d.style.width=pr.w+'px';
+        if(pr.u) d.style.bottom=pr.u+'%';              // Kometen schweben auf eigener Hoehe
+        d.innerHTML=pr.s;
         v.appendChild(d);
       });
       vor.appendChild(v);
     });
     lage.querySelector('.fahrt-auto').innerHTML=autoSeiteSvg();
-    lage.dataset.fertig='1';
+    lage.dataset.fertig=kennung;
   }
   function startBg(){
     const fahrt=bonusAn('buero');
@@ -3635,31 +3680,50 @@
   // Das Glimmen macht die Klasse `nacht` am body – sie greift in allen Modi zugleich.
   // Der Flug haengt an einer Kette von Timeouts (alle 20–30 s einer), nicht an einem Intervall:
   // so kann jede Pause anders lang sein.
-  let nachtTimer=null;
-  function vogelSvg(){
-    // Helle Silhouette: vor dem dunklen Himmel waere ein schwarzer Vogel nicht zu sehen
-    const feder='#cbd5e1', feder2='#94a3b8';
-    const fluegel=(hoch)=>`<path d="M4 14 Q14 ${hoch?4:16} 24 ${hoch?11:13} Q14 ${hoch?15:20} 4 14 Z" fill="${feder}"/>`
-      + `<path d="M44 14 Q34 ${hoch?4:16} 24 ${hoch?11:13} Q34 ${hoch?15:20} 44 14 Z" fill="${feder2}"/>`;
-    return `<svg viewBox="0 0 48 28" xmlns="http://www.w3.org/2000/svg">`
+  let nachtTimer=null, vogelZaehler=0;
+  // Weiss, schwarz – und jeder neunte traegt Zebrastreifen. Der schwarze bekommt einen hellen
+  // Saum, sonst waere er vor einem dunklen Brett nicht zu sehen.
+  const VOGEL_ARTEN={
+    weiss:   { a:'#f1f5f9', b:'#cbd5e1', saum:'rgba(15,23,42,0.55)' },
+    schwarz: { a:'#1f2937', b:'#0f172a', saum:'rgba(226,232,240,0.75)' },
+    zebra:   { a:'#f8fafc', b:'#e2e8f0', saum:'rgba(15,23,42,0.55)', streifen:true }
+  };
+  function vogelSvg(art){
+    const f=VOGEL_ARTEN[art]||VOGEL_ARTEN.weiss;
+    const streifen=(x0)=>f.streifen
+      ? [0,1,2].map(i=>`<path d="M${x0+i*5.5} 6 q3 8 1 15" stroke="#111827" stroke-width="1.9" fill="none" opacity="0.85"/>`).join('')
+      : '';
+    const fluegel=(hoch)=>`<path d="M4 14 Q14 ${hoch?4:16} 24 ${hoch?11:13} Q14 ${hoch?15:20} 4 14 Z" fill="${f.a}"/>`
+      + `<path d="M44 14 Q34 ${hoch?4:16} 24 ${hoch?11:13} Q34 ${hoch?15:20} 44 14 Z" fill="${f.b}"/>`
+      + streifen(8) + streifen(30);
+    return `<svg viewBox="0 0 48 28" xmlns="http://www.w3.org/2000/svg" style="--saum:${f.saum}">`
       + `<g class="nf-p1">${fluegel(true)}</g><g class="nf-p2">${fluegel(false)}</g>`
-      + `<ellipse cx="24" cy="13" rx="4.6" ry="3.2" fill="${feder}"/>`
+      + `<ellipse cx="24" cy="13" rx="4.6" ry="3.2" fill="${f.a}"/>`
       + `<path d="M28 12 l5 1.4 l-5 1.4 Z" fill="#f59e0b"/></svg>`;
   }
+  function vogelArt(){
+    vogelZaehler++;
+    if(vogelZaehler%9===0) return 'zebra';
+    return Math.random()<0.5 ? 'weiss' : 'schwarz';
+  }
   function nachtFlug(){
-    const host=$('nacht-flug'); if(!host || !bonusAn('nachtleben')) return;
+    const host=$('nacht-flug'); if(!host || !bonusAn('flug')) return;
     const d=el('div','nf-tier'), nachRechts=Math.random()<0.5;
     const weite=innerWidth+240;
     if(Math.random()<0.5){
-      // Vogel: mittelschnell, leicht fallend oder steigend, oben im Bild
+      // Vogel: mittelschnell. Meist zieht er waagerecht durchs Bild, jeder dritte quer –
+      // dann faellt oder steigt er ueber die halbe Bildhoehe.
       d.classList.add('nf-vogel');
+      const quer=Math.random()<0.34;
+      const hoehe=quer ? (Math.random()<0.5?-1:1)*innerHeight*(0.35+Math.random()*0.3)
+                       : (Math.random()*70-35);
       d.style.width=(46+Math.random()*26)+'px';
-      d.style.top=(6+Math.random()*32)+'%';
+      d.style.top=(quer ? (hoehe<0?52:6)+Math.random()*22 : 6+Math.random()*32)+'%';
       d.style.left=nachRechts?'-120px':(innerWidth+'px');
       d.style.setProperty('--dx',(nachRechts?weite:-weite)+'px');
-      d.style.setProperty('--dy',(Math.random()*70-35)+'px');
+      d.style.setProperty('--dy',hoehe+'px');
       d.style.setProperty('--dauer',(6.5+Math.random()*2.5)+'s');
-      d.innerHTML=vogelSvg();
+      d.innerHTML=vogelSvg(vogelArt());
       if(!nachRechts) d.querySelector('svg').style.transform='scaleX(-1)';
     } else {
       // Sternschnuppe: schnell und schraeg nach unten
@@ -3680,13 +3744,14 @@
   }
   function nachtPlan(){
     clearTimeout(nachtTimer); nachtTimer=null;
-    if(!bonusAn('nachtleben')) return;
+    if(!bonusAn('flug')) return;
     nachtTimer=setTimeout(()=>{ nachtFlug(); nachtPlan(); }, 10000+Math.random()*10000);
   }
+  // Glimmen und Flug sind zwei Schalter – sie gelten unabhaengig voneinander.
   function nachtAn(){
-    const an=bonusAn('nachtleben');
-    document.body.classList.toggle('nacht', an);
-    if(an) nachtPlan(); else { clearTimeout(nachtTimer); nachtTimer=null; $('nacht-flug').textContent=''; }
+    document.body.classList.toggle('nacht', bonusAn('nachtleben'));
+    if(bonusAn('flug')) nachtPlan();
+    else { clearTimeout(nachtTimer); nachtTimer=null; $('nacht-flug').textContent=''; }
   }
 
   // ---- Weltraum-Bonus: der goldene Pokal ersetzt die Lupe (gleiche Aufgabe) ----
