@@ -92,6 +92,13 @@
      ist derselbe Tipp auf die Lupe. */
   /* Kein Rahmen nach dem Antippen, aber einer fuer die Tastatur */
   .hero-ring{cursor:pointer; outline:none; border-radius:14px;}
+  /* Weltraum-Bonus: der Pokal blinkt golden, sonst ist er die Lupe in jeder Hinsicht */
+  .hero-ring.pokal{animation:pokalBlinken 1.4s ease-in-out infinite alternate;}
+  @keyframes pokalBlinken{
+    from{filter:drop-shadow(0 0 3px rgba(250,204,21,0.55)); transform:scale(0.98);}
+    to{filter:drop-shadow(0 0 14px rgba(250,204,21,1)) drop-shadow(0 0 26px rgba(250,204,21,0.6)); transform:scale(1.04);}
+  }
+  @media (prefers-reduced-motion: reduce){ .hero-ring.pokal{animation:none;} }
   .hero-ring:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
   /* !important, weil einzelne Bloecke ihr display inline mitbringen (display:flex) */
   body.schau #start-screen > *:not(.hero){display:none !important;}
@@ -109,10 +116,12 @@
      das laeuft auf dem Compositor und kostet auch bei ueber hundert Feldern nichts. */
   .nacht .cell::after, .nacht .race-cell::after{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
-    background:radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb),0.75) 0%, rgba(var(--accent-rgb),0) 74%);
+    background:radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb),0.9) 0%, rgba(var(--accent-rgb),0.62) 45%, rgba(var(--accent-rgb),0) 88%);
     animation:nachtGlimmen 3s ease-in-out infinite;
   }
-  @keyframes nachtGlimmen{ 0%,100%{opacity:0.04;} 50%{opacity:0.30;} }
+  /* Hoehepunkt gut doppelt so hell wie zuvor – mehr wuerde die Farbzonen zudecken,
+     und die sind das eigentliche Raetsel. */
+  @keyframes nachtGlimmen{ 0%,100%{opacity:0.09;} 50%{opacity:0.52;} }
   /* Im Kreis sind die Felder SVG-Pfade: dort atmet die Fuellung selbst. Die Grundfarbe wird
      dafuer angehoben, damit der Tiefpunkt dem normalen Aussehen entspricht. */
   .nacht .ring-field{fill:rgba(var(--accent-rgb),0.22); animation:nachtRing 3s ease-in-out infinite;}
@@ -592,6 +601,9 @@
   /* Hunde laufen wie die Spielfigur: sie gleiten zum Nachbarfeld und trippeln dabei mit den Beinen */
   .cell .dog{position:absolute; inset:6%; will-change:transform; z-index:3;}
   .cell .dog svg{width:100%; height:100%; display:block; overflow:visible;}
+  /* Riesenhund (Weltraum): deckt 2x2 Felder ab – Breite und Hoehe wachsen ueber die Zelle hinaus,
+     die Luecke zwischen den Feldern (GAP) kommt oben drauf. */
+  .cell .dog.riese{inset:6% auto auto 6%; width:calc(188% + 3px); height:calc(188% + 3px); z-index:4;}
   .dog .dog-leg{transform-box:fill-box; transform-origin:top center;}
   .dog.walking svg{animation:dogBob var(--walk,300ms) ease-in-out 1;}
   .dog.walking .dog-leg.a{animation:dogLegA var(--walk,300ms) ease-in-out 1;}
@@ -1202,6 +1214,7 @@
       <span id="spc-ab"></span><span><span data-en="Moves">Z&uuml;ge</span> <b id="spc-moves">0</b></span>
       <span><span data-en="Ring">Ring</span> <b id="spc-ring">–</b></span>
       <span><span data-en="Cell">Feld</span> <b id="spc-field">–</b></span>
+      <span id="spc-uhr-box" class="hidden">&#9203; <b id="spc-uhr">7</b>&nbsp;s</span>
     </div>
     <div class="head-actions">
       <button class="action mini" id="spc-log-btn" data-en="Log">Protokoll</button>
@@ -1564,7 +1577,7 @@
     </details>
     <details class="ed-adv">
       <summary data-en="Adventure">Abenteuer</summary>
-      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard. Tap the <b>magnifier</b> at the top and the menu clears out of the way; tap it again to bring it back.<br><br><b>&#10024; Nightlife bonus</b> (from the run in the nightlife): in <b>every</b> mode the cells slowly glow up and down on a three-second beat &ndash; the rings in circle mode too. Every 20 to 30 seconds a <b>bird</b> drifts across the screen, or a <b>shooting star</b> races through it. And on the track the stored colour rule (<b>B</b>) burns noticeably brighter around your vehicle.">
+      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard. Tap the <b>magnifier</b> at the top and the menu clears out of the way; tap it again to bring it back.<br><br><b>&#10024; Nightlife bonus</b> (from the run in the nightlife): in <b>every</b> mode the cells slowly glow up and down on a three-second beat &ndash; the rings in circle mode too. Every 20 to 30 seconds a <b>bird</b> drifts across the screen, or a <b>shooting star</b> races through it. And on the track the stored colour rule (<b>B</b>) burns noticeably brighter around your vehicle.<br><br><b>&#128736; Graveyard bonus</b> (from the run in the graveyard): a fifth difficulty joins the list &ndash; <b>Crazy</b>, set in <b>outer space</b>. In field mode the dogs take only half as long per step as on Expert, and one of them is a <b>giant dog</b> blocking <b>four cells</b> (2&times;2). The track runs 30&nbsp;% faster with about a fifth more bombs and rockets. And in circle mode a <b>clock</b> runs: 7 seconds per move &ndash; let them pass unused and it costs a life. Any action resets it. Behind it waits one last, hidden bonus.">
         Drei Einzelspieler-Partien am St&uuml;ck auf dem gew&auml;hlten Schwierigkeitsgrad, in zuf&auml;lliger Reihenfolge: <b>Spurensuche</b>, <b>Strecke</b> und <b>Kreis</b> &ndash; jede in ihrer harten Fassung: Ber&uuml;hrung t&ouml;tet, die Fahrt endet an einer Ziellinie, und die Leben der Katze z&auml;hlen. Verlierst du eine davon, beginnt der ganze Lauf von vorn. Gewinnst du alle drei, gibt es ein Feuerwerk und ein <b>Passwort</b>. In den Einstellungen unter „Freischaltungen" eingegeben schaltet es seinen Bonus frei; danach kannst du diesen Bonus beliebig an- und abschalten. Jeder Schwierigkeitsgrad hat sein eigenes Passwort.
         <br><br>
         <b>&#127804; Garten-Bonus</b> (aus dem Lauf im Garten): Statt Sherlock, Auto und Katze f&uuml;hrst du in <b>allen</b> Modi eine <b>tanzende Blume</b>, die im Halbsekundentakt zwischen zwei Posen wechselt. Sie zeigt weiterhin an, wohin sie l&auml;uft, springt und schlingert auf der Strecke wie gewohnt, und ihr Schal tr&auml;gt im Duell die Spielerfarbe.
@@ -1572,6 +1585,8 @@
         <b>&#128663; B&uuml;ro-Bonus</b> (aus dem Lauf im B&uuml;ro): Der Startbildschirm steht nicht mehr still &ndash; Sherlock f&auml;hrt im roten Auto vorbei, die Katze sitzt hinten drin, und die Kulisse wechselt in einer Endlosschleife zwischen Garten, B&uuml;ro, Nachtleben und Friedhof. Ein Tipp auf die <b>Lupe</b> ganz oben r&auml;umt das Men&uuml; weg und gibt den Blick frei; der n&auml;chste Tipp holt es zur&uuml;ck.
         <br><br>
         <b>&#10024; Nachtleben-Bonus</b> (aus dem Lauf im Nachtleben): In <b>allen</b> Modi glimmen die Felder im Drei-Sekunden-Takt langsam auf und wieder ab &ndash; auch die Ringe im Kreis. Alle 20 bis 30 Sekunden zieht ein <b>Vogel</b> gem&auml;chlich oder eine <b>Sternschnuppe</b> schnell durchs Bild. Und auf der Strecke leuchtet die gespeicherte Farbregel (<b>B</b>) deutlich heller um dein Fahrzeug.
+        <br><br>
+        <b>&#128736; Friedhof-Bonus</b> (aus dem Lauf auf dem Friedhof): Es kommt ein f&uuml;nfter Schwierigkeitsgrad dazu &ndash; <b>Verr&uuml;ckt</b>, im <b>Weltraum</b>. Im Feld laufen die Hunde noch einmal halb so lang pro Schritt wie auf Experte, und einer von ihnen ist ein <b>Riesenhund</b>, der gleich <b>vier Felder</b> (2&times;2) versperrt. Auf der Strecke geht es 30&nbsp;% schneller zu, mit rund einem F&uuml;nftel mehr Bomben und Raketen. Und im Kreis l&auml;uft eine <b>Uhr</b>: 7 Sekunden je Zug &ndash; verstreichen sie ungenutzt, kostet das ein Leben. Jede Aktion stellt sie zur&uuml;ck. Dahinter wartet noch ein letzter, verborgener Bonus.
       </div>
     </details>
     <details class="ed-adv">
@@ -1699,8 +1714,8 @@
   // Zonenname in der aktuellen Sprache – Zonen tragen ihn aus ZONE_COLORS mit
   const ZONE_EN = { 'Gelb':'Yellow', 'Grün':'Green', 'Blau':'Blue', 'Grau':'Grey' };
   function zoneName(z){ const n=(z&&z.name)||''; return T(n, z&&z.en ? z.en : (ZONE_EN[n]||n)); }
-  const HAZARD_COUNT = { leicht:2, mittel:4, schwer:6, experte:8 };
-  const GERANGEL_SIZE = { leicht:13, mittel:15, schwer:15, experte:17 };
+  const HAZARD_COUNT = { leicht:2, mittel:4, schwer:6, experte:8, verrueckt:9 };
+  const GERANGEL_SIZE = { leicht:13, mittel:15, schwer:15, experte:17, verrueckt:17 };
   const DOG_COLOR = '#000';
   // Der Hund blickt in seine Laufrichtung (face<0 = nach links, gespiegelt wie bei Sherlock).
   // Die Beine tragen abwechselnd die Klassen a/b, damit sie beim Gehen gegenlaeufig ausschlagen.
@@ -2170,24 +2185,27 @@
     leicht: ['normal','reverse'],
     mittel: ['normal','reverse','half'],
     schwer: ['normal','reverse','half','double'],
-    experte: ['normal','reverse','half','double']
+    experte: ['normal','reverse','half','double'],
+    verrueckt: ['normal','reverse','half','double']
   };
   const ROT_POOLS = {
     leicht: ['sync','still'],
     mittel: ['sync','counter','still','fixP1','fixM1'],
     schwer: ['sync','counter','halfRot','still','fixP1','fixP2','fixM1','fixM2','synP1','synM1'],
-    experte: ['sync','counter','halfRot','still','fixP1','fixP2','fixM1','fixM2','synP1','synP2','synM1','synM2']
+    experte: ['sync','counter','halfRot','still','fixP1','fixP2','fixM1','fixM2','synP1','synP2','synM1','synM2'],
+    verrueckt: ['sync','counter','halfRot','still','fixP1','fixP2','fixM1','fixM2','synP1','synP2','synM1','synM2']
   };
   const GAP = 3, PAD = 6;
   const CHOICES = [-2,-1,0,1,2];
-  const RING_LAYOUTS_FREE = { leicht:[6,8], mittel:[6,8,10], schwer:[6,8,10,12], experte:[6,8,10,12,14] };
-  const RING_LAYOUTS_CLEAN = { leicht:[6,12], mittel:[6,12,12], schwer:[6,6,12,12], experte:[6,6,12,12,24] };
+  const RING_LAYOUTS_FREE = { leicht:[6,8], mittel:[6,8,10], schwer:[6,8,10,12], experte:[6,8,10,12,14], verrueckt:[6,8,10,12,14] };
+  const RING_LAYOUTS_CLEAN = { leicht:[6,12], mittel:[6,12,12], schwer:[6,6,12,12], experte:[6,6,12,12,24], verrueckt:[6,6,12,12,24] };
 
   const SVGS = {
     garden: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a7dc92"/><stop offset="45%" stop-color="#79c157"/><stop offset="100%" stop-color="#3f7a34"/></linearGradient></defs><rect width="400" height="300" fill="url(#ga)"/><circle cx="332" cy="52" r="22" fill="#fef9c3" opacity="0.75"/><ellipse cx="200" cy="280" rx="320" ry="95" fill="#3f7a34"/><ellipse cx="80" cy="250" rx="140" ry="50" fill="#4d8a3a"/><ellipse cx="310" cy="244" rx="130" ry="44" fill="#5aa346"/><rect x="16" y="196" width="130" height="48" rx="24" fill="#2f6a2a"/><rect x="250" y="206" width="126" height="42" rx="21" fill="#357a30"/><line x1="200" y1="252" x2="200" y2="214" stroke="#2f6a2a" stroke-width="3"/><circle cx="200" cy="207" r="9" fill="#f472b6"/><circle cx="200" cy="207" r="3.5" fill="#fde68a"/><line x1="232" y1="256" x2="232" y2="226" stroke="#2f6a2a" stroke-width="3"/><circle cx="232" cy="219" r="8" fill="#fb7185"/><circle cx="232" cy="219" r="3" fill="#fde68a"/><line x1="164" y1="256" x2="164" y2="226" stroke="#2f6a2a" stroke-width="3"/><circle cx="164" cy="219" r="8" fill="#facc15"/><circle cx="164" cy="219" r="3" fill="#fff"/></svg>`,
     office: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="of" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e6ebf2"/><stop offset="100%" stop-color="#b3bfd0"/></linearGradient></defs><rect width="400" height="300" fill="url(#of)"/><rect x="40" y="40" width="150" height="112" fill="#cfe0f0"/><rect x="40" y="40" width="150" height="112" fill="none" stroke="#8fa0b5" stroke-width="4"/><line x1="115" y1="40" x2="115" y2="152" stroke="#8fa0b5" stroke-width="3"/><line x1="40" y1="96" x2="190" y2="96" stroke="#8fa0b5" stroke-width="3"/><rect x="0" y="210" width="400" height="90" fill="#c9a878"/><rect x="0" y="204" width="400" height="9" fill="#e0c79c"/><rect x="248" y="150" width="92" height="58" rx="4" fill="#334155" stroke="#94a3b8" stroke-width="3"/><rect x="289" y="208" width="10" height="12" fill="#94a3b8"/><rect x="60" y="220" width="46" height="34" fill="#ffffff" transform="rotate(-8 83 237)"/><rect x="128" y="224" width="46" height="34" fill="#f8fafc" transform="rotate(6 151 241)"/><rect x="360" y="182" width="24" height="28" fill="#9aa3af"/><circle cx="372" cy="178" r="14" fill="#5aa346"/></svg>`,
     night: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="ni" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5a0d16"/><stop offset="100%" stop-color="#160304"/></linearGradient></defs><rect width="400" height="300" fill="url(#ni)"/><polygon points="200,80 108,300 176,300" fill="#ef4444" opacity="0.28"/><polygon points="200,80 292,300 224,300" fill="#f43f5e" opacity="0.26"/><circle cx="200" cy="55" r="26" fill="#dc2626"/><g stroke="#160304" stroke-width="1.2"><line x1="174" y1="55" x2="226" y2="55"/><line x1="200" y1="29" x2="200" y2="81"/><line x1="182" y1="37" x2="218" y2="73"/><line x1="218" y1="37" x2="182" y2="73"/></g><rect x="36" y="120" width="96" height="9" rx="4" fill="#ef4444"/><rect x="48" y="140" width="72" height="6" rx="3" fill="#f87171"/><circle cx="332" cy="150" r="11" fill="#fb7185"/><circle cx="332" cy="150" r="19" fill="none" stroke="#f43f5e" stroke-width="2" opacity="0.7"/><path d="M320 208 L344 208 L332 230 Z" fill="#fca5a5" opacity="0.9"/><line x1="332" y1="230" x2="332" y2="256" stroke="#fca5a5" stroke-width="2"/><line x1="322" y1="256" x2="342" y2="256" stroke="#fca5a5" stroke-width="2"/><circle cx="327" cy="204" r="3" fill="#fee2e2"/></svg>`,
     graveyard: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="gy" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1b2331"/><stop offset="60%" stop-color="#111722"/><stop offset="100%" stop-color="#080b10"/></linearGradient><radialGradient id="gymoon" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#eef2f7" stop-opacity="0.5"/><stop offset="100%" stop-color="#eef2f7" stop-opacity="0"/></radialGradient><linearGradient id="gystone" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9aa4b4"/><stop offset="100%" stop-color="#59637255"/></linearGradient></defs><rect width="400" height="300" fill="url(#gy)"/><circle cx="330" cy="44" r="52" fill="url(#gymoon)"/><circle cx="330" cy="44" r="24" fill="#e8eef6"/><circle cx="321" cy="37" r="5" fill="#cfd8e3" opacity="0.55"/><g fill="#aab4c4"><circle cx="52" cy="34" r="1.6"/><circle cx="128" cy="24" r="1.3"/><circle cx="208" cy="44" r="1.5"/><circle cx="262" cy="22" r="1.2"/><circle cx="378" cy="86" r="1.3"/></g><g transform="translate(0,-46)"><ellipse cx="200" cy="298" rx="330" ry="72" fill="#1d242e"/><ellipse cx="200" cy="306" rx="330" ry="60" fill="#252d38"/><g stroke="#080c12" stroke-width="7" fill="none" stroke-linecap="round"><path d="M64 262 L64 150"/><path d="M64 188 L36 158"/><path d="M64 172 L94 142"/><path d="M64 216 L34 200"/><path d="M64 202 L90 182"/></g><g><rect x="110" y="198" width="54" height="80" rx="27" fill="url(#gystone)"/><rect x="110" y="198" width="54" height="80" rx="27" fill="none" stroke="#39424f" stroke-width="3"/><rect x="133" y="216" width="9" height="38" rx="2.5" fill="#39424f"/><rect x="120" y="228" width="35" height="9" rx="2.5" fill="#39424f"/></g><g><rect x="194" y="216" width="48" height="62" rx="24" fill="url(#gystone)"/><rect x="194" y="216" width="48" height="62" rx="24" fill="none" stroke="#39424f" stroke-width="3"/><text x="218" y="252" font-family="Georgia,serif" font-size="19" font-weight="700" fill="#39424f" text-anchor="middle">RIP</text></g><g><rect x="286" y="188" width="14" height="92" rx="3" fill="url(#gystone)"/><rect x="264" y="214" width="58" height="14" rx="3" fill="url(#gystone)"/><rect x="286" y="188" width="14" height="92" rx="3" fill="none" stroke="#39424f" stroke-width="2.5"/><rect x="264" y="214" width="58" height="14" rx="3" fill="none" stroke="#39424f" stroke-width="2.5"/></g><g fill="#05070a"><ellipse cx="352" cy="254" rx="15" ry="9"/><circle cx="364" cy="244" r="6"/><path d="M369 242 l9 2 l-9 3 z"/><path d="M341 250 q-11 -7 -3 12 z"/></g><g fill="#c8d2e0" opacity="0.10"><ellipse cx="120" cy="250" rx="105" ry="12"/><ellipse cx="300" cy="266" rx="120" ry="10"/></g></g></svg>`,
+    space: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#151f5e"/><stop offset="55%" stop-color="#0b1440"/><stop offset="100%" stop-color="#060a22"/></linearGradient><radialGradient id="spsun" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fef3c7"/><stop offset="45%" stop-color="#fbbf24" stop-opacity="0.8"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/></radialGradient><radialGradient id="spneb" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#6d28d9" stop-opacity="0.5"/><stop offset="100%" stop-color="#6d28d9" stop-opacity="0"/></radialGradient><radialGradient id="spneb2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.4"/><stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/></radialGradient><linearGradient id="sppl" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#1e3a8a"/></linearGradient><linearGradient id="sppl2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#b45309"/></linearGradient></defs><rect width="400" height="300" fill="url(#sp)"/><ellipse cx="96" cy="228" rx="170" ry="96" fill="url(#spneb)"/><ellipse cx="326" cy="76" rx="130" ry="86" fill="url(#spneb2)"/><g fill="#fef3c7"><circle cx="34" cy="132" r="1.7"/><circle cx="78" cy="94" r="1.2"/><circle cx="122" cy="46" r="1.9"/><circle cx="158" cy="128" r="1.3"/><circle cx="196" cy="34" r="1.6"/><circle cx="238" cy="106" r="1.2"/><circle cx="268" cy="52" r="1.8"/><circle cx="312" cy="146" r="1.4"/><circle cx="352" cy="30" r="1.6"/><circle cx="384" cy="118" r="1.3"/><circle cx="46" cy="196" r="1.4"/><circle cx="112" cy="248" r="1.2"/><circle cx="182" cy="212" r="1.7"/><circle cx="252" cy="266" r="1.3"/><circle cx="344" cy="238" r="1.5"/><circle cx="392" cy="196" r="1.2"/></g><g fill="#ffffff" opacity="0.85"><circle cx="58" cy="66" r="1"/><circle cx="146" cy="176" r="1.1"/><circle cx="214" cy="146" r="0.9"/><circle cx="298" cy="196" r="1.1"/><circle cx="366" cy="88" r="1"/></g><g fill="#fde68a"><path d="M170 74 l3 9 l9 3 l-9 3 l-3 9 l-3 -9 l-9 -3 l9 -3 z"/><path d="M304 250 l2.4 7 l7 2.4 l-7 2.4 l-2.4 7 l-2.4 -7 l-7 -2.4 l7 -2.4 z"/></g><circle cx="56" cy="54" r="46" fill="url(#spsun)"/><circle cx="56" cy="54" r="19" fill="#fcd34d"/><circle cx="49" cy="47" r="5" fill="#fef3c7" opacity="0.7"/><g><ellipse cx="300" cy="206" rx="74" ry="17" fill="none" stroke="#fbbf24" stroke-width="5" opacity="0.75" transform="rotate(-18 300 206)"/><circle cx="300" cy="206" r="40" fill="url(#sppl)"/><ellipse cx="286" cy="194" rx="15" ry="9" fill="#93c5fd" opacity="0.4"/><ellipse cx="312" cy="220" rx="11" ry="7" fill="#1e3a8a" opacity="0.5"/><path d="M226 206 a74 17 0 0 0 63 16" fill="none" stroke="#fbbf24" stroke-width="5" opacity="0.9" transform="rotate(-18 300 206)"/></g><g><circle cx="150" cy="252" r="22" fill="url(#sppl2)"/><circle cx="143" cy="245" r="6" fill="#78350f" opacity="0.45"/><circle cx="157" cy="259" r="4" fill="#78350f" opacity="0.4"/></g><circle cx="228" cy="58" r="9" fill="#e2e8f0"/><circle cx="225" cy="55" r="3" fill="#94a3b8" opacity="0.6"/></svg>`,
     startbg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#241a12"/><stop offset="100%" stop-color="#140f0a"/></linearGradient><linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#101d33"/><stop offset="100%" stop-color="#060b16"/></linearGradient><radialGradient id="candleGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffcf6b" stop-opacity="0.5"/><stop offset="100%" stop-color="#ffcf6b" stop-opacity="0"/></radialGradient><radialGradient id="lampGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffe3a0" stop-opacity="0.45"/><stop offset="100%" stop-color="#ffe3a0" stop-opacity="0"/></radialGradient><radialGradient id="vig" cx="50%" cy="40%" r="75%"><stop offset="52%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity="0.6"/></radialGradient></defs><rect width="1200" height="800" fill="url(#wall)"/><rect y="600" width="1200" height="200" fill="#1c130c"/><rect y="598" width="1200" height="7" fill="#3a2a1a"/><rect x="800" y="70" width="300" height="330" fill="url(#sky2)"/><g fill="#dbeafe"><circle cx="850" cy="120" r="2"/><circle cx="910" cy="95" r="1.5"/><circle cx="980" cy="140" r="2"/><circle cx="1040" cy="105" r="1.5"/><circle cx="870" cy="205" r="1.5"/><circle cx="1000" cy="240" r="2"/><circle cx="930" cy="285" r="1.5"/><circle cx="1055" cy="310" r="1.5"/><circle cx="828" cy="300" r="1.5"/></g><circle cx="1000" cy="150" r="34" fill="#eef2f7"/><circle cx="1014" cy="142" r="30" fill="url(#sky2)"/><rect x="800" y="70" width="300" height="330" fill="none" stroke="#4a3623" stroke-width="14"/><line x1="950" y1="70" x2="950" y2="400" stroke="#4a3623" stroke-width="10"/><line x1="800" y1="235" x2="1100" y2="235" stroke="#4a3623" stroke-width="10"/><path d="M800 70 q40 60 20 160 q-20 100 10 170 l-42 0 l0 -330 z" fill="#3a2a1a" opacity="0.9"/><rect x="70" y="120" width="240" height="430" fill="#3a2818"/><rect x="80" y="130" width="220" height="410" fill="#2a1d11"/><rect x="80" y="240" width="220" height="10" fill="#3a2818"/><rect x="80" y="350" width="220" height="10" fill="#3a2818"/><rect x="80" y="460" width="220" height="10" fill="#3a2818"/><g><rect x="90" y="150" width="18" height="90" fill="#7f1d1d"/><rect x="110" y="155" width="16" height="85" fill="#1e3a5f"/><rect x="128" y="150" width="20" height="90" fill="#3f6212"/><rect x="150" y="160" width="14" height="80" fill="#7c2d12"/><rect x="166" y="150" width="18" height="90" fill="#4c1d95"/><rect x="186" y="158" width="16" height="82" fill="#a16207"/><rect x="204" y="150" width="20" height="90" fill="#334155"/><rect x="226" y="155" width="16" height="85" fill="#065f46"/><rect x="244" y="150" width="18" height="90" fill="#831843"/><rect x="264" y="160" width="16" height="80" fill="#1e3a5f"/></g><g><rect x="90" y="262" width="16" height="88" fill="#1e3a5f"/><rect x="108" y="258" width="20" height="92" fill="#7f1d1d"/><rect x="130" y="262" width="14" height="88" fill="#a16207"/><rect x="146" y="258" width="18" height="92" fill="#3f6212"/><rect x="166" y="262" width="16" height="88" fill="#334155"/><rect x="184" y="258" width="20" height="92" fill="#4c1d95"/><rect x="206" y="262" width="16" height="88" fill="#065f46"/><rect x="224" y="258" width="18" height="92" fill="#7c2d12"/><rect x="244" y="262" width="16" height="88" fill="#831843"/><rect x="262" y="258" width="18" height="92" fill="#1e3a5f"/></g><g><rect x="90" y="372" width="18" height="88" fill="#3f6212"/><rect x="110" y="372" width="16" height="88" fill="#7f1d1d"/><rect x="128" y="380" width="60" height="14" fill="#a16207" transform="rotate(-4 158 387)"/><rect x="196" y="372" width="18" height="88" fill="#4c1d95"/><rect x="216" y="372" width="16" height="88" fill="#334155"/><rect x="234" y="372" width="18" height="88" fill="#065f46"/><rect x="254" y="376" width="16" height="84" fill="#831843"/></g><g fill="#5a4028" stroke="#3a2818" stroke-width="4"><rect x="60" y="600" width="120" height="110"/><rect x="72" y="500" width="96" height="100"/></g><g stroke="#3a2818" stroke-width="3" opacity="0.7"><line x1="60" y1="655" x2="180" y2="655"/><line x1="120" y1="600" x2="120" y2="710"/><line x1="72" y1="550" x2="168" y2="550"/></g><ellipse cx="500" cy="470" rx="130" ry="66" fill="url(#lampGlow)"/><ellipse cx="690" cy="520" rx="80" ry="52" fill="url(#candleGlow)"/><rect x="420" y="560" width="620" height="30" rx="4" fill="#6b4a2a"/><rect x="420" y="560" width="620" height="8" fill="#8a6440"/><rect x="470" y="590" width="20" height="160" fill="#513418"/><rect x="970" y="590" width="20" height="160" fill="#513418"/><rect x="492" y="548" width="16" height="14" fill="#3a2a1a"/><path d="M500 548 L500 470 L560 445" stroke="#4a3623" stroke-width="6" fill="none"/><path d="M540 424 l46 0 l-10 34 l-26 0 z" fill="#b45309"/><ellipse cx="563" cy="458" rx="14" ry="5" fill="#fde68a"/><rect x="676" y="512" width="28" height="42" rx="3" fill="#e7dcc0"/><rect x="676" y="512" width="28" height="6" fill="#cbbf9c"/><ellipse cx="690" cy="554" rx="24" ry="7" fill="#6b4a2a"/><path d="M690 512 q-7 -12 0 -22 q7 10 0 22 z" fill="#fbbf24"/><path d="M690 508 q-4 -7 0 -13 q4 6 0 13 z" fill="#fef08a"/><ellipse cx="850" cy="556" rx="60" ry="14" fill="#5c4c34"/><path d="M800 552 Q850 500 900 552 Z" fill="#6b5a3f"/><ellipse cx="850" cy="552" rx="50" ry="12" fill="#5c4c34"/><path d="M792 552 l-16 6 l16 5 z" fill="#5c4c34"/><path d="M908 552 l16 6 l-16 5 z" fill="#5c4c34"/><circle cx="850" cy="518" r="4" fill="#8a765a"/><circle cx="590" cy="545" r="26" fill="rgba(191,227,240,0.18)" stroke="#f59e0b" stroke-width="6"/><line x1="609" y1="564" x2="640" y2="586" stroke="#7c5c2e" stroke-width="8" stroke-linecap="round"/><path d="M960 560 l24 0 l-4 -24 l-16 0 z" fill="#7c4a25"/><path d="M972 536 q-20 -30 -34 -20 q10 22 34 20 z" fill="#3f7a34"/><path d="M972 536 q20 -34 36 -22 q-12 24 -36 22 z" fill="#4d8a3a"/><path d="M972 536 q0 -34 0 -34 q9 20 0 34 z" fill="#5aa346"/><ellipse cx="905" cy="556" rx="22" ry="13" fill="#b91c1c"/><ellipse cx="905" cy="552" rx="22" ry="12" fill="#dc2626"/><g stroke="#e5e7eb" stroke-width="2"><line x1="905" y1="548" x2="900" y2="536"/><line x1="913" y1="550" x2="923" y2="540"/><line x1="897" y1="550" x2="887" y2="542"/></g><circle cx="900" cy="536" r="2.5" fill="#facc15"/><circle cx="923" cy="540" r="2.5" fill="#22d3ee"/><circle cx="887" cy="542" r="2.5" fill="#f472b6"/><g fill="#e5e7eb"><rect x="638" y="556" width="40" height="6" transform="rotate(-6 658 559)"/><rect x="720" y="558" width="40" height="6" transform="rotate(4 740 561)"/></g><rect width="1200" height="800" fill="url(#vig)"/></svg>`
   };
   function svgUrl(key){ return 'data:image/svg+xml,' + encodeURIComponent(SVGS[key]); }
@@ -2196,7 +2214,9 @@
     leicht: { key:'leicht', title:'Der Garten', titleEn:'The Garden', sub:'Leicht', subEn:'Easy', gridSize:10, tall:[7,14], modes:['none'], accent:'34,160,64', svg:'garden', boardBg:'26,58,32' },
     mittel: { key:'mittel', title:'Das Büro', titleEn:'The Office', sub:'Mittel', subEn:'Medium', gridSize:12, tall:[8,16], modes:['constant'], accent:'150,185,225', svg:'office', boardBg:'104,116,138' },
     schwer: { key:'schwer', title:'Das Nachtleben', titleEn:'The Nightlife', sub:'Schwer', subEn:'Hard', gridSize:14, tall:[9,18], modes:['parityPos','parityTick'], accent:'239,68,68', svg:'night', boardBg:'64,12,20' },
-    experte: { key:'experte', title:'Der Friedhof', titleEn:'The Graveyard', sub:'Experte', subEn:'Expert', gridSize:16, tall:[9,20], modes:['repeatInvert','delay'], accent:'138,150,138', svg:'graveyard', boardBg:'9,11,14' }
+    experte: { key:'experte', title:'Der Friedhof', titleEn:'The Graveyard', sub:'Experte', subEn:'Expert', gridSize:16, tall:[9,20], modes:['repeatInvert','delay'], accent:'138,150,138', svg:'graveyard', boardBg:'9,11,14' },
+    // Nur mit dem Friedhof-Bonus sichtbar (verrueicktFrei) – die Karte steht sonst auf display:none
+    verrueckt: { key:'verrueckt', title:'Der Weltraum', titleEn:'Outer Space', sub:'Verrückt', subEn:'Crazy', gridSize:17, tall:[10,21], modes:['repeatInvert','delay'], accent:'250,204,21', svg:'space', boardBg:'10,15,45', bonus:'friedhof' }
   };
   // Themenname/Stufe in der aktuellen Sprache
   function themeTitle(t){ return t ? T(t.title, t.titleEn||t.title) : ''; }
@@ -2220,7 +2240,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.56";
+  const APP_VERSION = "1.57";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -2420,8 +2440,10 @@
     const shared={ diffKey, theme, variant, editor:!!ov.bg, rule:buildGridRule(diffKey, ov), zones:buildZones(ov.zoneEffects) };
     // Deathless: Kontakt setzt nur zurueck. Aus = sofort verloren. Editor sticht die Einstellung.
     shared.deathless = ov.deathless!=null ? !!ov.deathless : !!modeOpts.gridDeathless;
-    shared.hazardType = ov.hazardType || ((diffKey==='schwer'||diffKey==='experte') ? 'dog' : 'bomb');
-    shared.hazardTick = ov.hazardTick!=null ? ov.hazardTick : (shared.hazardType==='dog' ? (diffKey==='schwer'?2000:1000) : 0);
+    shared.hazardType = ov.hazardType || ((diffKey==='schwer'||diffKey==='experte'||diffKey==='verrueckt') ? 'dog' : 'bomb');
+    // Weltraum: die Hunde laufen noch einmal 50 % schneller als auf Experte (1000 → 667 ms)
+    shared.hazardTick = ov.hazardTick!=null ? ov.hazardTick
+      : (shared.hazardType==='dog' ? (diffKey==='schwer'?2000:(diffKey==='verrueckt'?667:1000)) : 0);
     let hazardCount = ov.hazardCount!=null ? ov.hazardCount : HAZARD_COUNT[diffKey];
     const milestones = clamp(ov.milestones!=null?ov.milestones:3, 1, 3);
     const coinCount = ov.coins!=null ? ov.coins : 6;
@@ -2430,7 +2452,7 @@
     const JUMP_PATTERNS=[[1,1,2],[1,2],[2,1,1],[1,2,1],[1,1,2,1]];
     if(ov.stepPattern!=null){ shared.stepPattern = (ov.stepPattern && ov.stepPattern.length) ? ov.stepPattern.slice() : null; }
     else if(ov.jump!=null){ shared.stepPattern = ov.jump ? pick(JUMP_PATTERNS) : null; }
-    else { const jumpChance={ leicht:0, mittel:0.4, schwer:0.55, experte:0.7 }[diffKey]||0; shared.stepPattern = rnd()<jumpChance ? pick(JUMP_PATTERNS) : null; }
+    else { const jumpChance={ leicht:0, mittel:0.4, schwer:0.55, experte:0.7, verrueckt:0.85 }[diffKey]||0; shared.stepPattern = rnd()<jumpChance ? pick(JUMP_PATTERNS) : null; }
     function inB(x,y){ return x>=0&&y>=0&&x<cols&&y<rows; }
 
     if(variant==='spurensuche'){
@@ -2495,6 +2517,21 @@
       let placed=0,tr=0;
       while(placed<hazardCount && tr++<1500){ const x=randInt(cols),y=randInt(rows); if(!hazFree(x,y)) continue; if(shared.hazards.some(h=>Math.abs(h.x-x)+Math.abs(h.y-y)<2)) continue; shared.hazards.push({x,y}); occ2.add(x+','+y); placed++; }
     }
+    // Weltraum: einer der Hunde ist ein Riesenhund und belegt 2x2 Felder. Er bekommt seinen
+    // eigenen Platz, damit die drei Zusatzfelder wirklich frei sind – findet sich keiner,
+    // bleibt es bei normalen Hunden.
+    if(diffKey==='verrueckt' && shared.hazardType==='dog'){
+      let tr3=0;
+      while(tr3++<800){
+        const x=randInt(cols-1), y=randInt(rows-1);
+        const felder=[[x,y],[x+1,y],[x,y+1],[x+1,y+1]];
+        if(felder.some(([fx,fy])=>!hazFree(fx,fy))) continue;
+        if(shared.hazards.some(h=>felder.some(([fx,fy])=>Math.abs(h.x-fx)+Math.abs(h.y-fy)<2))) continue;
+        shared.hazards.push({x,y,gross:true});
+        felder.forEach(([fx,fy])=>occ2.add(fx+','+fy));
+        break;
+      }
+    }
     return shared;
   }
 
@@ -2527,7 +2564,7 @@
     host.innerHTML=''; host.appendChild(outer);
     const figs=figDefs.map((d,i)=>({ x:d.startX,y:d.startY,startX:d.startX,startY:d.startY, moves:0,mem:{},blinkUntil:0,checkpointIdx:0,reached:[],score:0,done:false,doneAtMove:null,lastFlash:null,colorClass:d.colorClass||'',idx:i, facing:2, walkSteps:0, walkUntil:0, renderedAt:null }));
     return { cells, figs, shared, cellSize, onChange:null, dogTimer:null,
-      hazards: shared.hazards.map(hh=>({x:hh.x,y:hh.y})), hazardSet:new Set(shared.hazards.map(hh=>hh.x+','+hh.y)),
+      hazards: shared.hazards.map(hh=>({x:hh.x,y:hh.y,gross:!!hh.gross})), hazardSet:hazardSetOf(shared.hazards),
       coins: shared.coins ? shared.coins.map(c=>({x:c.x,y:c.y})) : null,
       centerItem: shared.centerItem ? {x:shared.centerItem.x,y:shared.centerItem.y,type:shared.centerItem.type,taken:false} : null };
   }
@@ -2562,7 +2599,7 @@
     b.cells.forEach(c=>{ c.innerHTML=''; c.classList.remove('flash-good','flash-bad'); });
     // Hunde: gleiten zum Nachbarfeld und blicken in ihre Laufrichtung
     const dogMs=Math.max(80, Math.min(Math.round(dur(300)), Math.round((s.hazardTick||900)*0.6)));
-    b.hazards.forEach(hh=>{ const hz=el('div', s.hazardType==='dog'?'dog':'bomb'); const pi=hh.y*s.cols+hh.x;
+    b.hazards.forEach(hh=>{ const hz=el('div', (s.hazardType==='dog'?'dog':'bomb')+(hh.gross?' riese':'')); const pi=hh.y*s.cols+hh.x;
       if(s.hazardType==='dog'){ hz.innerHTML=dogSvg(hh.face||1); hz.style.filter=`drop-shadow(0 0 3px rgba(${s.theme.accent||'148,163,184'},0.9))`; } else { hz.innerHTML=bombSvg(); }
       b.cells[pi].appendChild(hz);
       if(s.hazardType==='dog' && glideFromCell(b, hz, hh, pi, dogMs, pend)){ hz.classList.add('walking'); hz.style.setProperty('--walk', dogMs+'ms'); }
@@ -2600,7 +2637,17 @@
     });
     glideCommit(pend, b.cells[0]);
   }
-  function removeHazard(b,x,y){ const i=b.hazards.findIndex(hh=>hh.x===x&&hh.y===y); if(i>=0) b.hazards.splice(i,1); b.hazardSet=new Set(b.hazards.map(hh=>hh.x+','+hh.y)); }
+  // Der Riesenhund im Weltraum belegt vier Felder (2x2) statt einem – alles andere rechnet
+  // weiter mit einzelnen Feldern, darum liefert hazardFelder die belegten Felder je Hindernis.
+  function hazardFelder(h){
+    if(!h.gross) return [{x:h.x,y:h.y}];
+    return [{x:h.x,y:h.y},{x:h.x+1,y:h.y},{x:h.x,y:h.y+1},{x:h.x+1,y:h.y+1}];
+  }
+  function hazardSetOf(hazards){ const s=new Set(); hazards.forEach(h=>hazardFelder(h).forEach(p=>s.add(p.x+','+p.y))); return s; }
+  function removeHazard(b,x,y){
+    const i=b.hazards.findIndex(hh=>hazardFelder(hh).some(p=>p.x===x&&p.y===y));
+    if(i>=0) b.hazards.splice(i,1); b.hazardSet=hazardSetOf(b.hazards);
+  }
   // Nach einer Kollision setzt die Figur zurueck – dabei nicht ueber das halbe Brett gleiten
   function resetFig(b,f){ f.x=f.startX; f.y=f.startY; f.renderedAt=null; f.animTo=null; f.walkSteps=0; f.blinkUntil=Date.now()+3000; setTimeout(()=>{ if(b.figs.includes(f)){ renderGridBoard(b); if(b.onChange) b.onChange(); } }, 3050); }
   // Ohne Deathless ist die Beruehrung das Ende: die Figur bleibt liegen und zieht nicht mehr.
@@ -2654,17 +2701,20 @@
     if(b.coins) b.coins.forEach(c=>forbid.add(c.x+','+c.y));
     if(b.centerItem && !b.centerItem.taken) forbid.add(b.centerItem.x+','+b.centerItem.y);
     if(s.layoutKind==='bands') b.figs.forEach(f=>{ const g=s.checkpoints[f.checkpointIdx]; forbid.add(g.x+','+g.y); });
-    const occ=new Set(b.hazards.map(hh=>hh.x+','+hh.y));
+    const occ=hazardSetOf(b.hazards);
     b.hazards.forEach(h=>{
-      occ.delete(h.x+','+h.y);
+      hazardFelder(h).forEach(p=>occ.delete(p.x+','+p.y));
       const opts=shuffle(VECS.slice());
-      for(const v of opts){ const nx=h.x+v[0], ny=h.y+v[1], k=nx+','+ny;
-        if(nx<0||ny<0||nx>=s.cols||ny>=s.rows) continue; if(s.wallSet&&s.wallSet.has(k)) continue; if(forbid.has(k)) continue; if(occ.has(k)) continue;
+      for(const v of opts){ const nx=h.x+v[0], ny=h.y+v[1];
+        // Der Riesenhund prueft alle vier Felder seines neuen Standes
+        const felder=hazardFelder({x:nx,y:ny,gross:h.gross});
+        if(felder.some(p=>p.x<0||p.y<0||p.x>=s.cols||p.y>=s.rows)) continue;
+        if(felder.some(p=>(s.wallSet&&s.wallSet.has(p.x+','+p.y))||forbid.has(p.x+','+p.y)||occ.has(p.x+','+p.y))) continue;
         if(v[0]) h.face=v[0]<0?-1:1;                       // bei Seitwaertsschritten dreht sich der Hund um
         h.x=nx; h.y=ny; break; }
-      occ.add(h.x+','+h.y);
+      hazardFelder(h).forEach(p=>occ.add(p.x+','+p.y));
     });
-    b.hazardSet=new Set(b.hazards.map(hh=>hh.x+','+hh.y));
+    b.hazardSet=hazardSetOf(b.hazards);
     const now=Date.now();
     let gerissen=false;
     b.figs.forEach(f=>{ if(!f.done && now>=f.blinkUntil && b.hazardSet.has(f.x+','+f.y)){
@@ -2781,7 +2831,7 @@
     const rr = ov.ringRules;
     // Globale Figur-Regel: unabhängig vom Ring. Verzerrung erst ab Nachtleben (schwer); davor bewegt
     // sich die Figur exakt um die Eingabe. Editor (ov.bg) darf verzerren, Standard leicht/mittel nicht.
-    const mayDistort = ov.bg || diffKey==='schwer' || diffKey==='experte';
+    const mayDistort = ov.bg || diffKey==='schwer' || diffKey==='experte' || diffKey==='verrueckt';
     let figRule;
     if(ov.figRule && ov.figRule!=='random') figRule = ov.figRule;
     else if(mayDistort){ const d=stepPool.filter(r=>r!=='normal'); figRule = d.length?pick(d):'normal'; }
@@ -3151,6 +3201,7 @@
     if(revealPausedAt!==null || onlineLaeuft()) return;
     revealPausedAt=Date.now();
     if(race && race.alive){ raceClearTimers(); raceFreezeShift(); }   // Racing: Uhr anhalten, Welt einfrieren
+    spcUhrStop();                                                     // Kreis: Zug-Uhr anhalten
     if(spgState && spgState.board) stopDogTimer(spgState.board);
     if(mp){
       if(mp.board) stopDogTimer(mp.board);
@@ -3165,6 +3216,7 @@
       race.startTime += pausedMs;                             // Tempo-Rampe nicht vorspulen
       raceSchedule();
     }
+    if(spcState && sichtbar('sp-circle')) spcUhrStart();               // Uhr laeuft frisch weiter
     if(spgState && spgState.board && sichtbar('sp-grid')) startDogTimer(spgState.board);
     if(mp && sichtbar('mp-grid')){
       if(mp.board) startDogTimer(mp.board);
@@ -3336,7 +3388,13 @@
       de:'&#10024; Glimmende Felder, Vogel &amp; Sternschnuppe',
       en:'&#10024; Glowing cells, birds &amp; shooting stars' },
     { id:'friedhof',   pw:'rest_in_awesomeness_67', zu:'Friedhof-Bonus',   zuEn:'Graveyard bonus',
-      de:'Friedhof-Bonus',    en:'Graveyard bonus' }
+      de:'&#128736; Schwierigkeitsgrad „Verr&uuml;ckt&#8221; (Weltraum)',
+      en:'&#128736; Difficulty &#8220;Crazy&#8221; (outer space)' },
+    // Bleibt in der Liste unsichtbar, bis der Friedhof-Bonus aktiv ist: erst der Weltraum
+    // verraet, dass es hinter ihm noch etwas gibt.
+    { id:'weltraum',   pw:'YOUARECOOKING_orstopcheatingpls', braucht:'friedhof',
+      zu:'Weltraum-Bonus',   zuEn:'Space bonus',
+      de:'&#127942; Goldener Pokal statt Lupe',    en:'&#127942; Golden trophy instead of the magnifier' }
   ];
   const BONUS_KEY='regel-detektiv-boni';
   let boni={ frei:{}, aktiv:{} };
@@ -3347,13 +3405,17 @@
     const host=$('bonus-liste'); if(!host) return;
     host.innerHTML='';
     BONI.forEach(b=>{
+      // Versteckter Bonus: taucht erst auf, wenn der Bonus davor eingeschaltet ist
+      if(b.braucht && !bonusAn(b.braucht) && !boni.frei[b.id]) return;
       const frei=!!boni.frei[b.id];
       const zeile=el('label','opt-zeile'+(frei?'':' gesperrt'));
       const box=document.createElement('input'); box.type='checkbox'; box.checked=!!boni.aktiv[b.id]; box.disabled=!frei;
       // Der Hintergrund-Bonus wirkt sofort, ohne den Umweg ueber einen Neustart
       box.addEventListener('change',()=>{ boni.aktiv[b.id]=box.checked; bonusSpeichern();
         if(!$('start-screen').classList.contains('hidden') || !$('online').classList.contains('hidden')) startBg();
-        nachtAn(); refreshPreviews(); });
+        nachtAn(); diffSichtbarkeit(); lupeForm(); refreshPreviews();
+        // Schaltet jemand einen Bonus, hinter dem noch ein versteckter haengt, taucht der auf
+        if(BONI.some(x=>x.braucht===b.id)) bonusListe(); });
       const txt=el('span'); txt.innerHTML=frei ? T(b.de,b.en) : '&#128274; '+T(b.zu,b.zuEn);
       zeile.appendChild(box); zeile.appendChild(txt); host.appendChild(zeile);
     });
@@ -3390,7 +3452,7 @@
     // Menue mehr sichtbar ist; das Glimmen dagegen gilt in jedem Modus.
     if(warOffen){
       if(!$('start-screen').classList.contains('hidden') || !$('online').classList.contains('hidden')) startBg();
-      nachtAn();
+      nachtAn(); diffSichtbarkeit(); lupeForm();
     }
   }
   $('opt-sfx').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('sfx-val').textContent=v+'%'; setSfxVol(v/100); });
@@ -3425,6 +3487,7 @@
   function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('lang-pick').classList.add('hidden'); $('fahrt-bg').classList.add('hidden'); document.body.classList.remove('playing','schau'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
   function teardownActive(){
     if(race){ race.mounted=false; race.alive=false; raceClearTimers(); }
+    spcUhrStop();
     if(spcState) spcState.mounted=false;
     if(spgState && spgState.board) stopDogTimer(spgState.board);
     if(mp){
@@ -3603,6 +3666,31 @@
     const an=bonusAn('nachtleben');
     document.body.classList.toggle('nacht', an);
     if(an) nachtPlan(); else { clearTimeout(nachtTimer); nachtTimer=null; $('nacht-flug').textContent=''; }
+  }
+
+  // ---- Weltraum-Bonus: der goldene Pokal ersetzt die Lupe (gleiche Aufgabe) ----
+  function pokalInner(){
+    return `<defs><linearGradient id="pkg" x1="0" y1="0" x2="0" y2="1">`
+      + `<stop offset="0%" stop-color="#fef9c3"/><stop offset="45%" stop-color="#facc15"/><stop offset="100%" stop-color="#a16207"/></linearGradient>`
+      + `<filter id="pkglow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`
+      + `<g filter="url(#pkglow)">`
+      +   `<path d="M36 26 h48 v18 q0 26 -24 30 q-24 -4 -24 -30 Z" fill="url(#pkg)"/>`
+      +   `<path d="M36 30 q-16 0 -16 12 q0 14 18 16" fill="none" stroke="url(#pkg)" stroke-width="6" stroke-linecap="round"/>`
+      +   `<path d="M84 30 q16 0 16 12 q0 14 -18 16" fill="none" stroke="url(#pkg)" stroke-width="6" stroke-linecap="round"/>`
+      +   `<rect x="54" y="72" width="12" height="16" fill="url(#pkg)"/>`
+      +   `<rect x="40" y="88" width="40" height="9" rx="3" fill="url(#pkg)"/>`
+      +   `<rect x="33" y="97" width="54" height="11" rx="4" fill="url(#pkg)"/>`
+      +   `<path d="M60 36 l3.6 8.6 l9.4 0.8 l-7.2 6 l2.2 9 l-8 -5 l-8 5 l2.2 -9 l-7.2 -6 l9.4 -0.8 z" fill="#fffbeb" opacity="0.9"/>`
+      + `</g>`;
+  }
+  function lupeForm(){
+    const svg=$('hero-lupe'); if(!svg) return;
+    const pokal=bonusAn('weltraum');
+    if(svg.dataset.form===(pokal?'pokal':'lupe')) return;
+    svg.dataset.form=pokal?'pokal':'lupe';
+    svg.classList.toggle('pokal', pokal);
+    if(pokal){ if(!svg.dataset.lupe) svg.dataset.lupe=svg.innerHTML; svg.innerHTML=pokalInner(); }
+    else if(svg.dataset.lupe) svg.innerHTML=svg.dataset.lupe;
   }
 
   // ---- Schaufenster: die Lupe raeumt die Anzeige weg und wieder hin ----
@@ -3836,10 +3924,12 @@
   // Werte sind Millisekunden je Reihe – kleiner heisst schneller. Zweimal nachgeschaerft: erst alle
   // Stufen um ein Viertel (Zeit mal 0,8), dann noch einmal um 20 % (Zeit durch 1,2).
   // Das Editor-Tempo hat eigene Regler und bleibt davon unberuehrt.
-  const RACE_SPEED={ leicht:{s:533,e:133}, mittel:{s:467,e:120}, schwer:{s:400,e:93}, experte:{s:333,e:67} };
+  // Weltraum: 30 % schneller als Experte (Intervall also durch 1,3)
+  const RACE_SPEED={ leicht:{s:533,e:133}, mittel:{s:467,e:120}, schwer:{s:400,e:93}, experte:{s:333,e:67}, verrueckt:{s:256,e:52} };
   // Wie viele verschiedene Farbzonen (= Regeln) eine Strecke benutzt
-  const RACE_ZONES={ leicht:2, mittel:3, schwer:4, experte:4 };
-  const RACE_BOMB={ leicht:0.10, mittel:0.15, schwer:0.20, experte:0.28 };
+  const RACE_ZONES={ leicht:2, mittel:3, schwer:4, experte:4, verrueckt:4 };
+  // Weltraum: 20 % mehr Bomben/Raketen als Experte
+  const RACE_BOMB={ leicht:0.10, mittel:0.15, schwer:0.20, experte:0.28, verrueckt:0.336 };
   const RACE_DIST_POOL=['swapLR','double','repeatInvert','delay','swapActDir','swapAB','actionPool'];
   // Nur in der freien Fahrt sinnvoll: im Kaestchen-Modus haelt ein Tipp ohnehin nach einem Feld an.
   const RACE_DIST_FREE_ONLY=['brake'];
@@ -3880,7 +3970,7 @@
     actionPool:'Both actions are replaced: A pushes the car at double speed in the last chosen direction, B makes it skid &ndash; three rows with no steering.'
   };
   // Hintergrund-Auswahl im Editor -> passende Strecke (Tempo/Optik)
-  const BG_TO_DIFF={ garden:'leicht', office:'mittel', night:'schwer', graveyard:'experte' };
+  const BG_TO_DIFF={ garden:'leicht', office:'mittel', night:'schwer', graveyard:'experte', space:'verrueckt' };
   // Kurzbezeichnungen fuer die Auswahl im Editor
   const RACE_DIST_SHORT={
     swapLR:'Links/Rechts vertauscht', double:'Doppelschritt', repeatInvert:'Wiederholung kehrt um',
@@ -4174,10 +4264,12 @@
     let ziel=false;
     if(!initial && !race.endless && !race.zielGesetzt && raceElapsed()>=RACE_ZIEL_S){ ziel=true; race.zielGesetzt=true; }
     if(!initial && !ziel){
-      const rockets = (race.rockets!=null) ? race.rockets : (race.diffKey==='schwer'||race.diffKey==='experte');
+      const rockets = (race.rockets!=null) ? race.rockets : (race.diffKey==='schwer'||race.diffKey==='experte'||race.diffKey==='verrueckt');
       if(raceRnd()<raceBombProb()){
         const x=raceRandInt(RACE_COLS); objs[x]=(rockets && raceRnd()<0.4)?'rocket':'bomb';
-        if(race.diffKey==='experte' && raceRnd()<0.3){ const x2=raceRandInt(RACE_COLS); if(!objs[x2]) objs[x2]='bomb'; }
+        // Zweiter Brocken in derselben Zeile: Friedhof gelegentlich, Weltraum um ein Fuenftel oefter
+        const zweiter = race.diffKey==='verrueckt' ? 0.36 : (race.diffKey==='experte' ? 0.3 : 0);
+        if(zweiter && raceRnd()<zweiter){ const x2=raceRandInt(RACE_COLS); if(!objs[x2]) objs[x2]='bomb'; }
       }
       if(raceRnd()<(race.coinProb!=null?race.coinProb:0.13)){ for(let t=0;t<6;t++){ const cx=raceRandInt(RACE_COLS); if(!objs[cx]){ objs[cx]='coin'; break; } } }
     }
@@ -4840,7 +4932,7 @@
       frameLast:0, raf:null,
       rowsPassed:0, coins:0, score:0, zoneRowCounter:0, curZone:0,
       rng: (opts.seed!=null ? mulberry32(opts.seed>>>0) : null),
-      rocketThrust:(opts.thrust!=null?opts.thrust:(diffKey==='experte')), rocketDrift:0,   // Friedhof: Raketen haben Antrieb
+      rocketThrust:(opts.thrust!=null?opts.thrust:(diffKey==='experte'||diffKey==='verrueckt')), rocketDrift:0,   // Friedhof/Weltraum: Raketen haben Antrieb
       speed:opts.speed||null, bombBase:(opts.bombProb!=null?opts.bombProb:null),
       coinProb:(opts.coinProb!=null?opts.coinProb:null), rockets:(opts.rockets!=null?opts.rockets:null),
       // Endlos: ohne festes Ende. Aus heisst, nach RACE_ZIEL_S Fahrsekunden kommt die Ziellinie.
@@ -5010,10 +5102,40 @@
     setThemeBg(config.theme); circleBuildRings(spcState, $('spc-host'), 1);
     renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1);
     spcRender();
+    spcUhrStart();
   }
-  function spcCyclePose(){ if(!spcState||spcState.phase!=='playing') return; sfx('pose'); spcState.gandalfPose=(spcState.gandalfPose+1)%3; renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1); }
+  function spcCyclePose(){ if(!spcState||spcState.phase!=='playing') return; sfx('pose'); spcState.gandalfPose=(spcState.gandalfPose+1)%3; renderDetectiveCenter($('spc-host'), spcState.gandalfPose, 'W / ↑', ()=>spcCyclePose(), 1); spcUhrStart(); }
+  // ---- Zug-Uhr (nur Weltraum): 7 Sekunden je Zug, sonst kostet es ein Leben ----
+  const SPC_UHR_S=7;
+  let spcUhr=null, spcUhrBis=0;
+  function spcUhrAktiv(){ return !!(spcState && spcState.diffKey==='verrueckt' && spcState.hearts!=null && spcState.phase==='playing'); }
+  function spcUhrStop(){ if(spcUhr){ clearInterval(spcUhr); spcUhr=null; } }
+  function spcUhrAnzeige(){
+    const box=$('spc-uhr-box'); if(!box) return;
+    box.classList.toggle('hidden', !spcUhrAktiv());
+    if(spcUhrAktiv()) $('spc-uhr').textContent=Math.max(0, Math.ceil((spcUhrBis-Date.now())/1000));
+  }
+  function spcUhrStart(){
+    spcUhrStop();
+    if(!spcUhrAktiv()){ spcUhrAnzeige(); return; }
+    spcUhrBis=Date.now()+SPC_UHR_S*1000;
+    spcUhrAnzeige();
+    spcUhr=setInterval(()=>{
+      if(!spcUhrAktiv() || !spcState.mounted){ spcUhrStop(); spcUhrAnzeige(); return; }
+      if(Date.now()>=spcUhrBis){
+        // Zeit verstrichen ohne Aktion: ein Leben weniger, danach laeuft die Uhr neu
+        spcState.hearts=Math.max(0, spcState.hearts-1);
+        sfx('crash');
+        if(spcState.hearts<=0){ spcState.heartsLeer=true; spcState.phase='out'; spcState.done=true; spcState.doneAtMove=spcState.moves; spcUhrStop(); }
+        else spcUhrBis=Date.now()+SPC_UHR_S*1000;
+        spcRender();
+      } else spcUhrAnzeige();
+    }, 200);
+  }
   function spcRender(){
     const cs=spcState; circleMarkerFlash(cs);
+    if(cs.phase!=='playing') spcUhrStop();
+    spcUhrAnzeige();
     $('spc-ab').innerHTML=abPrefix();
     $('spc-moves').textContent=cs.moves;
     setLebenBar($('spc-leben'), cs.hearts);
@@ -5051,6 +5173,7 @@
     if(!cs.mounted) return;
     if(cs.phase==='won') sfx('win');
     spcRender();
+    spcUhrStart();                                   // jede Aktion setzt die Uhr zurueck
   }
 
   // ===================== ABENTEUER =====================
@@ -5058,7 +5181,8 @@
   // jede in ihrer harten Fassung (Kontakt toetet, Ziellinie statt endlos, Herzen zaehlen).
   // Eine Niederlage beendet den ganzen Lauf; drei Siege geben das Passwort des Schwierigkeitsgrads.
   const AB_TEILE=['grid','racing','circle'];
-  const AB_PASSWORT={ leicht:'flowerpower!', mittel:'coffeebreak?', schwer:'toomuchis:toomuch', experte:'rest_in_awesomeness_67' };
+  const AB_PASSWORT={ leicht:'flowerpower!', mittel:'coffeebreak?', schwer:'toomuchis:toomuch',
+                      experte:'rest_in_awesomeness_67', verrueckt:'YOUARECOOKING_orstopcheatingpls' };
   let abenteuer=null;      // { diffKey, folge:[...], idx }
   function abLaeuft(){ return !!abenteuer; }
   function abStart(diffKey){
@@ -6332,7 +6456,7 @@
         figs: b.figs.map(f=>({ x:f.x, y:f.y, score:f.score, moves:f.moves, done:!!f.done, dead:!!f.dead,
                                blink: Math.max(0, f.blinkUntil-now), flash: f.lastFlash||'' })),
         coins: (b.coins||[]).map(c=>({x:c.x,y:c.y})),
-        hazards: (b.hazards||[]).map(h=>({x:h.x,y:h.y})),
+        hazards: (b.hazards||[]).map(h=>({x:h.x,y:h.y,gross:h.gross?1:0})),
         centerTaken: !!(b.centerItem && b.centerItem.taken)
       }));
       return;
@@ -6367,8 +6491,8 @@
     const inHz=(st.hazards||[]);
     if(b.hazards && b.hazards.length===inHz.length){
       inHz.forEach((h,i)=>{ const o=b.hazards[i]; if(h.x!==o.x) o.face=h.x<o.x?-1:1; o.x=h.x; o.y=h.y; });
-    } else b.hazards=inHz.map(h=>({x:h.x,y:h.y}));
-    b.hazardSet=new Set(b.hazards.map(h=>h.x+','+h.y));
+    } else b.hazards=inHz.map(h=>({x:h.x,y:h.y,gross:!!h.gross}));
+    b.hazardSet=hazardSetOf(b.hazards);
     if(b.centerItem) b.centerItem.taken=!!st.centerTaken;
     onl.finished=!!st.finished;
     onl.winner=onlWinnerFromWire(st.winner);
@@ -6715,13 +6839,31 @@
 
   const diffGrid=$('diff-grid');
   const DIFF_KEYS=Object.keys(THEMES);
+  let diffCar=null;
   DIFF_KEYS.forEach(key=>{
     const theme=THEMES[key];
     const btn=el('button','diff-card'); btn.style.backgroundImage=`url("${svgUrl(theme.svg)}")`;
     btn.dataset.diffKey=key;
+    if(theme.bonus) btn.dataset.bonus=theme.bonus;
     btn.innerHTML=`<b class="stufe">${themeSub(theme)}</b><span class="ort">${themeTitle(theme)}</span>`;
     diffGrid.appendChild(btn);
   });
+  // Ein Grad hinter einem Bonus wird samt seinem Punkt ausgeblendet, statt die Karten neu zu
+  // bauen – das Karussell haelt seine Kartenliste seit dem Aufbau fest.
+  function diffSichtbarkeit(){
+    diffGrid.querySelectorAll('.diff-card[data-bonus]').forEach(btn=>{
+      const frei=bonusAn(btn.dataset.bonus);
+      btn.style.display=frei?'':'none';
+      if(btn.__dot) btn.__dot.style.display=frei?'':'none';
+      if(!frei && btn.classList.contains('active') && diffCar) diffCar.scrollToCard(0);
+    });
+    const ts=$('onl-theme');
+    if(ts) ts.querySelectorAll('option[data-bonus]').forEach(o=>{
+      const frei=bonusAn(o.dataset.bonus);
+      o.hidden=!frei; o.disabled=!frei;
+      if(!frei && ts.value===o.value) ts.value='mittel';
+    });
+  }
   // Nach einem Sprachwechsel nur beschriften – Karten neu zu bauen wuerde das Karussell zuruecksetzen
   onLangChange(()=>{
     diffGrid.querySelectorAll('.diff-card').forEach(btn=>{
@@ -6758,7 +6900,7 @@
     }
     function setActive(i){ cards.forEach((c,j)=>c.classList.toggle('active',j===i)); dots.forEach((d,j)=>d.classList.toggle('active',j===i)); if(onActive) onActive(i); }
     cards.forEach((c,i)=>{
-      const d=el('div','mdot'); d.addEventListener('click',()=>scrollToCard(i)); dotsHost.appendChild(d); dots.push(d);
+      const d=el('div','mdot'); d.addEventListener('click',()=>scrollToCard(i)); dotsHost.appendChild(d); dots.push(d); c.__dot=d;
       c.addEventListener('click',()=>{ if(i!==current()) scrollToCard(i); else if(onSelect) onSelect(i); });
     });
     let t=null; car.addEventListener('scroll',()=>{ clearTimeout(t); t=setTimeout(()=>setActive(current()), 80); });
@@ -6770,7 +6912,8 @@
     return { scrollToCard, current };
   }
   // Das Schwierigkeits-Karussell waehlt nur noch aus – gestartet wird oben ueber die Modus-Kachel.
-  initCarousel(diffGrid, $('diff-dots'), null, i=>{ selectedDiffKey=DIFF_KEYS[i]; });
+  diffCar=initCarousel(diffGrid, $('diff-dots'), null, i=>{ selectedDiffKey=DIFF_KEYS[i]; });
+  diffSichtbarkeit();
 
   // ===================== EDITOR =====================
   const ED_KEY='regel-detektiv-users';
@@ -6985,7 +7128,8 @@
   $('open-editor').addEventListener('click', openEditor);
 
   // ---- Online-Modus verkabeln ----
-  Object.keys(THEMES).forEach(k=>{ const o=el('option'); o.value=k; o.textContent=themeTitle(THEMES[k])+' ('+themeSub(THEMES[k])+')'; $('onl-theme').appendChild(o); });
+  Object.keys(THEMES).forEach(k=>{ const o=el('option'); o.value=k; o.textContent=themeTitle(THEMES[k])+' ('+themeSub(THEMES[k])+')';
+    if(THEMES[k].bonus) o.dataset.bonus=THEMES[k].bonus; $('onl-theme').appendChild(o); });
   $('onl-theme').value='mittel';
   function onlVariants(){ return { grid:[['gerangel',T('Gerangel','Scramble')],['spurensuche',T('Spurensuche','Trail')]], circle:[['gerangel',T('Gerangel','Scramble')],['duell',T('Duell','Duel')]], racing:[['duell',T('Duell','Duel')]] }; }
   function onlLobbyRefresh(){
@@ -7230,6 +7374,8 @@
   if(gridVariant!=='gerangel' && gridVariant!=='spurensuche') gridVariant='gerangel';
   startBg();
   nachtAn();
+  diffSichtbarkeit();          // erst hier: die Themenliste der Lobby entsteht kurz davor
+  lupeForm();
   updateMenuVisibility();
 })();
 </script>
