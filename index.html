@@ -43,24 +43,43 @@
   .ed-adv summary:hover{color:var(--text);}
   #ed-jump-rows select{background:#0b1220; color:var(--text); border:1px solid var(--cell-border); border-radius:8px; padding:5px 7px; font-family:inherit;}
 
-  /* ===== Buero-Bonus: Spritztour im Startbildschirm ===== */
-  #fahrt-bg{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;}
-  /* Abdunkeln, damit das Menue ueber der bewegten Kulisse lesbar bleibt */
-  /* Schleier: die Kulissen duerfen durchscheinen, aber das Menue muss lesbar bleiben */
+  /* ===== Buero-Bonus: Spritztour im Startbildschirm =====
+     Vier Ebenen uebereinander: Kulisse (fern, langsam), Strasse und naher Boden (schnell),
+     das Auto darauf, davor die Requisiten. Kulisse und Strasse brauchen fuer eine Zone
+     gleich lang (12 s) – die Strasse legt dabei die doppelte Strecke zurueck, das gibt die
+     Tiefenwirkung, ohne dass Zone und Belag auseinanderlaufen. */
+  #fahrt-bg{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;
+    --f-boden:0.4%; --f-strasse:14%;}
+  /* Schleier: die Kulissen duerfen durchscheinen, aber das Menue muss lesbar bleiben.
+     Auto und Requisiten liegen darueber und bleiben dadurch farbig. */
   #fahrt-bg::after{content:''; position:absolute; inset:0; background:rgba(15,23,42,0.68);}
-  .fahrt-band{position:absolute; left:0; top:0; height:100%; width:800vw; display:flex;
-    animation:fahrtRollen 48s linear infinite;}
+  .fahrt-band{position:absolute; left:0; bottom:calc(var(--f-boden) + var(--f-strasse)); height:100%;
+    width:800vw; display:flex; will-change:transform; animation:fahrtRollen 48s linear infinite;}
   .fahrt-kulisse{width:100vw; height:100%; flex:0 0 100vw; background-size:cover; background-position:center bottom;}
   @keyframes fahrtRollen{ from{transform:translateX(0);} to{transform:translateX(-400vw);} }
-  /* Ganz unten am Rand: dort bleibt unter dem Menue noch Platz, das Auto faehrt wie auf einer Strasse */
-  .fahrt-auto{position:absolute; left:50%; bottom:1.5%; width:min(44vw,250px); z-index:1;
-    animation:fahrtWippen 0.42s ease-in-out infinite alternate;}
+  /* Strasse, naher Boden und Requisiten teilen sich Takt und Feldbreite (200vw je Zone) */
+  .fahrt-strasse, .fahrt-boden, .fahrt-vorne{position:absolute; left:0; width:1600vw; display:flex;
+    will-change:transform; animation:fahrtNah 48s linear infinite;}
+  /* Strasse und naher Boden liegen ueber dem Schleier: sie sind die Buehne, auf der das Auto
+     faehrt, und unter ihnen steht kein Text, der lesbar bleiben muesste. */
+  .fahrt-strasse{bottom:var(--f-boden); height:var(--f-strasse); z-index:1;}
+  .fahrt-boden{bottom:0; height:var(--f-boden); z-index:1;}
+  .fahrt-vorne{bottom:0; height:40%; z-index:2;}
+  .fahrt-spur, .fahrt-vfeld{flex:0 0 200vw; width:200vw; height:100%; position:relative;}
+  .fahrt-linie{position:absolute; left:0; right:0; top:46%; height:14%; opacity:0.75;}
+  .fahrt-prop{position:absolute; bottom:0;}
+  .fahrt-prop svg{width:100%; height:auto; display:block; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.45));}
+  @keyframes fahrtNah{ from{transform:translateX(0);} to{transform:translateX(-800vw);} }
+  /* Das Auto steht ganz vorn auf der Strasse: auf dem Handy deckt das Menue alles darueber ab,
+     hier unten bleiben Sherlock und die Katze im Fenster sichtbar. */
+  .fahrt-auto{position:absolute; left:50%; bottom:0.6%;
+    width:min(54vw,300px); z-index:1; animation:fahrtWippen 0.42s ease-in-out infinite alternate;}
   .fahrt-auto svg{width:100%; height:auto; display:block; filter:drop-shadow(0 6px 10px rgba(0,0,0,0.5));}
   @keyframes fahrtWippen{ from{transform:translate(-50%,0);} to{transform:translate(-50%,-5px);} }
   .fahrt-auto .rad{transform-box:fill-box; transform-origin:center; animation:radDrehen 0.55s linear infinite;}
   @keyframes radDrehen{ to{transform:rotate(360deg);} }
   @media (prefers-reduced-motion: reduce){
-    .fahrt-band, .fahrt-auto, .fahrt-auto .rad{animation:none;}
+    .fahrt-band, .fahrt-strasse, .fahrt-boden, .fahrt-vorne, .fahrt-auto, .fahrt-auto .rad{animation:none;}
   }
 
   /* ===== Garten-Bonus: tanzende Blume ===== */
@@ -876,7 +895,10 @@
 <!-- Buero-Bonus: fahrende Kulisse hinter dem Menue (nur wenn freigeschaltet und aktiv) -->
 <div id="fahrt-bg" class="hidden" aria-hidden="true">
   <div class="fahrt-band"></div>
+  <div class="fahrt-strasse"></div>
+  <div class="fahrt-boden"></div>
   <div class="fahrt-auto"></div>
+  <div class="fahrt-vorne"></div>
 </div>
 
 <div id="lang-pick">
@@ -2110,7 +2132,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.53";
+  const APP_VERSION = "1.54";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -3323,11 +3345,122 @@
   // Das Band traegt jede Kulisse zweimal – nach der halben Strecke sieht es aus wie am Anfang,
   // dadurch springt der Uebergang nicht.
   const FAHRT_ZONEN=['garden','office','night','graveyard'];
+  // Belag, Bordstein, Mittellinie und der nahe Boden davor – je Zone eigen, damit die
+  // Strasse zur Kulisse passt.
+  const FAHRT_WELT={
+    garden:    {belag:'#7a6248', rand:'#5f8f46', linie:'#e7d7a8', boden:'#3f6c31'},
+    office:    {belag:'#4b5563', rand:'#94a3b8', linie:'#e5e7eb', boden:'#6b7280'},
+    night:     {belag:'#33143a', rand:'#7f1d4d', linie:'#f472b6', boden:'#1f0c26'},
+    graveyard: {belag:'#2b3038', rand:'#4b5563', linie:'#64748b', boden:'#191e25'}
+  };
+  const propSvg=(vb,inner)=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+  // Requisiten im Vordergrund: je Zone ein paar Dinge, die dicht an der Kamera vorbeiziehen.
+  // Alles im Code gezeichnet – es kommt keine einzige Datei dazu. l = Platz im Zonenfeld (%).
+  function fahrtProps(zone){
+    if(zone==='garden'){
+      const busch=propSvg('0 0 120 92',
+        `<rect x="55" y="62" width="10" height="28" fill="#5b4326"/>`
+        + `<circle cx="38" cy="56" r="26" fill="#2f6b34"/><circle cx="80" cy="52" r="28" fill="#3a7d3e"/>`
+        + `<circle cx="58" cy="36" r="24" fill="#46914a"/>`);
+      const blume=propSvg('0 0 60 114',
+        `<path d="M30 112 L30 44" stroke="#3f8a3f" stroke-width="6" stroke-linecap="round"/>`
+        + `<path d="M30 80 q-20 -4 -24 -20 q18 0 24 12 Z" fill="#3f8a3f"/>`
+        + `<path d="M30 62 q20 -4 24 -20 q-18 0 -24 12 Z" fill="#4aa04a"/>`
+        + [0,60,120,180,240,300].map(a=>`<ellipse cx="30" cy="20" rx="7" ry="12" fill="#f472b6" transform="rotate(${a} 30 34)"/>`).join('')
+        + `<circle cx="30" cy="34" r="9" fill="#fbbf24"/>`);
+      const hecke=propSvg('0 0 160 74',
+        `<rect x="4" y="26" width="152" height="46" rx="12" fill="#2f6b34"/>`
+        + `<circle cx="34" cy="28" r="16" fill="#3a7d3e"/><circle cx="80" cy="24" r="18" fill="#46914a"/>`
+        + `<circle cx="126" cy="28" r="16" fill="#3a7d3e"/>`);
+      const kanne=propSvg('0 0 76 64',
+        `<rect x="14" y="26" width="36" height="34" rx="6" fill="#7dd3fc"/>`
+        + `<path d="M50 32 L70 12 L75 18 L55 38 Z" fill="#7dd3fc"/>`
+        + `<path d="M20 26 q12 -16 26 -3" stroke="#38bdf8" stroke-width="5" fill="none" stroke-linecap="round"/>`);
+      return [{l:6,w:104,s:busch},{l:29,w:52,s:blume},{l:52,w:132,s:hecke},{l:82,w:62,s:kanne}];
+    }
+    if(zone==='office'){
+      const becher=propSvg('0 0 60 104',
+        `<path d="M14 38 L19 96 q1 6 7 6 h18 q6 0 7 -6 L46 38 Z" fill="#f8fafc"/>`
+        + `<rect x="16" y="58" width="28" height="15" rx="3" fill="#94a3b8" opacity="0.55"/>`
+        + `<rect x="9" y="28" width="42" height="11" rx="5" fill="#e11d48"/>`
+        + `<path d="M24 20 q7 -8 0 -16 M38 20 q7 -8 0 -16" stroke="#cbd5e1" stroke-width="3" fill="none" opacity="0.75"/>`);
+      const akten=propSvg('0 0 96 74',
+        `<rect x="8" y="56" width="80" height="15" rx="3" fill="#cbd5e1"/>`
+        + `<rect x="13" y="41" width="74" height="15" rx="3" fill="#f8fafc"/>`
+        + `<rect x="6" y="26" width="76" height="15" rx="3" fill="#e2e8f0"/>`
+        + `<rect x="18" y="11" width="66" height="15" rx="3" fill="#f8fafc"/>`);
+      const pflanze=propSvg('0 0 84 124',
+        [[-40,-34],[0,-46],[40,-34],[-24,-16],[24,-16]].map(([dx,dy])=>
+          `<ellipse cx="${42+dx*0.7}" cy="${74+dy}" rx="16" ry="9" fill="#2f7d4f" transform="rotate(${dx*0.9} ${42+dx*0.7} ${74+dy})"/>`).join('')
+        + `<path d="M22 78 h40 l-6 42 h-28 Z" fill="#c2703c"/>`
+        + `<rect x="17" y="70" width="50" height="11" rx="3" fill="#d98552"/>`);
+      const uhr=propSvg('0 0 74 128',
+        `<rect x="33" y="62" width="8" height="62" fill="#64748b"/>`
+        + `<rect x="22" y="120" width="30" height="6" rx="3" fill="#475569"/>`
+        + `<circle cx="37" cy="38" r="28" fill="#e2e8f0" stroke="#94a3b8" stroke-width="5"/>`
+        + `<path d="M37 38 L37 20 M37 38 L50 44" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>`);
+      return [{l:7,w:48,s:becher},{l:28,w:82,s:akten},{l:53,w:74,s:pflanze},{l:80,w:60,s:uhr}];
+    }
+    if(zone==='night'){
+      const glas=propSvg('0 0 60 108',
+        `<path d="M9 20 L51 20 L32 54 L28 54 Z" fill="#f472b6" opacity="0.92"/>`
+        + `<rect x="27" y="52" width="6" height="40" fill="#e2e8f0"/>`
+        + `<rect x="14" y="90" width="32" height="7" rx="3" fill="#e2e8f0"/>`
+        + `<circle cx="44" cy="13" r="6" fill="#fca5a5"/>`);
+      const schild=propSvg('0 0 92 132',
+        `<rect x="43" y="62" width="7" height="66" fill="#4b5563"/>`
+        + `<rect x="8" y="10" width="76" height="54" rx="9" fill="#1f0c26" stroke="#f472b6" stroke-width="4"/>`
+        + `<path d="M26 24 v26 M26 37 h16 M42 24 v26" stroke="#f9a8d4" stroke-width="4" fill="none" stroke-linecap="round"/>`
+        + `<circle cx="64" cy="37" r="9" fill="none" stroke="#67e8f9" stroke-width="4"/>`);
+      const kugel=propSvg('0 0 72 126',
+        `<rect x="33" y="56" width="7" height="68" fill="#475569"/>`
+        + `<circle cx="36" cy="34" r="26" fill="#94a3b8"/>`
+        + `<path d="M10 34 h52 M36 8 v52 M17 16 L55 52 M55 16 L17 52" stroke="#475569" stroke-width="2"/>`
+        + `<circle cx="26" cy="24" r="4" fill="#f8fafc"/><circle cx="46" cy="42" r="4" fill="#e0f2fe"/>`);
+      const box=propSvg('0 0 72 114',
+        `<rect x="8" y="14" width="56" height="98" rx="7" fill="#111827" stroke="#374151" stroke-width="3"/>`
+        + `<circle cx="36" cy="46" r="17" fill="#1f2937" stroke="#4b5563" stroke-width="3"/>`
+        + `<circle cx="36" cy="86" r="9" fill="#1f2937" stroke="#4b5563" stroke-width="3"/>`);
+      return [{l:8,w:46,s:glas},{l:30,w:70,s:schild},{l:55,w:56,s:kugel},{l:81,w:54,s:box}];
+    }
+    // Friedhof
+    const stein=propSvg('0 0 84 114',
+      `<path d="M12 106 V44 q0 -30 30 -30 q30 0 30 30 v62 Z" fill="#64748b"/>`
+      + `<path d="M42 38 v34 M28 52 h28" stroke="#3b4553" stroke-width="6"/>`
+      + `<rect x="4" y="100" width="76" height="12" rx="5" fill="#4b5563"/>`);
+    const kreuz=propSvg('0 0 60 114',
+      `<rect x="23" y="8" width="14" height="102" fill="#78716c"/>`
+      + `<rect x="5" y="34" width="50" height="14" fill="#78716c"/>`
+      + `<rect x="12" y="104" width="36" height="9" rx="4" fill="#57534e"/>`);
+    const baum=propSvg('0 0 120 172',
+      `<path d="M58 170 V92" stroke="#3f3a35" stroke-width="15" stroke-linecap="round"/>`
+      + `<path d="M58 118 L26 84 M58 104 L92 70 M58 130 L88 106 M26 84 L14 62 M92 70 L106 52 M58 92 L58 60"`
+      + ` stroke="#3f3a35" stroke-width="8" stroke-linecap="round" fill="none"/>`);
+    const zaun=propSvg('0 0 150 96',
+      `<rect x="2" y="34" width="146" height="7" fill="#3f4652"/>`
+      + `<rect x="2" y="66" width="146" height="7" fill="#3f4652"/>`
+      + [0,1,2,3,4,5,6].map(i=>`<path d="M${8+i*22} 94 V26 l5 -10 l5 10 v68 Z" fill="#4b5563"/>`).join(''));
+    return [{l:6,w:64,s:stein},{l:27,w:46,s:kreuz},{l:50,w:104,s:baum},{l:79,w:118,s:zaun}];
+  }
   function fahrtAufbauen(){
     const lage=$('fahrt-bg'); if(!lage || lage.dataset.fertig) return;
-    const band=lage.querySelector('.fahrt-band');
+    const band=lage.querySelector('.fahrt-band'), str=lage.querySelector('.fahrt-strasse'),
+          bod=lage.querySelector('.fahrt-boden'), vor=lage.querySelector('.fahrt-vorne');
     FAHRT_ZONEN.concat(FAHRT_ZONEN).forEach(z=>{
+      const w=FAHRT_WELT[z];
       const p=el('div','fahrt-kulisse'); p.style.backgroundImage=`url("${svgUrl(z)}")`; band.appendChild(p);
+      const s=el('div','fahrt-spur');
+      s.style.background=`linear-gradient(180deg, ${w.rand} 0 11%, ${w.belag} 11% 100%)`;
+      const li=el('div','fahrt-linie');
+      li.style.backgroundImage=`repeating-linear-gradient(90deg, ${w.linie} 0 4vw, transparent 4vw 12vw)`;
+      s.appendChild(li); str.appendChild(s);
+      const b=el('div','fahrt-spur'); b.style.background=w.boden; bod.appendChild(b);
+      const v=el('div','fahrt-vfeld');
+      fahrtProps(z).forEach(pr=>{
+        const d=el('div','fahrt-prop'); d.style.left=pr.l+'%'; d.style.width=pr.w+'px'; d.innerHTML=pr.s;
+        v.appendChild(d);
+      });
+      vor.appendChild(v);
     });
     lage.querySelector('.fahrt-auto').innerHTML=autoSeiteSvg();
     lage.dataset.fertig='1';
