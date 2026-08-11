@@ -116,12 +116,12 @@
      das laeuft auf dem Compositor und kostet auch bei ueber hundert Feldern nichts. */
   .nacht .cell::after, .nacht .race-cell::after{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
-    background:radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb),0.9) 0%, rgba(var(--accent-rgb),0.62) 45%, rgba(var(--accent-rgb),0) 88%);
+    background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.66) 46%, rgba(255,255,255,0) 90%);
     animation:nachtGlimmen 3s ease-in-out infinite;
   }
-  /* Hoehepunkt gut doppelt so hell wie zuvor – mehr wuerde die Farbzonen zudecken,
-     und die sind das eigentliche Raetsel. */
-  @keyframes nachtGlimmen{ 0%,100%{opacity:0.09;} 50%{opacity:0.52;} }
+  /* Weiss statt Akzentfarbe: so wird aus Gruen Hellgruen und aus Gelb Hellgelb – die Zonen
+     bleiben also unterscheidbar. Eine Akzentfarbe darueber wuerde sie alle angleichen. */
+  @keyframes nachtGlimmen{ 0%,100%{opacity:0.05;} 50%{opacity:0.40;} }
   /* Im Kreis sind die Felder SVG-Pfade: dort atmet die Fuellung selbst. Die Grundfarbe wird
      dafuer angehoben, damit der Tiefpunkt dem normalen Aussehen entspricht. */
   .nacht .ring-field{fill:rgba(var(--accent-rgb),0.22); animation:nachtRing 3s ease-in-out infinite;}
@@ -634,6 +634,20 @@
   .lb-herz.leer{color:#3f4a5c; text-shadow:none;}
   .leben-bar.knapp{border-color:var(--bad); animation:pulse 0.8s infinite alternate;}
   .leben-bar.knapp .lb-num, .leben-bar.knapp .lb-txt{color:#fca5a5;}
+  /* Zug-Uhr im Weltraum: gleiche Bauform wie die Lebensanzeige, direkt darunter */
+  .uhr-bar{display:flex; align-items:center; gap:11px; width:100%; max-width:440px; margin:6px auto 0; flex:0 0 auto;
+    padding:6px 12px; border-radius:14px; box-sizing:border-box;
+    background:linear-gradient(180deg, rgba(161,98,7,0.34), rgba(11,18,32,0.8));
+    border:1px solid rgba(250,204,21,0.55); box-shadow:0 3px 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.07);}
+  .uhr-bar .uhr-txt{flex:0 0 auto; color:#fde68a; font-size:0.8rem; font-weight:700; white-space:nowrap;}
+  .uhr-bar .uhr-txt b{font-size:1.7rem; font-weight:800; color:#fef3c7; font-variant-numeric:tabular-nums; margin-right:2px;}
+  .uhr-bar .uhr-spur{flex:1 1 auto; min-width:0; height:12px; border-radius:6px; background:rgba(148,163,184,0.22); overflow:hidden;}
+  .uhr-bar .uhr-spur i{display:block; height:100%; border-radius:6px; background:linear-gradient(90deg,#fde047,#f59e0b);}
+  .uhr-bar.knapp{border-color:var(--bad); animation:pulse 0.8s infinite alternate;}
+  .uhr-bar.knapp .uhr-txt, .uhr-bar.knapp .uhr-txt b{color:#fca5a5;}
+  .uhr-bar.knapp .uhr-spur i{background:linear-gradient(90deg,#f87171,#dc2626);}
+  /* Waehrend der Zug laeuft, steht die Uhr still – das zeigt sie auch */
+  .uhr-bar.pause{opacity:0.6;}
   .leben-bar.knapp .lb-herz:not(.leer){color:#f87171; text-shadow:0 0 7px rgba(248,113,113,0.9);}
   /* In den Duell-Spalten ist weniger Platz – dort alles eine Nummer kleiner */
   .leben-bar.kompakt{gap:5px; padding:4px 8px;}
@@ -1214,7 +1228,6 @@
       <span id="spc-ab"></span><span><span data-en="Moves">Z&uuml;ge</span> <b id="spc-moves">0</b></span>
       <span><span data-en="Ring">Ring</span> <b id="spc-ring">–</b></span>
       <span><span data-en="Cell">Feld</span> <b id="spc-field">–</b></span>
-      <span id="spc-uhr-box" class="hidden">&#9203; <b id="spc-uhr">7</b>&nbsp;s</span>
     </div>
     <div class="head-actions">
       <button class="action mini" id="spc-log-btn" data-en="Log">Protokoll</button>
@@ -1234,6 +1247,11 @@
   <div class="leben-bar" id="spc-leben">
     <span class="lb-txt"><b class="lb-num" id="spc-hearts">7</b> <span data-en="lives">Leben</span></span>
     <span class="lb-pips"></span>
+  </div>
+  <!-- Zug-Uhr (nur Weltraum): gross zwischen Leben und Steuerung, dort schaut man beim Ziehen hin -->
+  <div class="uhr-bar hidden" id="spc-uhr-box">
+    <span class="uhr-txt">&#9203; <b id="spc-uhr">7</b>&nbsp;s</span>
+    <span class="uhr-spur"><i id="spc-uhr-fill"></i></span>
   </div>
   <div class="control-area">
     <div class="btn-row big" id="circle-steps">
@@ -1577,16 +1595,16 @@
     </details>
     <details class="ed-adv">
       <summary data-en="Adventure">Abenteuer</summary>
-      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard. Tap the <b>magnifier</b> at the top and the menu clears out of the way; tap it again to bring it back.<br><br><b>&#10024; Nightlife bonus</b> (from the run in the nightlife): in <b>every</b> mode the cells slowly glow up and down on a three-second beat &ndash; the rings in circle mode too. Every 20 to 30 seconds a <b>bird</b> drifts across the screen, or a <b>shooting star</b> races through it. And on the track the stored colour rule (<b>B</b>) burns noticeably brighter around your vehicle.<br><br><b>&#128736; Graveyard bonus</b> (from the run in the graveyard): a fifth difficulty joins the list &ndash; <b>Crazy</b>, set in <b>outer space</b>. In field mode the dogs take only half as long per step as on Expert, and one of them is a <b>giant dog</b> blocking <b>four cells</b> (2&times;2). The track runs 30&nbsp;% faster with about a fifth more bombs and rockets. And in circle mode a <b>clock</b> runs: 7 seconds per move &ndash; let them pass unused and it costs a life. Any action resets it. Behind it waits one last, hidden bonus.">
+      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard. Tap the <b>magnifier</b> at the top and the menu clears out of the way; tap it again to bring it back.<br><br><b>&#10024; Nightlife bonus</b> (from the run in the nightlife): in <b>every</b> mode the cells slowly glow up and down on a three-second beat &ndash; the rings in circle mode too. Every 10 to 20 seconds a <b>bird</b> drifts across the screen, or a <b>shooting star</b> races through it. And on the track the stored colour rule (<b>B</b>) burns noticeably brighter around your vehicle.<br><br><b>&#128736; Graveyard bonus</b> (from the run in the graveyard): a fifth difficulty joins the list &ndash; <b>Crazy</b>, set in <b>outer space</b>. In field mode the dogs take only half as long per step as on Expert, and two of them are <b>giant dogs</b> blocking <b>four cells</b> (2&times;2) each. The track runs 30&nbsp;% faster with about a fifth more bombs and rockets. And in circle mode a <b>clock</b> runs: 7 seconds per move &ndash; let them pass unused and it costs a life. Any action resets it. Behind it waits one last, hidden bonus.">
         Drei Einzelspieler-Partien am St&uuml;ck auf dem gew&auml;hlten Schwierigkeitsgrad, in zuf&auml;lliger Reihenfolge: <b>Spurensuche</b>, <b>Strecke</b> und <b>Kreis</b> &ndash; jede in ihrer harten Fassung: Ber&uuml;hrung t&ouml;tet, die Fahrt endet an einer Ziellinie, und die Leben der Katze z&auml;hlen. Verlierst du eine davon, beginnt der ganze Lauf von vorn. Gewinnst du alle drei, gibt es ein Feuerwerk und ein <b>Passwort</b>. In den Einstellungen unter „Freischaltungen" eingegeben schaltet es seinen Bonus frei; danach kannst du diesen Bonus beliebig an- und abschalten. Jeder Schwierigkeitsgrad hat sein eigenes Passwort.
         <br><br>
         <b>&#127804; Garten-Bonus</b> (aus dem Lauf im Garten): Statt Sherlock, Auto und Katze f&uuml;hrst du in <b>allen</b> Modi eine <b>tanzende Blume</b>, die im Halbsekundentakt zwischen zwei Posen wechselt. Sie zeigt weiterhin an, wohin sie l&auml;uft, springt und schlingert auf der Strecke wie gewohnt, und ihr Schal tr&auml;gt im Duell die Spielerfarbe.
         <br><br>
         <b>&#128663; B&uuml;ro-Bonus</b> (aus dem Lauf im B&uuml;ro): Der Startbildschirm steht nicht mehr still &ndash; Sherlock f&auml;hrt im roten Auto vorbei, die Katze sitzt hinten drin, und die Kulisse wechselt in einer Endlosschleife zwischen Garten, B&uuml;ro, Nachtleben und Friedhof. Ein Tipp auf die <b>Lupe</b> ganz oben r&auml;umt das Men&uuml; weg und gibt den Blick frei; der n&auml;chste Tipp holt es zur&uuml;ck.
         <br><br>
-        <b>&#10024; Nachtleben-Bonus</b> (aus dem Lauf im Nachtleben): In <b>allen</b> Modi glimmen die Felder im Drei-Sekunden-Takt langsam auf und wieder ab &ndash; auch die Ringe im Kreis. Alle 20 bis 30 Sekunden zieht ein <b>Vogel</b> gem&auml;chlich oder eine <b>Sternschnuppe</b> schnell durchs Bild. Und auf der Strecke leuchtet die gespeicherte Farbregel (<b>B</b>) deutlich heller um dein Fahrzeug.
+        <b>&#10024; Nachtleben-Bonus</b> (aus dem Lauf im Nachtleben): In <b>allen</b> Modi glimmen die Felder im Drei-Sekunden-Takt langsam auf und wieder ab &ndash; auch die Ringe im Kreis. Alle 10 bis 20 Sekunden zieht ein <b>Vogel</b> gem&auml;chlich oder eine <b>Sternschnuppe</b> schnell durchs Bild. Und auf der Strecke leuchtet die gespeicherte Farbregel (<b>B</b>) deutlich heller um dein Fahrzeug.
         <br><br>
-        <b>&#128736; Friedhof-Bonus</b> (aus dem Lauf auf dem Friedhof): Es kommt ein f&uuml;nfter Schwierigkeitsgrad dazu &ndash; <b>Verr&uuml;ckt</b>, im <b>Weltraum</b>. Im Feld laufen die Hunde noch einmal halb so lang pro Schritt wie auf Experte, und einer von ihnen ist ein <b>Riesenhund</b>, der gleich <b>vier Felder</b> (2&times;2) versperrt. Auf der Strecke geht es 30&nbsp;% schneller zu, mit rund einem F&uuml;nftel mehr Bomben und Raketen. Und im Kreis l&auml;uft eine <b>Uhr</b>: 7 Sekunden je Zug &ndash; verstreichen sie ungenutzt, kostet das ein Leben. Jede Aktion stellt sie zur&uuml;ck. Dahinter wartet noch ein letzter, verborgener Bonus.
+        <b>&#128736; Friedhof-Bonus</b> (aus dem Lauf auf dem Friedhof): Es kommt ein f&uuml;nfter Schwierigkeitsgrad dazu &ndash; <b>Verr&uuml;ckt</b>, im <b>Weltraum</b>. Im Feld laufen die Hunde noch einmal halb so lang pro Schritt wie auf Experte, und zwei von ihnen sind <b>Riesenhunde</b>, die je <b>vier Felder</b> (2&times;2) versperren. Auf der Strecke geht es 30&nbsp;% schneller zu, mit rund einem F&uuml;nftel mehr Bomben und Raketen. Und im Kreis l&auml;uft eine <b>Uhr</b>: 7 Sekunden je Zug &ndash; verstreichen sie ungenutzt, kostet das ein Leben. Jede Aktion stellt sie zur&uuml;ck. Dahinter wartet noch ein letzter, verborgener Bonus.
       </div>
     </details>
     <details class="ed-adv">
@@ -1941,9 +1959,10 @@
     const bw=host.clientWidth, bh=host.clientHeight;
     const nw=inner.offsetWidth, nh=inner.offsetHeight;
     if(!bw||!bh||!nw||!nh) return;
-    if(mode==='adventure'){                    // Symbolkette etwas ueber der Mitte, damit „Start" frei bleibt
-      inner.style.top='34%'; inner.style.bottom='auto'; inner.style.transformOrigin='center center';
-      inner.style.transform='translate(-50%,-50%)';
+    if(mode==='adventure'){                    // Symbolkette so gross wie moeglich, sie fuellt die Kachel
+      const k=Math.min(bw/nw, bh/nh)*0.96;
+      inner.style.top='50%'; inner.style.bottom='auto'; inner.style.transformOrigin='center center';
+      inner.style.transform=`translate(-50%,-50%) scale(${k.toFixed(3)})`;
     } else if(mode==='circle'){                // Kreis ganz zeigen
       const k=Math.min(bw/nw, bh/nh)*0.98;
       inner.style.top='50%'; inner.style.bottom='auto'; inner.style.transformOrigin='center center';
@@ -2240,7 +2259,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.57";
+  const APP_VERSION = "1.58";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -2517,19 +2536,21 @@
       let placed=0,tr=0;
       while(placed<hazardCount && tr++<1500){ const x=randInt(cols),y=randInt(rows); if(!hazFree(x,y)) continue; if(shared.hazards.some(h=>Math.abs(h.x-x)+Math.abs(h.y-y)<2)) continue; shared.hazards.push({x,y}); occ2.add(x+','+y); placed++; }
     }
-    // Weltraum: einer der Hunde ist ein Riesenhund und belegt 2x2 Felder. Er bekommt seinen
+    // Weltraum: zwei der Hunde sind Riesenhunde und belegen je 2x2 Felder. Sie bekommen ihren
     // eigenen Platz, damit die drei Zusatzfelder wirklich frei sind – findet sich keiner,
     // bleibt es bei normalen Hunden.
     if(diffKey==='verrueckt' && shared.hazardType==='dog'){
-      let tr3=0;
-      while(tr3++<800){
-        const x=randInt(cols-1), y=randInt(rows-1);
-        const felder=[[x,y],[x+1,y],[x,y+1],[x+1,y+1]];
-        if(felder.some(([fx,fy])=>!hazFree(fx,fy))) continue;
-        if(shared.hazards.some(h=>felder.some(([fx,fy])=>Math.abs(h.x-fx)+Math.abs(h.y-fy)<2))) continue;
-        shared.hazards.push({x,y,gross:true});
-        felder.forEach(([fx,fy])=>occ2.add(fx+','+fy));
-        break;
+      for(let n=0;n<2;n++){
+        let tr3=0;
+        while(tr3++<800){
+          const x=randInt(cols-1), y=randInt(rows-1);
+          const felder=[[x,y],[x+1,y],[x,y+1],[x+1,y+1]];
+          if(felder.some(([fx,fy])=>!hazFree(fx,fy))) continue;
+          if(shared.hazards.some(h=>hazardFelder(h).some(p=>felder.some(([fx,fy])=>Math.abs(p.x-fx)+Math.abs(p.y-fy)<2)))) continue;
+          shared.hazards.push({x,y,gross:true});
+          felder.forEach(([fx,fy])=>occ2.add(fx+','+fy));
+          break;
+        }
       }
     }
     return shared;
@@ -3660,7 +3681,7 @@
   function nachtPlan(){
     clearTimeout(nachtTimer); nachtTimer=null;
     if(!bonusAn('nachtleben')) return;
-    nachtTimer=setTimeout(()=>{ nachtFlug(); nachtPlan(); }, 20000+Math.random()*10000);
+    nachtTimer=setTimeout(()=>{ nachtFlug(); nachtPlan(); }, 10000+Math.random()*10000);
   }
   function nachtAn(){
     const an=bonusAn('nachtleben');
@@ -5113,7 +5134,12 @@
   function spcUhrAnzeige(){
     const box=$('spc-uhr-box'); if(!box) return;
     box.classList.toggle('hidden', !spcUhrAktiv());
-    if(spcUhrAktiv()) $('spc-uhr').textContent=Math.max(0, Math.ceil((spcUhrBis-Date.now())/1000));
+    if(!spcUhrAktiv()) return;
+    const rest=Math.max(0, spcUhrBis-Date.now());
+    $('spc-uhr').textContent=Math.ceil(rest/1000);
+    $('spc-uhr-fill').style.width=(rest/(SPC_UHR_S*1000)*100).toFixed(1)+'%';
+    box.classList.toggle('knapp', rest<=3000);
+    box.classList.toggle('pause', !spcUhr);          // eingefroren, solange kein Takt laeuft
   }
   function spcUhrStart(){
     spcUhrStop();
@@ -5168,12 +5194,14 @@
   async function spcMove(choice){
     const cs=spcState; if(!cs||cs.phase!=='playing'||cs.animating) return;
     sfx('move');
+    // Die Uhr friert sofort ein – waehrend die Animation laeuft, soll sie nicht weiterlaufen
+    spcUhrStop(); spcUhrAnzeige();
     document.querySelectorAll('#circle-steps button').forEach(b=>b.disabled=true);
     await circleStep(cs, choice, 'both');
     if(!cs.mounted) return;
     if(cs.phase==='won') sfx('win');
     spcRender();
-    spcUhrStart();                                   // jede Aktion setzt die Uhr zurueck
+    spcUhrStart();                                   // erst nach der Animation laeuft sie neu
   }
 
   // ===================== ABENTEUER =====================
