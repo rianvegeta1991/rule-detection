@@ -43,6 +43,26 @@
   .ed-adv summary:hover{color:var(--text);}
   #ed-jump-rows select{background:#0b1220; color:var(--text); border:1px solid var(--cell-border); border-radius:8px; padding:5px 7px; font-family:inherit;}
 
+  /* ===== Buero-Bonus: Spritztour im Startbildschirm ===== */
+  #fahrt-bg{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;}
+  /* Abdunkeln, damit das Menue ueber der bewegten Kulisse lesbar bleibt */
+  /* Schleier: die Kulissen duerfen durchscheinen, aber das Menue muss lesbar bleiben */
+  #fahrt-bg::after{content:''; position:absolute; inset:0; background:rgba(15,23,42,0.68);}
+  .fahrt-band{position:absolute; left:0; top:0; height:100%; width:800vw; display:flex;
+    animation:fahrtRollen 48s linear infinite;}
+  .fahrt-kulisse{width:100vw; height:100%; flex:0 0 100vw; background-size:cover; background-position:center bottom;}
+  @keyframes fahrtRollen{ from{transform:translateX(0);} to{transform:translateX(-400vw);} }
+  /* Ganz unten am Rand: dort bleibt unter dem Menue noch Platz, das Auto faehrt wie auf einer Strasse */
+  .fahrt-auto{position:absolute; left:50%; bottom:1.5%; width:min(44vw,250px); z-index:1;
+    animation:fahrtWippen 0.42s ease-in-out infinite alternate;}
+  .fahrt-auto svg{width:100%; height:auto; display:block; filter:drop-shadow(0 6px 10px rgba(0,0,0,0.5));}
+  @keyframes fahrtWippen{ from{transform:translate(-50%,0);} to{transform:translate(-50%,-5px);} }
+  .fahrt-auto .rad{transform-box:fill-box; transform-origin:center; animation:radDrehen 0.55s linear infinite;}
+  @keyframes radDrehen{ to{transform:rotate(360deg);} }
+  @media (prefers-reduced-motion: reduce){
+    .fahrt-band, .fahrt-auto, .fahrt-auto .rad{animation:none;}
+  }
+
   /* ===== Garten-Bonus: tanzende Blume ===== */
   /* Beide Posen liegen uebereinander; die Animation blendet im Halbsekundentakt hart um.
      Ein gemeinsamer Takt statt eines Timers – dadurch tanzen alle Blumen synchron. */
@@ -853,6 +873,12 @@
 </head>
 <body>
 
+<!-- Buero-Bonus: fahrende Kulisse hinter dem Menue (nur wenn freigeschaltet und aktiv) -->
+<div id="fahrt-bg" class="hidden" aria-hidden="true">
+  <div class="fahrt-band"></div>
+  <div class="fahrt-auto"></div>
+</div>
+
 <div id="lang-pick">
   <button id="lang-de" data-lang="de" aria-label="Deutsch" title="Deutsch">
     <svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -1447,10 +1473,12 @@
     </details>
     <details class="ed-adv">
       <summary data-en="Adventure">Abenteuer</summary>
-      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.">
+      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard.">
         Drei Einzelspieler-Partien am St&uuml;ck auf dem gew&auml;hlten Schwierigkeitsgrad, in zuf&auml;lliger Reihenfolge: <b>Spurensuche</b>, <b>Strecke</b> und <b>Kreis</b> &ndash; jede in ihrer harten Fassung: Ber&uuml;hrung t&ouml;tet, die Fahrt endet an einer Ziellinie, und die Leben der Katze z&auml;hlen. Verlierst du eine davon, beginnt der ganze Lauf von vorn. Gewinnst du alle drei, gibt es ein Feuerwerk und ein <b>Passwort</b>. In den Einstellungen unter „Freischaltungen" eingegeben schaltet es seinen Bonus frei; danach kannst du diesen Bonus beliebig an- und abschalten. Jeder Schwierigkeitsgrad hat sein eigenes Passwort.
         <br><br>
         <b>&#127804; Garten-Bonus</b> (aus dem Lauf im Garten): Statt Sherlock, Auto und Katze f&uuml;hrst du in <b>allen</b> Modi eine <b>tanzende Blume</b>, die im Halbsekundentakt zwischen zwei Posen wechselt. Sie zeigt weiterhin an, wohin sie l&auml;uft, springt und schlingert auf der Strecke wie gewohnt, und ihr Schal tr&auml;gt im Duell die Spielerfarbe.
+        <br><br>
+        <b>&#128663; B&uuml;ro-Bonus</b> (aus dem Lauf im B&uuml;ro): Der Startbildschirm steht nicht mehr still &ndash; Sherlock f&auml;hrt im roten Auto vorbei, die Katze sitzt hinten drin, und die Kulisse wechselt in einer Endlosschleife zwischen Garten, B&uuml;ro, Nachtleben und Friedhof.
       </div>
     </details>
     <details class="ed-adv">
@@ -1696,6 +1724,45 @@
   }
   function blumeSvg(dir){ return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${blumeInner(dir==null?2:dir)}</svg>`; }
   function gartenBlume(){ return bonusAn('garten'); }
+
+  // ---- Buero-Bonus: die Spritztour im Startbildschirm ----
+  // Das Auto von der Seite, Sherlock am Steuer (vorne rechts, es faehrt nach rechts), die Katze
+  // hinten. Die Raeder tragen die Klasse `rad` und drehen sich per CSS.
+  function autoSeiteSvg(){
+    const rot='#e11d48', rotD='#9f1239', glas='#7dd3fc', reifen='#111827', felge='#94a3b8',
+          haut='#f0d0ab', hut='#6b4726', hutD='#4a3018', katze='#38bdf8', dunkel='#0b1220';
+    return `<svg viewBox="0 0 200 104" xmlns="http://www.w3.org/2000/svg">`
+      + `<ellipse cx="100" cy="95" rx="78" ry="6" fill="rgba(0,0,0,0.35)"/>`
+      // Karosserie
+      + `<path d="M16 78 Q14 56 34 52 L58 50 Q74 26 106 25 Q142 24 156 50 L178 56 Q188 60 186 78 Z" fill="${rot}"/>`
+      + `<path d="M16 78 Q14 56 34 52 L58 50 Q74 26 106 25 Q142 24 156 50 L178 56 Q188 60 186 78 Z" fill="none" stroke="${rotD}" stroke-width="2"/>`
+      + `<path d="M18 74 L184 74" stroke="${rotD}" stroke-width="1.6" opacity="0.7"/>`
+      // Fenster: hinten die Katze, vorne Sherlock
+      + `<path d="M64 48 Q76 31 98 30 L98 48 Z" fill="${glas}" opacity="0.85"/>`
+      + `<path d="M104 30 Q134 30 148 48 L104 48 Z" fill="${glas}" opacity="0.85"/>`
+      // Katze hinten
+      + `<g><circle cx="84" cy="41" r="7.4" fill="${katze}"/>`
+      +   `<path d="M77.6 36.4 L76.4 30.4 L82 34.2 Z" fill="${katze}"/>`
+      +   `<path d="M90.4 36.4 L91.6 30.4 L86 34.2 Z" fill="${katze}"/>`
+      +   `<circle cx="81.4" cy="41" r="1.15" fill="${dunkel}"/><circle cx="86.6" cy="41" r="1.15" fill="${dunkel}"/>`
+      +   `<path d="M83.4 44 L84.6 44" stroke="${dunkel}" stroke-width="1.2" stroke-linecap="round"/></g>`
+      // Sherlock vorne, mit Deerstalker
+      + `<g><circle cx="126" cy="42" r="7.6" fill="${haut}"/>`
+      +   `<circle cx="129.4" cy="41.6" r="1.15" fill="${dunkel}"/>`
+      +   `<path d="M130.6 45 Q132.6 45.8 131.4 47" stroke="#33261a" stroke-width="0.9" fill="none"/>`
+      +   `<path d="M119.2 37.2 Q126 30.6 132.8 37.2 Z" fill="${hut}"/>`
+      +   `<rect x="116.6" y="36.2" width="18.8" height="3.1" rx="1.55" fill="${hutD}"/></g>`
+      // Scheinwerfer und Rueckleuchte
+      + `<path d="M182 62 q6 4 0 9" fill="#fde68a"/>`
+      + `<path d="M18 62 q-5 4 0 9" fill="#fca5a5"/>`
+      // Raeder
+      + `<circle cx="58" cy="79" r="15" fill="${reifen}"/><circle cx="146" cy="79" r="15" fill="${reifen}"/>`
+      + `<g class="rad"><circle cx="58" cy="79" r="7" fill="${felge}"/>`
+      +   `<path d="M58 72 L58 86 M51 79 L65 79 M53 74 L63 84 M63 74 L53 84" stroke="${reifen}" stroke-width="1.6"/></g>`
+      + `<g class="rad"><circle cx="146" cy="79" r="7" fill="${felge}"/>`
+      +   `<path d="M146 72 L146 86 M139 79 L153 79 M141 74 L151 84 M151 74 L141 84" stroke="${reifen}" stroke-width="1.6"/></g>`
+      + `</svg>`;
+  }
 
   function carSvg(){ return `<svg viewBox="0 0 24 34" xmlns="http://www.w3.org/2000/svg">`
     + `<rect x="3.5" y="8.5" width="4" height="7" rx="1.5" fill="#0b1220"/><rect x="16.5" y="8.5" width="4" height="7" rx="1.5" fill="#0b1220"/>`
@@ -2043,7 +2110,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.52";
+  const APP_VERSION = "1.53";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -3148,11 +3215,17 @@
   // Jeder Bonus haengt an dem Passwort, das ein bestandener Abenteuer-Lauf ausgibt. Freigeschaltet
   // wird einmal, danach ist das Flag frei schaltbar – beides steckt im localStorage. `bonusAn(id)`
   // ist der Schalter, den die Zusatzinhalte selbst abfragen.
+  // `zu` ist der Name, solange der Bonus verschlossen ist – was dahintersteckt, bleibt bis dahin
+  // eine Ueberraschung. Erst nach dem Einloesen steht dort, was er tatsaechlich tut.
   const BONI=[
-    { id:'garten',     pw:'flowerpower!',           de:'&#127804; Tanzende Blume als Spielfigur', en:'&#127804; Dancing flower as your figure' },
-    { id:'buero',      pw:'coffebreak?',            de:'B&uuml;ro-Bonus',   en:'Office bonus' },
-    { id:'nachtleben', pw:'toomuchis:toomuch',      de:'Nachtleben-Bonus',  en:'Nightlife bonus' },
-    { id:'friedhof',   pw:'rest_in_awesomeness_67', de:'Friedhof-Bonus',    en:'Graveyard bonus' }
+    { id:'garten',     pw:'flowerpower!',           zu:'Garten-Bonus',     zuEn:'Garden bonus',
+      de:'&#127804; Tanzende Blume als Spielfigur', en:'&#127804; Dancing flower as your figure' },
+    { id:'buero',      pw:'coffebreak?',            zu:'B&uuml;ro-Bonus',  zuEn:'Office bonus',
+      de:'&#128663; Spritztour im Startbildschirm', en:'&#128663; Road trip on the start screen' },
+    { id:'nachtleben', pw:'toomuchis:toomuch',      zu:'Nachtleben-Bonus', zuEn:'Nightlife bonus',
+      de:'Nachtleben-Bonus',  en:'Nightlife bonus' },
+    { id:'friedhof',   pw:'rest_in_awesomeness_67', zu:'Friedhof-Bonus',   zuEn:'Graveyard bonus',
+      de:'Friedhof-Bonus',    en:'Graveyard bonus' }
   ];
   const BONUS_KEY='regel-detektiv-boni';
   let boni={ frei:{}, aktiv:{} };
@@ -3166,8 +3239,11 @@
       const frei=!!boni.frei[b.id];
       const zeile=el('label','opt-zeile'+(frei?'':' gesperrt'));
       const box=document.createElement('input'); box.type='checkbox'; box.checked=!!boni.aktiv[b.id]; box.disabled=!frei;
-      box.addEventListener('change',()=>{ boni.aktiv[b.id]=box.checked; bonusSpeichern(); });
-      const txt=el('span'); txt.innerHTML=(frei?'':'&#128274; ')+T(b.de,b.en);
+      // Der Hintergrund-Bonus wirkt sofort, ohne den Umweg ueber einen Neustart
+      box.addEventListener('change',()=>{ boni.aktiv[b.id]=box.checked; bonusSpeichern();
+        if(!$('start-screen').classList.contains('hidden') || !$('online').classList.contains('hidden')) startBg();
+        refreshPreviews(); });
+      const txt=el('span'); txt.innerHTML=frei ? T(b.de,b.en) : '&#128274; '+T(b.zu,b.zuEn);
       zeile.appendChild(box); zeile.appendChild(txt); host.appendChild(zeile);
     });
   }
@@ -3180,8 +3256,9 @@
     const neu=treffer.filter(b=>!boni.frei[b.id]);
     treffer.forEach(b=>{ boni.frei[b.id]=true; if(boni.aktiv[b.id]===undefined) boni.aktiv[b.id]=true; });
     bonusSpeichern(); bonusListe(); feld.value='';
-    msg.textContent = neu.length
-      ? T('Freigeschaltet: ','Unlocked: ')+neu.map(b=>T(b.de,b.en).replace(/&uuml;/g,'ü')).join(', ')
+    // innerHTML, weil die Namen Symbole als HTML-Entities tragen
+    msg.innerHTML = neu.length
+      ? T('Freigeschaltet: ','Unlocked: ')+neu.map(b=>T(b.de,b.en)).join(', ')
       : T('War schon freigeschaltet.','Was already unlocked.');
     sfx('win');
   }
@@ -3197,6 +3274,9 @@
     const warOffen=!$('settings-modal').classList.contains('hidden');
     $('settings-modal').classList.add('hidden');
     if(warOffen) resumeAfterReveal();
+    // Ein hier eingeloester Bonus soll gleich wirken – der Hintergrund wird darum neu gesetzt.
+    // Aus hideAllScreens heraus greift das nicht, weil dann kein Menue mehr sichtbar ist.
+    if(warOffen && (!$('start-screen').classList.contains('hidden') || !$('online').classList.contains('hidden'))) startBg();
   }
   $('opt-sfx').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('sfx-val').textContent=v+'%'; setSfxVol(v/100); });
   $('opt-music').addEventListener('input', e=>{ const v=parseInt(e.target.value,10)||0; $('music-val').textContent=v+'%'; setMusicVol(v/100); });
@@ -3227,7 +3307,7 @@
 
   // Das Zahnrad bleibt ueberall erreichbar – im Spiel zeigt es die abgespeckten Einstellungen.
   // Die Sprachwahl dagegen nur im Menue: mitten im Spiel wuerde sie die laufende Partie nicht neu beschriften.
-  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('lang-pick').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
+  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('lang-pick').classList.add('hidden'); $('fahrt-bg').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
   function teardownActive(){
     if(race){ race.mounted=false; race.alive=false; raceClearTimers(); }
     if(spcState) spcState.mounted=false;
@@ -3238,7 +3318,28 @@
       if(mp.players) mp.players.forEach(p=>{ if(p.cs) p.cs.mounted=false; if(p.board) stopDogTimer(p.board); });
     }
   }
-  function startBg(){ document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`; }
+  // ---- Buero-Bonus: Spritztour statt Standbild ----
+  // Vier Kulissen laufen als Endlosband nach links, das Auto steht in der Mitte und wippt.
+  // Das Band traegt jede Kulisse zweimal – nach der halben Strecke sieht es aus wie am Anfang,
+  // dadurch springt der Uebergang nicht.
+  const FAHRT_ZONEN=['garden','office','night','graveyard'];
+  function fahrtAufbauen(){
+    const lage=$('fahrt-bg'); if(!lage || lage.dataset.fertig) return;
+    const band=lage.querySelector('.fahrt-band');
+    FAHRT_ZONEN.concat(FAHRT_ZONEN).forEach(z=>{
+      const p=el('div','fahrt-kulisse'); p.style.backgroundImage=`url("${svgUrl(z)}")`; band.appendChild(p);
+    });
+    lage.querySelector('.fahrt-auto').innerHTML=autoSeiteSvg();
+    lage.dataset.fertig='1';
+  }
+  function startBg(){
+    const fahrt=bonusAn('buero');
+    const lage=$('fahrt-bg');
+    if(fahrt) fahrtAufbauen();
+    if(lage) lage.classList.toggle('hidden', !fahrt);
+    // Unter der Fahrt bleibt das Standbild als Rueckfall liegen, falls eine Kulisse fehlt
+    document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`;
+  }
   function backToMenu(){ musicSetTrack('menu'); raceDuel=null; abenteuer=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('lang-pick').classList.remove('hidden'); startBg(); }
   // ===================== SOUND (Web Audio, komplett synthetisiert – keine externen Dateien) =====================
   const AUDIO_KEY='regel-detektiv-audio';
