@@ -44,43 +44,62 @@
   #ed-jump-rows select{background:#0b1220; color:var(--text); border:1px solid var(--cell-border); border-radius:8px; padding:5px 7px; font-family:inherit;}
 
   /* ===== Buero-Bonus: Spritztour im Startbildschirm =====
-     Vier Ebenen uebereinander: Kulisse (fern, langsam), Strasse und naher Boden (schnell),
-     das Auto darauf, davor die Requisiten. Kulisse und Strasse brauchen fuer eine Zone
-     gleich lang (12 s) – die Strasse legt dabei die doppelte Strecke zurueck, das gibt die
-     Tiefenwirkung, ohne dass Zone und Belag auseinanderlaufen. */
+     Alle Ebenen (Kulisse, Strasse, naher Boden, Requisiten) haben dieselbe Feldbreite und
+     denselben Takt – nur so fallen die Zonenwechsel von Strasse und Hintergrund zusammen.
+     Das Tempo macht stattdessen die Mittellinie, die zusaetzlich ueber den Belag laeuft. */
   #fahrt-bg{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none;
-    --f-boden:0.4%; --f-strasse:14%;}
+    --f-boden:8%; --f-strasse:12.5%;}
   /* Schleier: die Kulissen duerfen durchscheinen, aber das Menue muss lesbar bleiben.
      Auto und Requisiten liegen darueber und bleiben dadurch farbig. */
   #fahrt-bg::after{content:''; position:absolute; inset:0; background:rgba(15,23,42,0.68);}
-  .fahrt-band{position:absolute; left:0; bottom:calc(var(--f-boden) + var(--f-strasse)); height:100%;
-    width:800vw; display:flex; will-change:transform; animation:fahrtRollen 48s linear infinite;}
+  .fahrt-band, .fahrt-strasse, .fahrt-boden, .fahrt-vorne{position:absolute; left:0; width:800vw;
+    display:flex; will-change:transform; animation:fahrtRollen 48s linear infinite;}
+  .fahrt-band{bottom:calc(var(--f-boden) + var(--f-strasse)); height:100%;}
   .fahrt-kulisse{width:100vw; height:100%; flex:0 0 100vw; background-size:cover; background-position:center bottom;}
   @keyframes fahrtRollen{ from{transform:translateX(0);} to{transform:translateX(-400vw);} }
-  /* Strasse, naher Boden und Requisiten teilen sich Takt und Feldbreite (200vw je Zone) */
-  .fahrt-strasse, .fahrt-boden, .fahrt-vorne{position:absolute; left:0; width:1600vw; display:flex;
-    will-change:transform; animation:fahrtNah 48s linear infinite;}
   /* Strasse und naher Boden liegen ueber dem Schleier: sie sind die Buehne, auf der das Auto
      faehrt, und unter ihnen steht kein Text, der lesbar bleiben muesste. */
   .fahrt-strasse{bottom:var(--f-boden); height:var(--f-strasse); z-index:1;}
   .fahrt-boden{bottom:0; height:var(--f-boden); z-index:1;}
-  .fahrt-vorne{bottom:0; height:40%; z-index:2;}
-  .fahrt-spur, .fahrt-vfeld{flex:0 0 200vw; width:200vw; height:100%; position:relative;}
-  .fahrt-linie{position:absolute; left:0; right:0; top:46%; height:14%; opacity:0.75;}
+  .fahrt-vorne{bottom:0; height:46%; z-index:2;}
+  .fahrt-spur, .fahrt-vfeld{flex:0 0 100vw; width:100vw; height:100%; position:relative;}
+  .fahrt-linie{position:absolute; left:0; right:0; top:44%; height:13%; opacity:0.8;
+    animation:fahrtStriche 1.5s linear infinite;}
+  @keyframes fahrtStriche{ from{background-position-x:0;} to{background-position-x:-12vw;} }
   .fahrt-prop{position:absolute; bottom:0;}
   .fahrt-prop svg{width:100%; height:auto; display:block; filter:drop-shadow(0 4px 8px rgba(0,0,0,0.45));}
-  @keyframes fahrtNah{ from{transform:translateX(0);} to{transform:translateX(-800vw);} }
-  /* Das Auto steht ganz vorn auf der Strasse: auf dem Handy deckt das Menue alles darueber ab,
-     hier unten bleiben Sherlock und die Katze im Fenster sichtbar. */
-  .fahrt-auto{position:absolute; left:50%; bottom:0.6%;
-    width:min(54vw,300px); z-index:1; animation:fahrtWippen 0.42s ease-in-out infinite alternate;}
+  /* Betrunkener Sherlock im Nachtleben: er schwankt um seine Fuesse, die Flasche schwankt mit */
+  .fahrt-taumel{position:relative; transform-origin:50% 100%;
+    animation:fahrtSchwanken 2.4s ease-in-out infinite alternate;}
+  .fahrt-prop .fahrt-flasche{position:absolute; right:-6%; bottom:18%; width:24%;}
+  @keyframes fahrtSchwanken{ from{transform:rotate(-11deg);} to{transform:rotate(9deg);} }
+  /* Leuchtreklame: blinkt in unregelmaessigem Takt */
+  .fahrt-neon{animation:fahrtBlinken 2.2s steps(1,end) infinite;}
+  @keyframes fahrtBlinken{ 0%,44%{opacity:1;} 46%,52%{opacity:0.18;} 54%,72%{opacity:1;} 74%,80%{opacity:0.18;} 82%,100%{opacity:1;} }
+  .fahrt-auto{position:absolute; left:50%; bottom:calc(var(--f-boden) + var(--f-strasse) * 0.1);
+    width:min(56vw,310px); z-index:1; animation:fahrtWippen 0.42s ease-in-out infinite alternate;}
   .fahrt-auto svg{width:100%; height:auto; display:block; filter:drop-shadow(0 6px 10px rgba(0,0,0,0.5));}
   @keyframes fahrtWippen{ from{transform:translate(-50%,0);} to{transform:translate(-50%,-5px);} }
   .fahrt-auto .rad{transform-box:fill-box; transform-origin:center; animation:radDrehen 0.55s linear infinite;}
   @keyframes radDrehen{ to{transform:rotate(360deg);} }
   @media (prefers-reduced-motion: reduce){
-    .fahrt-band, .fahrt-strasse, .fahrt-boden, .fahrt-vorne, .fahrt-auto, .fahrt-auto .rad{animation:none;}
+    .fahrt-band, .fahrt-strasse, .fahrt-boden, .fahrt-vorne, .fahrt-auto, .fahrt-auto .rad,
+    .fahrt-linie, .fahrt-taumel, .fahrt-neon{animation:none;}
   }
+
+  /* ===== Schaufenster: ein Tipp auf die Lupe raeumt die Anzeige weg ===== */
+  /* Nur Lupe und Untertitel bleiben stehen, der Schleier wird duenner – der Weg zurueck
+     ist derselbe Tipp auf die Lupe. */
+  /* Kein Rahmen nach dem Antippen, aber einer fuer die Tastatur */
+  .hero-ring{cursor:pointer; outline:none; border-radius:14px;}
+  .hero-ring:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+  /* !important, weil einzelne Bloecke ihr display inline mitbringen (display:flex) */
+  body.schau #start-screen > *:not(.hero){display:none !important;}
+  body.schau .hero h1, body.schau .hero .app-version{display:none;}
+  body.schau #gear-btn, body.schau #lang-pick, body.schau #sound-fab{display:none;}
+  body.schau #fahrt-bg::after{background:rgba(15,23,42,0.34);}
+  /* Der Untertitel steht jetzt direkt auf der Kulisse – auch ueber dem hellen Garten lesbar */
+  body.schau .hero .tagline{color:#f8fafc; text-shadow:0 1px 6px rgba(0,0,0,0.85), 0 0 2px rgba(0,0,0,0.9);}
 
   /* ===== Garten-Bonus: tanzende Blume ===== */
   /* Beide Posen liegen uebereinander; die Animation blendet im Halbsekundentakt hart um.
@@ -923,7 +942,9 @@
 
 <div id="start-screen">
   <div class="hero">
-    <svg class="hero-ring" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <svg class="hero-ring" id="hero-lupe" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"
+         role="button" tabindex="0" aria-label="Anzeige ausblenden und den Hintergrund zeigen"
+         data-en-aria="Hide the menu and show the background">
       <defs>
         <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#fef3c7"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#92400e"/>
@@ -1495,12 +1516,12 @@
     </details>
     <details class="ed-adv">
       <summary data-en="Adventure">Abenteuer</summary>
-      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard.">
+      <div class="intro" style="margin-top:8px;" data-en="Three single-player rounds back to back on the difficulty you pick, in random order: <b>trail</b>, <b>track</b> and <b>circle</b> &ndash; each in its hard form: contact kills, the race ends at a finish line, and the cat&#8217;s lives count. Lose one of them and the whole run starts over. Win all three and you get a fireworks display and a <b>password</b>. Enter it under &#8222;Unlocks&#8221; in the settings to unlock its bonus; after that you can switch that bonus on and off as you like. Each difficulty has its own password.<br><br><b>&#127804; Garden bonus</b> (from the run in the garden): instead of Sherlock, the car and the cat you play a <b>dancing flower</b> in <b>every</b> mode, switching between two poses every half second. It still shows which way it walks, jumps and skids on the track as usual, and its scarf carries the player colour in a duel.<br><br><b>&#128663; Office bonus</b> (from the run in the office): the start screen stops standing still &ndash; Sherlock drives past in the red car with the cat in the back, and the scenery loops endlessly through garden, office, nightlife and graveyard. Tap the <b>magnifier</b> at the top and the menu clears out of the way; tap it again to bring it back.">
         Drei Einzelspieler-Partien am St&uuml;ck auf dem gew&auml;hlten Schwierigkeitsgrad, in zuf&auml;lliger Reihenfolge: <b>Spurensuche</b>, <b>Strecke</b> und <b>Kreis</b> &ndash; jede in ihrer harten Fassung: Ber&uuml;hrung t&ouml;tet, die Fahrt endet an einer Ziellinie, und die Leben der Katze z&auml;hlen. Verlierst du eine davon, beginnt der ganze Lauf von vorn. Gewinnst du alle drei, gibt es ein Feuerwerk und ein <b>Passwort</b>. In den Einstellungen unter „Freischaltungen" eingegeben schaltet es seinen Bonus frei; danach kannst du diesen Bonus beliebig an- und abschalten. Jeder Schwierigkeitsgrad hat sein eigenes Passwort.
         <br><br>
         <b>&#127804; Garten-Bonus</b> (aus dem Lauf im Garten): Statt Sherlock, Auto und Katze f&uuml;hrst du in <b>allen</b> Modi eine <b>tanzende Blume</b>, die im Halbsekundentakt zwischen zwei Posen wechselt. Sie zeigt weiterhin an, wohin sie l&auml;uft, springt und schlingert auf der Strecke wie gewohnt, und ihr Schal tr&auml;gt im Duell die Spielerfarbe.
         <br><br>
-        <b>&#128663; B&uuml;ro-Bonus</b> (aus dem Lauf im B&uuml;ro): Der Startbildschirm steht nicht mehr still &ndash; Sherlock f&auml;hrt im roten Auto vorbei, die Katze sitzt hinten drin, und die Kulisse wechselt in einer Endlosschleife zwischen Garten, B&uuml;ro, Nachtleben und Friedhof.
+        <b>&#128663; B&uuml;ro-Bonus</b> (aus dem Lauf im B&uuml;ro): Der Startbildschirm steht nicht mehr still &ndash; Sherlock f&auml;hrt im roten Auto vorbei, die Katze sitzt hinten drin, und die Kulisse wechselt in einer Endlosschleife zwischen Garten, B&uuml;ro, Nachtleben und Friedhof. Ein Tipp auf die <b>Lupe</b> ganz oben r&auml;umt das Men&uuml; weg und gibt den Blick frei; der n&auml;chste Tipp holt es zur&uuml;ck.
       </div>
     </details>
     <details class="ed-adv">
@@ -1719,26 +1740,43 @@
   function blumeInner(dir){
     const stiel='#3f8f43', blatt='#4ade80', blattD='#1f9d55',
           kern='#fde68a', kernD='#f59e0b', petal='#f472b6', petalD='#db2777', dark='#3f2d16';
+    const profil = (dir===1 || dir===3);            // links/rechts: echte Seitenansicht
     const koerper=(p)=>{
       const nl = p===0 ? 'rotate(-30 8.6 14.2)' : 'rotate(4 8.6 14.2)';
       const nr = p===0 ? 'rotate(-4 15.4 14.2)' : 'rotate(30 15.4 14.2)';
-      let s=`<path d="M12 19 Q${p===0?'10.7':'13.3'} 14.4 12 10.6" stroke="${stiel}" stroke-width="1.7" fill="none" stroke-linecap="round"/>`
-        + `<ellipse cx="8.6" cy="14.2" rx="3.1" ry="1.45" fill="${blatt}" stroke="${blattD}" stroke-width="0.4" transform="${nl}"/>`
-        + `<ellipse cx="15.4" cy="14.2" rx="3.1" ry="1.45" fill="${blatt}" stroke="${blattD}" stroke-width="0.4" transform="${nr}"/>`
-        + `<rect x="10.2" y="11.4" width="3.6" height="1.5" rx="0.75" fill="currentColor"/>`;
-      for(let i=0;i<6;i++) s+=`<ellipse cx="12" cy="4.7" rx="1.85" ry="2.7" fill="${petal}" stroke="${petalD}" stroke-width="0.35" transform="rotate(${i*60} 12 8)"/>`;
-      s+=`<circle cx="12" cy="8" r="2.7" fill="${kern}" stroke="${kernD}" stroke-width="0.5"/>`;
-      if(dir!==0){                                   // von hinten sieht man kein Gesicht
-        const dx=(dir===1||dir===3)?0.75:0;          // im Profil schaut sie zur Seite
-        s+=`<circle cx="${(11.05+dx).toFixed(2)}" cy="7.5" r="0.5" fill="${dark}"/>`
-          +`<circle cx="${(12.95+dx).toFixed(2)}" cy="7.5" r="0.5" fill="${dark}"/>`
-          +`<path d="M${(11.1+dx).toFixed(2)} 8.85 Q${(12+dx).toFixed(2)} 9.75 ${(12.9+dx).toFixed(2)} 8.85" stroke="${dark}" stroke-width="0.45" fill="none" stroke-linecap="round"/>`;
+      let s=`<path d="M12 19 Q${p===0?'10.7':'13.3'} 14.4 12 10.6" stroke="${stiel}" stroke-width="1.7" fill="none" stroke-linecap="round"/>`;
+      if(profil){
+        // Im Profil zeigt das hintere Blatt nach hinten, das vordere ist stark verkuerzt
+        s+=`<ellipse cx="8.4" cy="14.3" rx="3.4" ry="1.35" fill="${blatt}" stroke="${blattD}" stroke-width="0.4" transform="${p===0?'rotate(-22 8.4 14.3)':'rotate(-2 8.4 14.3)'}"/>`
+          +`<ellipse cx="14.6" cy="14.6" rx="1.7" ry="0.95" fill="${blattD}" transform="${p===0?'rotate(6 14.6 14.6)':'rotate(26 14.6 14.6)'}"/>`;
+      } else {
+        s+=`<ellipse cx="8.6" cy="14.2" rx="3.1" ry="1.45" fill="${blatt}" stroke="${blattD}" stroke-width="0.4" transform="${nl}"/>`
+          +`<ellipse cx="15.4" cy="14.2" rx="3.1" ry="1.45" fill="${blatt}" stroke="${blattD}" stroke-width="0.4" transform="${nr}"/>`;
+      }
+      s+=`<rect x="${profil?'10.6':'10.2'}" y="11.4" width="${profil?'3.0':'3.6'}" height="1.5" rx="0.75" fill="currentColor"/>`;
+      if(profil){
+        // Bluetenblaetter faechern nach hinten weg, die Scheibe steht hochkant
+        [200,238,270,302,340].forEach(a=>{
+          s+=`<ellipse cx="12" cy="4.9" rx="1.6" ry="2.5" fill="${a===270?petalD:petal}" stroke="${petalD}" stroke-width="0.35" transform="rotate(${a} 12 8)"/>`;
+        });
+        s+=`<ellipse cx="12.8" cy="8" rx="1.95" ry="2.7" fill="${kern}" stroke="${kernD}" stroke-width="0.5"/>`
+          +`<circle cx="13.5" cy="7.4" r="0.5" fill="${dark}"/>`
+          +`<path d="M13.15 9 Q13.95 9.6 14.35 8.85" stroke="${dark}" stroke-width="0.45" fill="none" stroke-linecap="round"/>`;
+      } else {
+        for(let i=0;i<6;i++) s+=`<ellipse cx="12" cy="4.7" rx="1.85" ry="2.7" fill="${petal}" stroke="${petalD}" stroke-width="0.35" transform="rotate(${i*60} 12 8)"/>`;
+        s+=`<circle cx="12" cy="8" r="2.7" fill="${kern}" stroke="${kernD}" stroke-width="0.5"/>`;
+        if(dir!==0){                                 // von hinten sieht man kein Gesicht
+          s+=`<circle cx="11.05" cy="7.5" r="0.5" fill="${dark}"/><circle cx="12.95" cy="7.5" r="0.5" fill="${dark}"/>`
+            +`<path d="M11.1 8.85 Q12 9.75 12.9 8.85" stroke="${dark}" stroke-width="0.45" fill="none" stroke-linecap="round"/>`;
+        }
       }
       return s;
     };
     // Wurzelfuesse tragen die vorhandene Laufanimation des Feld-Modus mit
-    const fuesse=`<rect class="fig-leg l" x="9.2" y="18.4" width="2.3" height="4.8" rx="1.15" fill="${stiel}"/>`
-                +`<rect class="fig-leg r" x="12.5" y="18.4" width="2.3" height="4.8" rx="1.15" fill="${stiel}"/>`;
+    // Im Profil stehen die Wurzelfuesse hintereinander statt nebeneinander
+    const fx = profil ? [10.1, 11.7] : [9.2, 12.5];
+    const fuesse=`<rect class="fig-leg l" x="${fx[0]}" y="18.4" width="2.3" height="4.8" rx="1.15" fill="${stiel}"/>`
+                +`<rect class="fig-leg r" x="${fx[1]}" y="18.4" width="2.3" height="4.8" rx="1.15" fill="${stiel}"/>`;
     const inner=fuesse
       + `<g class="blume-p1" transform="rotate(-6 12 22)">${koerper(0)}</g>`
       + `<g class="blume-p2" transform="rotate(6 12 22)">${koerper(1)}</g>`;
@@ -2132,7 +2170,7 @@
 
   // Laufende Versionsnummer: major.minor. Major = großer Umbau, minor = jedes Update.
   // Bei jedem veröffentlichten Update die minor-Zahl um 1 erhöhen (siehe CLAUDE.md).
-  const APP_VERSION = "1.54";
+  const APP_VERSION = "1.55";
   (function(){ const v=$('app-version'); if(v) v.textContent = 'Version ' + APP_VERSION; })();
 
   // ===================== SPRACHE =====================
@@ -3242,7 +3280,7 @@
   const BONI=[
     { id:'garten',     pw:'flowerpower!',           zu:'Garten-Bonus',     zuEn:'Garden bonus',
       de:'&#127804; Tanzende Blume als Spielfigur', en:'&#127804; Dancing flower as your figure' },
-    { id:'buero',      pw:'coffebreak?',            zu:'B&uuml;ro-Bonus',  zuEn:'Office bonus',
+    { id:'buero',      pw:'coffeebreak?',            zu:'B&uuml;ro-Bonus',  zuEn:'Office bonus',
       de:'&#128663; Spritztour im Startbildschirm', en:'&#128663; Road trip on the start screen' },
     { id:'nachtleben', pw:'toomuchis:toomuch',      zu:'Nachtleben-Bonus', zuEn:'Nightlife bonus',
       de:'Nachtleben-Bonus',  en:'Nightlife bonus' },
@@ -3329,7 +3367,7 @@
 
   // Das Zahnrad bleibt ueberall erreichbar – im Spiel zeigt es die abgespeckten Einstellungen.
   // Die Sprachwahl dagegen nur im Menue: mitten im Spiel wuerde sie die laufende Partie nicht neu beschriften.
-  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('lang-pick').classList.add('hidden'); $('fahrt-bg').classList.add('hidden'); document.body.classList.remove('playing'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
+  function hideAllScreens(){ ['start-screen','editor-screen','sp-grid','sp-circle','mp-grid','mp-circle','mpcg','online','racing'].forEach(id=>$(id).classList.add('hidden')); $('lang-pick').classList.add('hidden'); $('fahrt-bg').classList.add('hidden'); document.body.classList.remove('playing','schau'); closeSettings(); closeGuide(); closeReveal(); closeLog(); closeMini(); }
   function teardownActive(){
     if(race){ race.mounted=false; race.alive=false; raceClearTimers(); }
     if(spcState) spcState.mounted=false;
@@ -3358,89 +3396,70 @@
   // Alles im Code gezeichnet – es kommt keine einzige Datei dazu. l = Platz im Zonenfeld (%).
   function fahrtProps(zone){
     if(zone==='garden'){
-      const busch=propSvg('0 0 120 92',
-        `<rect x="55" y="62" width="10" height="28" fill="#5b4326"/>`
-        + `<circle cx="38" cy="56" r="26" fill="#2f6b34"/><circle cx="80" cy="52" r="28" fill="#3a7d3e"/>`
-        + `<circle cx="58" cy="36" r="24" fill="#46914a"/>`);
-      const blume=propSvg('0 0 60 114',
-        `<path d="M30 112 L30 44" stroke="#3f8a3f" stroke-width="6" stroke-linecap="round"/>`
-        + `<path d="M30 80 q-20 -4 -24 -20 q18 0 24 12 Z" fill="#3f8a3f"/>`
-        + `<path d="M30 62 q20 -4 24 -20 q-18 0 -24 12 Z" fill="#4aa04a"/>`
-        + [0,60,120,180,240,300].map(a=>`<ellipse cx="30" cy="20" rx="7" ry="12" fill="#f472b6" transform="rotate(${a} 30 34)"/>`).join('')
-        + `<circle cx="30" cy="34" r="9" fill="#fbbf24"/>`);
-      const hecke=propSvg('0 0 160 74',
-        `<rect x="4" y="26" width="152" height="46" rx="12" fill="#2f6b34"/>`
-        + `<circle cx="34" cy="28" r="16" fill="#3a7d3e"/><circle cx="80" cy="24" r="18" fill="#46914a"/>`
-        + `<circle cx="126" cy="28" r="16" fill="#3a7d3e"/>`);
-      const kanne=propSvg('0 0 76 64',
-        `<rect x="14" y="26" width="36" height="34" rx="6" fill="#7dd3fc"/>`
-        + `<path d="M50 32 L70 12 L75 18 L55 38 Z" fill="#7dd3fc"/>`
-        + `<path d="M20 26 q12 -16 26 -3" stroke="#38bdf8" stroke-width="5" fill="none" stroke-linecap="round"/>`);
-      return [{l:6,w:104,s:busch},{l:29,w:52,s:blume},{l:52,w:132,s:hecke},{l:82,w:62,s:kanne}];
+      // Dieselbe tanzende Blume wie im Garten-Bonus – die Posen-Animation haengt an
+      // .blume-p1/.blume-p2 und greift hier von selbst.
+      const baum=propSvg('0 0 120 178',
+        `<rect x="52" y="94" width="16" height="84" rx="5" fill="#6b4a2b"/>`
+        + `<circle cx="60" cy="64" r="38" fill="#2f6b34"/>`
+        + `<circle cx="32" cy="84" r="26" fill="#3a7d3e"/><circle cx="88" cy="84" r="26" fill="#3a7d3e"/>`
+        + `<circle cx="60" cy="40" r="26" fill="#46914a"/>`);
+      return [{l:20,w:78,s:blumeSvg(2)},{l:64,w:108,s:baum}];
     }
     if(zone==='office'){
-      const becher=propSvg('0 0 60 104',
-        `<path d="M14 38 L19 96 q1 6 7 6 h18 q6 0 7 -6 L46 38 Z" fill="#f8fafc"/>`
-        + `<rect x="16" y="58" width="28" height="15" rx="3" fill="#94a3b8" opacity="0.55"/>`
-        + `<rect x="9" y="28" width="42" height="11" rx="5" fill="#e11d48"/>`
-        + `<path d="M24 20 q7 -8 0 -16 M38 20 q7 -8 0 -16" stroke="#cbd5e1" stroke-width="3" fill="none" opacity="0.75"/>`);
-      const akten=propSvg('0 0 96 74',
-        `<rect x="8" y="56" width="80" height="15" rx="3" fill="#cbd5e1"/>`
-        + `<rect x="13" y="41" width="74" height="15" rx="3" fill="#f8fafc"/>`
-        + `<rect x="6" y="26" width="76" height="15" rx="3" fill="#e2e8f0"/>`
-        + `<rect x="18" y="11" width="66" height="15" rx="3" fill="#f8fafc"/>`);
-      const pflanze=propSvg('0 0 84 124',
-        [[-40,-34],[0,-46],[40,-34],[-24,-16],[24,-16]].map(([dx,dy])=>
-          `<ellipse cx="${42+dx*0.7}" cy="${74+dy}" rx="16" ry="9" fill="#2f7d4f" transform="rotate(${dx*0.9} ${42+dx*0.7} ${74+dy})"/>`).join('')
-        + `<path d="M22 78 h40 l-6 42 h-28 Z" fill="#c2703c"/>`
-        + `<rect x="17" y="70" width="50" height="11" rx="3" fill="#d98552"/>`);
-      const uhr=propSvg('0 0 74 128',
-        `<rect x="33" y="62" width="8" height="62" fill="#64748b"/>`
-        + `<rect x="22" y="120" width="30" height="6" rx="3" fill="#475569"/>`
-        + `<circle cx="37" cy="38" r="28" fill="#e2e8f0" stroke="#94a3b8" stroke-width="5"/>`
-        + `<path d="M37 38 L37 20 M37 38 L50 44" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>`);
-      return [{l:7,w:48,s:becher},{l:28,w:82,s:akten},{l:53,w:74,s:pflanze},{l:80,w:60,s:uhr}];
+      const schirm=propSvg('0 0 114 112',
+        `<rect x="45" y="78" width="24" height="16" fill="#64748b"/>`
+        + `<rect x="26" y="92" width="62" height="11" rx="5" fill="#94a3b8"/>`
+        + `<rect x="5" y="6" width="104" height="74" rx="8" fill="#1f2937" stroke="#94a3b8" stroke-width="4"/>`
+        + `<rect x="14" y="15" width="86" height="56" rx="3" fill="#38bdf8" opacity="0.85"/>`
+        + `<rect x="21" y="24" width="46" height="6" rx="3" fill="#e0f2fe" opacity="0.95"/>`
+        + `<rect x="21" y="38" width="62" height="6" rx="3" fill="#e0f2fe" opacity="0.7"/>`
+        + `<rect x="21" y="52" width="34" height="6" rx="3" fill="#e0f2fe" opacity="0.7"/>`);
+      const tasse=propSvg('0 0 100 90',
+        `<path d="M30 22 q7 -9 0 -18 M48 22 q7 -9 0 -18" stroke="#cbd5e1" stroke-width="3" fill="none" opacity="0.8"/>`
+        + `<path d="M12 28 h60 v22 q0 22 -22 22 h-16 q-22 0 -22 -22 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>`
+        + `<ellipse cx="42" cy="29" rx="28" ry="6" fill="#6b4226"/>`
+        + `<path d="M72 34 q20 2 20 15 q0 13 -20 13" fill="none" stroke="#f8fafc" stroke-width="8" stroke-linecap="round"/>`
+        + `<ellipse cx="44" cy="80" rx="38" ry="7" fill="#e2e8f0"/>`);
+      return [{l:20,w:96,s:schirm},{l:64,w:84,s:tasse}];
     }
     if(zone==='night'){
-      const glas=propSvg('0 0 60 108',
-        `<path d="M9 20 L51 20 L32 54 L28 54 Z" fill="#f472b6" opacity="0.92"/>`
-        + `<rect x="27" y="52" width="6" height="40" fill="#e2e8f0"/>`
-        + `<rect x="14" y="90" width="32" height="7" rx="3" fill="#e2e8f0"/>`
-        + `<circle cx="44" cy="13" r="6" fill="#fca5a5"/>`);
-      const schild=propSvg('0 0 92 132',
-        `<rect x="43" y="62" width="7" height="66" fill="#4b5563"/>`
-        + `<rect x="8" y="10" width="76" height="54" rx="9" fill="#1f0c26" stroke="#f472b6" stroke-width="4"/>`
-        + `<path d="M26 24 v26 M26 37 h16 M42 24 v26" stroke="#f9a8d4" stroke-width="4" fill="none" stroke-linecap="round"/>`
-        + `<circle cx="64" cy="37" r="9" fill="none" stroke="#67e8f9" stroke-width="4"/>`);
-      const kugel=propSvg('0 0 72 126',
-        `<rect x="33" y="56" width="7" height="68" fill="#475569"/>`
-        + `<circle cx="36" cy="34" r="26" fill="#94a3b8"/>`
-        + `<path d="M10 34 h52 M36 8 v52 M17 16 L55 52 M55 16 L17 52" stroke="#475569" stroke-width="2"/>`
-        + `<circle cx="26" cy="24" r="4" fill="#f8fafc"/><circle cx="46" cy="42" r="4" fill="#e0f2fe"/>`);
-      const box=propSvg('0 0 72 114',
-        `<rect x="8" y="14" width="56" height="98" rx="7" fill="#111827" stroke="#374151" stroke-width="3"/>`
-        + `<circle cx="36" cy="46" r="17" fill="#1f2937" stroke="#4b5563" stroke-width="3"/>`
-        + `<circle cx="36" cy="86" r="9" fill="#1f2937" stroke="#4b5563" stroke-width="3"/>`);
-      return [{l:8,w:46,s:glas},{l:30,w:70,s:schild},{l:55,w:56,s:kugel},{l:81,w:54,s:box}];
+      // Nur die Leuchtroehren blinken, die Tafel bleibt stehen
+      const schild=propSvg('0 0 100 152',
+        `<rect x="46" y="70" width="8" height="80" fill="#4b5563"/>`
+        + `<rect x="30" y="144" width="40" height="8" rx="4" fill="#374151"/>`
+        + `<rect x="6" y="6" width="88" height="66" rx="11" fill="#1f0c26"/>`
+        + `<g class="fahrt-neon">`
+        +   `<rect x="6" y="6" width="88" height="66" rx="11" fill="none" stroke="#f472b6" stroke-width="5"/>`
+        +   `<path d="M26 22 v34 M26 39 h18 M44 22 v34" stroke="#f9a8d4" stroke-width="5" fill="none" stroke-linecap="round"/>`
+        +   `<circle cx="68" cy="39" r="12" fill="none" stroke="#67e8f9" stroke-width="5"/>`
+        + `</g>`);
+      // Sherlock nach dem Nachtleben: er schwankt und haelt eine Flasche
+      const betrunken=`<div class="fahrt-taumel">${sherlockSvg(2)}`
+        + `<svg class="fahrt-flasche" viewBox="0 0 20 44" xmlns="http://www.w3.org/2000/svg">`
+        +   `<rect x="7" y="2" width="6" height="12" rx="2" fill="#3f6b3a"/>`
+        +   `<path d="M6 13 q4 4 4 9 v16 q0 3 -3 3 h-6 q-3 0 -3 -3 V22 q0 -5 4 -9 Z" transform="translate(4,0)" fill="#2f7d4f"/>`
+        +   `<rect x="5" y="26" width="10" height="9" rx="1.5" fill="#fde68a" opacity="0.85"/>`
+        + `</svg></div>`;
+      return [{l:24,w:82,s:schild},{l:66,w:76,s:betrunken}];
     }
     // Friedhof
-    const stein=propSvg('0 0 84 114',
-      `<path d="M12 106 V44 q0 -30 30 -30 q30 0 30 30 v62 Z" fill="#64748b"/>`
-      + `<path d="M42 38 v34 M28 52 h28" stroke="#3b4553" stroke-width="6"/>`
-      + `<rect x="4" y="100" width="76" height="12" rx="5" fill="#4b5563"/>`);
-    const kreuz=propSvg('0 0 60 114',
-      `<rect x="23" y="8" width="14" height="102" fill="#78716c"/>`
-      + `<rect x="5" y="34" width="50" height="14" fill="#78716c"/>`
-      + `<rect x="12" y="104" width="36" height="9" rx="4" fill="#57534e"/>`);
-    const baum=propSvg('0 0 120 172',
-      `<path d="M58 170 V92" stroke="#3f3a35" stroke-width="15" stroke-linecap="round"/>`
-      + `<path d="M58 118 L26 84 M58 104 L92 70 M58 130 L88 106 M26 84 L14 62 M92 70 L106 52 M58 92 L58 60"`
-      + ` stroke="#3f3a35" stroke-width="8" stroke-linecap="round" fill="none"/>`);
-    const zaun=propSvg('0 0 150 96',
-      `<rect x="2" y="34" width="146" height="7" fill="#3f4652"/>`
-      + `<rect x="2" y="66" width="146" height="7" fill="#3f4652"/>`
-      + [0,1,2,3,4,5,6].map(i=>`<path d="M${8+i*22} 94 V26 l5 -10 l5 10 v68 Z" fill="#4b5563"/>`).join(''));
-    return [{l:6,w:64,s:stein},{l:27,w:46,s:kreuz},{l:50,w:104,s:baum},{l:79,w:118,s:zaun}];
+    const stein=propSvg('0 0 88 118',
+      `<path d="M12 110 V46 q0 -32 32 -32 q32 0 32 32 v64 Z" fill="#64748b"/>`
+      + `<path d="M44 40 v36 M29 55 h30" stroke="#3b4553" stroke-width="6"/>`
+      + `<rect x="3" y="104" width="82" height="13" rx="5" fill="#4b5563"/>`);
+    const skelett=propSvg('0 0 168 62',
+      `<ellipse cx="84" cy="56" rx="76" ry="5" fill="rgba(0,0,0,0.35)"/>`
+      + `<rect x="44" y="26" width="58" height="7" rx="3.5" fill="#e5e7eb"/>`
+      + [0,1,2,3].map(i=>`<path d="M${52+i*13} 26 q8 12 0 19" stroke="#e5e7eb" stroke-width="4" fill="none" stroke-linecap="round"/>`).join('')
+      + `<path d="M102 20 h14 q5 0 5 6 v13 q0 6 -6 6 h-13 Z" fill="#e5e7eb"/>`
+      + `<rect x="116" y="27" width="32" height="7" rx="3.5" fill="#e5e7eb"/>`
+      + `<rect x="140" y="31" width="26" height="7" rx="3.5" fill="#e5e7eb" transform="rotate(26 140 31)"/>`
+      + `<rect x="54" y="35" width="36" height="6" rx="3" fill="#e5e7eb" transform="rotate(15 54 35)"/>`
+      + `<circle cx="26" cy="27" r="15" fill="#f1f5f9"/>`
+      + `<path d="M15 36 h22 v7 q0 5 -5 5 h-12 q-5 0 -5 -5 Z" fill="#f1f5f9"/>`
+      + `<circle cx="21" cy="24" r="4" fill="#1f2937"/><circle cx="32" cy="24" r="4" fill="#1f2937"/>`
+      + `<path d="M26.5 29 l-3 5 h6 Z" fill="#1f2937"/>`);
+    return [{l:18,w:78,s:stein},{l:58,w:150,s:skelett}];
   }
   function fahrtAufbauen(){
     const lage=$('fahrt-bg'); if(!lage || lage.dataset.fertig) return;
@@ -3473,6 +3492,13 @@
     // Unter der Fahrt bleibt das Standbild als Rueckfall liegen, falls eine Kulisse fehlt
     document.body.style.backgroundImage=`url("${svgUrl('startbg')}")`;
   }
+  // ---- Schaufenster: die Lupe raeumt die Anzeige weg und wieder hin ----
+  function schauUm(){ document.body.classList.toggle('schau'); }
+  (function(){
+    const lupe=$('hero-lupe'); if(!lupe) return;
+    lupe.addEventListener('click', schauUm);
+    lupe.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); schauUm(); } });
+  })();
   function backToMenu(){ musicSetTrack('menu'); raceDuel=null; abenteuer=null; teardownActive(); hideAllScreens(); $('start-screen').classList.remove('hidden'); $('lang-pick').classList.remove('hidden'); startBg(); }
   // ===================== SOUND (Web Audio, komplett synthetisiert – keine externen Dateien) =====================
   const AUDIO_KEY='regel-detektiv-audio';
@@ -4919,7 +4945,7 @@
   // jede in ihrer harten Fassung (Kontakt toetet, Ziellinie statt endlos, Herzen zaehlen).
   // Eine Niederlage beendet den ganzen Lauf; drei Siege geben das Passwort des Schwierigkeitsgrads.
   const AB_TEILE=['grid','racing','circle'];
-  const AB_PASSWORT={ leicht:'flowerpower!', mittel:'coffebreak?', schwer:'toomuchis:toomuch', experte:'rest_in_awesomeness_67' };
+  const AB_PASSWORT={ leicht:'flowerpower!', mittel:'coffeebreak?', schwer:'toomuchis:toomuch', experte:'rest_in_awesomeness_67' };
   let abenteuer=null;      // { diffKey, folge:[...], idx }
   function abLaeuft(){ return !!abenteuer; }
   function abStart(diffKey){
